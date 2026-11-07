@@ -1,0 +1,47 @@
+schema_version: "1.0"
+
+preset:
+  id: "integrated-tdd"
+  name: "Integrated TDD Lifecycle"
+  version: "0.3.0"
+  description: "Makes the plan, tasks, analyze and implement stages derive verification intent from requirements and follow Red, Green, Refactor with recorded evidence"
+  author: "Lee Sinclair"
+  license: "MIT"
+
+requires:
+  speckit_version: ">=0.15.0"
+  extensions:
+    - "integrated-tdd"
+
+provides:
+  templates:
+    - type: "template"
+      name: "plan-template"
+      file: "preset/templates/plan-addendum.md"
+      description: "Adds the Verification Plan section"
+      strategy: "append"
+    - type: "template"
+      name: "tasks-template"
+      file: "preset/templates/tasks-addendum.md"
+      description: "Adds the task label conventions"
+      strategy: "append"
+    - type: "command"
+      name: "speckit.plan"
+      file: "preset/commands/speckit.plan.md"
+      description: "Wraps plan to fill and check the Verification Plan"
+      strategy: "wrap"
+    - type: "command"
+      name: "speckit.tasks"
+      file: "preset/commands/speckit.tasks.md"
+      description: "Wraps tasks to label tasks and order test work first"
+      strategy: "wrap"
+    - type: "command"
+      name: "speckit.analyze"
+      file: "preset/commands/speckit.analyze.md"
+      description: "Wraps analyze to report verification coverage findings"
+      strategy: "wrap"
+    - type: "command"
+      name: "speckit.implement"
+      file: "preset/commands/speckit.implement.md"
+      description: "Wraps implement to follow the cycle, record evidence and gate task completion"
+      strategy: "wrap"

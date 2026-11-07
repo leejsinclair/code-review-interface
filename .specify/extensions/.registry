@@ -1,0 +1,30 @@
+{
+  "schema_version": "1.0",
+  "extensions": {
+    "integrated-tdd": {
+      "version": "0.3.0",
+      "source": "local",
+      "manifest_hash": "sha256:baf07e56b41e05c9901e4f6f0e336d62327ef8c923eeb6e814fd0cc5eb8749b4",
+      "enabled": true,
+      "priority": 10,
+      "registered_commands": {},
+      "registered_skills": [],
+      "installed_at": "2026-11-07T01:27:15.254268+00:00"
+    },
+    "grill-specify": {
+      "version": "0.1.0",
+      "source": "local",
+      "manifest_hash": "sha256:b6a1bbee4ab611e4f21e37021d6a6432f6e79a0a19c663f66e16bceeaff33a4b",
+      "enabled": true,
+      "priority": 10,
+      "registered_commands": {
+        "claude": [
+          "speckit.grill-specify.with-docs",
+          "speckit.grill-specify.auto"
+        ]
+      },
+      "registered_skills": [],
+      "installed_at": "2026-11-07T01:27:24.679093+00:00"
+    }
+  }
+}

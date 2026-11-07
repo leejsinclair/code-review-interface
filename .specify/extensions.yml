@@ -1,0 +1,15 @@
+installed:
+- grill-specify
+- integrated-tdd
+settings:
+  auto_execute_hooks: true
+hooks:
+  after_specify:
+  - extension: grill-specify
+    command: speckit.grill-specify.auto
+    enabled: true
+    optional: false
+    priority: 5
+    prompt: Execute speckit.grill-specify.auto?
+    description: Grill the new spec before any other after-specify step reads it
+    condition: null

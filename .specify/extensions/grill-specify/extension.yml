@@ -1,0 +1,55 @@
+schema_version: "1.0"
+
+extension:
+  id: "grill-specify"
+  name: "Specify Grill"
+  version: "0.1.0"
+  description: "Runs the grill-with-docs interview straight after specify, so no spec reaches planning with unresolved ambiguity and settled terms and decisions land in the project's knowledge docs"
+  category: "process"
+  effect: "read-write"
+  author: "Lee Sinclair"
+  repository: "https://github.com/leejsinclair/speckit-grill-specify"
+  license: "MIT"
+
+requires:
+  speckit_version: ">=1.1.3"   # current release, verified 2026-10-11 (FR-018)
+  tools:
+    - name: "bash"
+      required: true
+
+provides:
+  commands:
+    - name: "speckit.grill-specify.with-docs"
+      file: "commands/speckit.grill-specify.with-docs.md"
+      description: "Grill the active feature spec with no question limit and save settled terms and decisions to the knowledge docs; also resumes a grill that was stopped early"
+    - name: "speckit.grill-specify.auto"
+      file: "commands/speckit.grill-specify.auto.md"
+      description: "Hook entry point: starts the grill as a nested run straight after specify"
+
+  scripts:
+    - name: "grill-context"
+      file: "scripts/bash/grill-context.sh"
+      description: "Reads the grill setting and the non-interactive signals; writes nothing"
+    - name: "grill-label"
+      file: "scripts/bash/grill-label.sh"
+      description: "Writes or refreshes the grilled-on label in the active spec"
+
+  config:
+    - name: "grill-specify-config.yml"
+      template: "config-template.yml"
+      description: "The grill setting: on, strict or off"
+      required: false
+
+hooks:
+  after_specify:
+    command: "speckit.grill-specify.auto"
+    optional: false        # starts without asking permission (FR-011)
+    priority: 5            # ahead of the default of 10 (FR-009)
+    description: "Grill the new spec before any other after-specify step reads it"
+
+tags:
+  - "clarification"
+  - "requirements"
+  - "specification"
+  - "elicitation"
+  - "workflow"

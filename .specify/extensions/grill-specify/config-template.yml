@@ -1,0 +1,5 @@
+# Specify Grill setting. One value decides what happens straight after specify:
+#   on      grill the new spec and offer a skip choice (default)
+#   strict  grill the new spec with no skip choice
+#   off     do not grill; leave the spec exactly as specify wrote it
+grill: "on"

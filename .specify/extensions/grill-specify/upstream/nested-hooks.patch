@@ -1,0 +1,11 @@
+--- body.md	2026-10-11 09:15:38.948827710 +1000
++++ new.md	2026-10-11 09:15:38.949037841 +1000
+@@ -148,6 +148,8 @@
+ 
+ ## Extension hooks (same processing as clarify)
+ 
++**Nested run (started with `--nested` by `speckit.grill-specify.auto`): this section does not apply. Process no `before_clarify` or `after_clarify` hook, on the normal path or the interrupted path. Standalone run: this section applies exactly as written below.**
++
+ If `.specify/extensions.yml` exists, process `hooks.before_clarify` before asking questions and `hooks.after_clarify` before the completion report. If the file is absent or cannot be parsed, skip it silently.
+ 
+ - Exclude hooks with `enabled: false`; treat an omitted `enabled` as enabled.

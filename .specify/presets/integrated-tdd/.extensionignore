@@ -1,0 +1,21 @@
+# Kept out of the extension install: the preset, and development and project files.
+preset/
+preset.yml
+tests/
+examples/
+docs/
+specs/
+stories/
+.specify/
+.claude/
+.git/
+.gitignore
+.gitattributes
+.ruff_cache/
+ruff.toml
+.markdownlint-cli2.yaml
+speckit-overview.md
+node_modules/
+__pycache__/
+tools/
+.github/

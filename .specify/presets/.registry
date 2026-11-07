@@ -1,0 +1,29 @@
+{
+  "schema_version": "1.0",
+  "presets": {
+    "integrated-tdd": {
+      "version": "0.3.0",
+      "source": "local",
+      "manifest_hash": "sha256:b7b5dd5489684622c1953e62f5d5ec041b7dc869dfb655d74c73b0c9dffcfdda",
+      "enabled": true,
+      "priority": 10,
+      "registered_commands": {
+        "claude": [
+          "speckit.plan",
+          "speckit.tasks",
+          "speckit.analyze",
+          "speckit.implement"
+        ]
+      },
+      "registered_skills": {
+        "claude": [
+          "speckit-plan",
+          "speckit-tasks",
+          "speckit-analyze",
+          "speckit-implement"
+        ]
+      },
+      "installed_at": "2026-11-07T01:27:15.969199+00:00"
+    }
+  }
+}

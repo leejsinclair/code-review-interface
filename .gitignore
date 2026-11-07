@@ -1,0 +1,18 @@
+# Claude Code: per-user settings and local state (project settings.json and skills are shared)
+.claude/settings.local.json
+.claude/*.local.*
+
+# Spec Kit download cache
+.specify/extensions/.cache/
+.specify/extensions/.backup/
+
+# Python
+__pycache__/
+*.pyc
+
+# Node
+node_modules/
+dist/
+coverage/
+.env
+.env.*

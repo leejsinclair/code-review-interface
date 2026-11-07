@@ -1,0 +1,1 @@
+../../../.specify/extensions/grill-specify/.specify-dev/agent-commands/claude/speckit-grill-specify-auto/SKILL.md

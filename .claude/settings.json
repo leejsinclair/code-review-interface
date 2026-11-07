@@ -1,0 +1,19 @@
+{
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "Edit|Write|MultiEdit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python3 \"${CLAUDE_PROJECT_DIR}/.specify/events.py\" speckit.integrated-tdd.gate pre_tool_use 30",
+            "timeout": 35
+          }
+        ]
+      }
+    ]
+  },
+  "enabledPlugins": {
+    "micro-kanban@speckit-mod-micro-kanban": true
+  }
+}

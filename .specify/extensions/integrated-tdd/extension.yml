@@ -1,0 +1,41 @@
+schema_version: "1.0"
+
+extension:
+  id: "integrated-tdd"
+  name: "Integrated TDD"
+  version: "0.3.0"
+  description: "Requirements-driven test-driven development inside the standard Spec Kit stages, with real test evidence and a hard stop on unverified tasks"
+  category: "process"
+  effect: "read-write"
+  author: "Lee Sinclair"
+  license: "MIT"
+
+requires:
+  speckit_version: ">=0.15.0"
+  tools:
+    - name: "python3"
+      description: "Runs the deterministic checks and the runtime event handler"
+      required: true
+
+provides:
+  templates:
+    - name: "tdd-process-rules"
+      file: "templates/tdd-process-rules.md"
+      description: "The agent-neutral process rules read by the wrapped lifecycle commands"
+    - name: "tdd-evidence-template"
+      file: "templates/tdd-evidence-template.md"
+      description: "Starting content of a feature's tdd-evidence.md"
+    - name: "behaviour-checklist-template"
+      file: "templates/behaviour-checklist-template.md"
+      description: "Starting content of a feature's tests/behaviour-checklist.md"
+  scripts:
+    - name: "tdd-check"
+      file: "scripts/python/tdd_check.py"
+      description: "Deterministic checks, test execution recording, task gate and compliance check"
+      runtimes: ["python"]
+
+events:
+  pre_tool_use:
+    command: "speckit.integrated-tdd.gate"
+    matcher: "Edit|Write|MultiEdit"
+    timeout: 30
