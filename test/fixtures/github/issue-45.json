@@ -1,0 +1,45 @@
+{
+  "request": {
+    "method": "GET",
+    "url": "https://api.github.com/repos/acme/widgets/issues/45"
+  },
+  "response": {
+    "status": 200,
+    "headers": {
+      "content-type": "application/json; charset=utf-8",
+      "x-github-media-type": "github.v3; format=json"
+    },
+    "body": {
+      "url": "https://api.github.com/repos/acme/widgets/issues/45",
+      "repository_url": "https://api.github.com/repos/acme/widgets",
+      "html_url": "https://github.com/acme/widgets/issues/45",
+      "id": 3100000045,
+      "node_id": "I_kwDOAcme0045",
+      "number": 45,
+      "title": "Customers cannot reset a password twice",
+      "user": {
+        "login": "bob-dev",
+        "id": 41002,
+        "node_id": "MDQ6VXNlcj41002",
+        "avatar_url": "https://avatars.githubusercontent.com/u/41002?v=4",
+        "url": "https://api.github.com/users/bob-dev",
+        "html_url": "https://github.com/bob-dev",
+        "type": "User",
+        "site_admin": false
+      },
+      "labels": [],
+      "state": "open",
+      "locked": false,
+      "assignee": null,
+      "assignees": [],
+      "milestone": null,
+      "comments": 0,
+      "created_at": "2026-10-20T10:00:00Z",
+      "updated_at": "2026-10-21T10:00:00Z",
+      "closed_at": null,
+      "author_association": "MEMBER",
+      "body": "**Steps**\r\n\r\n1. Request a reset\r\n2. Request another reset\r\n\r\n<b>Expected</b>: both work.",
+      "state_reason": null
+    }
+  }
+}

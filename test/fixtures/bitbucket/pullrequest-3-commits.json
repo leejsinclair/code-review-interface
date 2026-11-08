@@ -1,0 +1,88 @@
+{
+  "request": {
+    "method": "GET",
+    "url": "https://api.bitbucket.org/2.0/repositories/acme/widgets/pullrequests/3/commits"
+  },
+  "response": {
+    "status": 200,
+    "headers": {
+      "content-type": "application/json; charset=utf-8"
+    },
+    "body": {
+      "values": [
+        {
+          "type": "commit",
+          "hash": "b8d6f4e2a0c9e7b5d3f1a8c6e4b2d0f9e7c5a3b1",
+          "date": "2026-11-05T11:58:00+00:00",
+          "author": {
+            "type": "author",
+            "raw": "Carol Contributor <carol@example.com>",
+            "user": {
+              "display_name": "Carol Contributor",
+              "links": {
+                "self": {
+                  "href": "https://api.bitbucket.org/2.0/users/%7B1c2d3e4f-0000-4000-8000-0000000ca201%7D"
+                },
+                "avatar": {
+                  "href": "https://secure.gravatar.com/avatar/carol-contrib"
+                },
+                "html": {
+                  "href": "https://bitbucket.org/%7B1c2d3e4f-0000-4000-8000-0000000ca201%7D/"
+                }
+              },
+              "type": "user",
+              "uuid": "{1c2d3e4f-0000-4000-8000-0000000ca201}",
+              "account_id": "712020:aa11c000-0000-4000-8000-000000000003",
+              "nickname": "carol-contrib"
+            }
+          },
+          "message": "Guard against missing operands",
+          "summary": {
+            "type": "rendered",
+            "raw": "Guard against missing operands",
+            "markup": "markdown",
+            "html": ""
+          },
+          "links": {
+            "self": {
+              "href": "https://api.bitbucket.org/2.0/repositories/contrib/widgets/commit/b8d6f4e2a0c9e7b5d3f1a8c6e4b2d0f9e7c5a3b1"
+            },
+            "html": {
+              "href": "https://bitbucket.org/contrib/widgets/commits/b8d6f4e2a0c9e7b5d3f1a8c6e4b2d0f9e7c5a3b1"
+            }
+          },
+          "parents": [
+            {
+              "hash": "e4d2c1b0a9f8e7d6c5b4a3f2e1d0c9b8a7f6e5d4",
+              "type": "commit",
+              "links": {
+                "self": {
+                  "href": "https://api.bitbucket.org/2.0/repositories/contrib/widgets/commit/e4d2c1b0a9f8e7d6c5b4a3f2e1d0c9b8a7f6e5d4"
+                }
+              }
+            }
+          ],
+          "repository": {
+            "type": "repository",
+            "full_name": "contrib/widgets",
+            "links": {
+              "self": {
+                "href": "https://api.bitbucket.org/2.0/repositories/contrib/widgets"
+              },
+              "html": {
+                "href": "https://bitbucket.org/contrib/widgets"
+              },
+              "avatar": {
+                "href": "https://bytebucket.org/ravatar/%7B9a8b7c6d-0000-4000-8000-0000000c0de1%7D?ts=default"
+              }
+            },
+            "name": "widgets",
+            "uuid": "{9a8b7c6d-0000-4000-8000-0000000c0de1}"
+          }
+        }
+      ],
+      "pagelen": 10,
+      "page": 1
+    }
+  }
+}

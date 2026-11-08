@@ -1,0 +1,72 @@
+{
+  "request": {
+    "method": "GET",
+    "url": "https://api.github.com/repos/acme/widgets/pulls/3/commits?per_page=100"
+  },
+  "response": {
+    "status": 200,
+    "headers": {
+      "content-type": "application/json; charset=utf-8",
+      "x-github-media-type": "github.v3; format=json"
+    },
+    "body": [
+      {
+        "sha": "b8d6f4e2a0c9e7b5d3f1a8c6e4b2d0f9e7c5a3b1",
+        "node_id": "C_kwDOb8d6f4e2a0",
+        "url": "https://api.github.com/repos/acme/widgets/commits/b8d6f4e2a0c9e7b5d3f1a8c6e4b2d0f9e7c5a3b1",
+        "html_url": "https://github.com/acme/widgets/commit/b8d6f4e2a0c9e7b5d3f1a8c6e4b2d0f9e7c5a3b1",
+        "commit": {
+          "author": {
+            "name": "Carol Contributor",
+            "email": "carol-contrib@example.com",
+            "date": "2026-11-05T11:58:00Z"
+          },
+          "committer": {
+            "name": "Carol Contributor",
+            "email": "carol-contrib@example.com",
+            "date": "2026-11-05T11:58:00Z"
+          },
+          "message": "Guard against missing operands",
+          "tree": {
+            "sha": "0000000000000000000000000000000000000000",
+            "url": "https://api.github.com/repos/acme/widgets/git/trees/0000000000000000000000000000000000000000"
+          },
+          "url": "https://api.github.com/repos/acme/widgets/git/commits/b8d6f4e2a0c9e7b5d3f1a8c6e4b2d0f9e7c5a3b1",
+          "comment_count": 0,
+          "verification": {
+            "verified": false,
+            "reason": "unsigned",
+            "signature": null,
+            "payload": null
+          }
+        },
+        "author": {
+          "login": "carol-contrib",
+          "id": 41003,
+          "node_id": "MDQ6VXNlcj41003",
+          "avatar_url": "https://avatars.githubusercontent.com/u/41003?v=4",
+          "url": "https://api.github.com/users/carol-contrib",
+          "html_url": "https://github.com/carol-contrib",
+          "type": "User",
+          "site_admin": false
+        },
+        "committer": {
+          "login": "carol-contrib",
+          "id": 41003,
+          "node_id": "MDQ6VXNlcj41003",
+          "avatar_url": "https://avatars.githubusercontent.com/u/41003?v=4",
+          "url": "https://api.github.com/users/carol-contrib",
+          "html_url": "https://github.com/carol-contrib",
+          "type": "User",
+          "site_admin": false
+        },
+        "parents": [
+          {
+            "sha": "e4d2c1b0a9f8e7d6c5b4a3f2e1d0c9b8a7f6e5d4",
+            "url": "https://api.github.com/repos/acme/widgets/commits/e4d2c1b0a9f8e7d6c5b4a3f2e1d0c9b8a7f6e5d4"
+          }
+        ]
+      }
+    ]
+  }
+}

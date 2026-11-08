@@ -1,0 +1,2649 @@
+{
+  "workflow": "companion",
+  "specName": "PR Context and Interrogation",
+  "branch": "main",
+  "currentStep": "implement",
+  "status": "completed",
+  "history": [
+    {
+      "step": "specify",
+      "substep": null,
+      "kind": "start",
+      "by": "extension",
+      "at": "2026-11-07T01:39:22.117Z"
+    },
+    {
+      "step": "specify",
+      "substep": null,
+      "kind": "complete",
+      "by": "extension",
+      "at": "2026-11-07T01:42:28.904Z"
+    },
+    {
+      "step": "plan",
+      "substep": null,
+      "kind": "start",
+      "by": "extension",
+      "at": "2026-11-07T02:22:56.773Z"
+    },
+    {
+      "step": "plan",
+      "substep": "research",
+      "kind": "complete",
+      "by": "ai",
+      "at": "2026-11-07T02:28:53.424Z"
+    },
+    {
+      "step": "plan",
+      "substep": "design",
+      "kind": "complete",
+      "by": "ai",
+      "at": "2026-11-07T02:33:37.152Z"
+    },
+    {
+      "step": "plan",
+      "substep": null,
+      "kind": "complete",
+      "by": "ai",
+      "at": "2026-11-07T02:33:55.868Z"
+    },
+    {
+      "step": "tasks",
+      "substep": null,
+      "kind": "start",
+      "by": "extension",
+      "at": "2026-11-07T02:36:56.474Z"
+    },
+    {
+      "step": "tasks",
+      "substep": "generate",
+      "kind": "complete",
+      "by": "ai",
+      "at": "2026-11-07T02:46:48.786Z"
+    },
+    {
+      "step": "tasks",
+      "substep": null,
+      "kind": "complete",
+      "by": "ai",
+      "at": "2026-11-07T02:46:49.279Z"
+    },
+    {
+      "step": "analyze",
+      "substep": null,
+      "kind": "start",
+      "by": "extension",
+      "at": "2026-11-07T02:47:41.135Z"
+    },
+    {
+      "step": "analyze",
+      "substep": null,
+      "kind": "complete",
+      "by": "ai",
+      "at": "2026-11-07T02:50:29.561Z"
+    },
+    {
+      "step": "analyze",
+      "substep": null,
+      "kind": "complete",
+      "by": "extension",
+      "at": "2026-11-07T02:59:40.736Z"
+    },
+    {
+      "step": "implement",
+      "substep": null,
+      "kind": "start",
+      "by": "extension",
+      "at": "2026-11-07T02:59:50.592Z"
+    },
+    {
+      "step": "implement",
+      "substep": null,
+      "task": "T001",
+      "kind": "complete",
+      "by": "ai",
+      "at": "2026-11-07T03:00:51.443Z"
+    },
+    {
+      "step": "implement",
+      "substep": null,
+      "task": "T002",
+      "kind": "complete",
+      "by": "ai",
+      "at": "2026-11-07T03:00:51.527Z"
+    },
+    {
+      "step": "implement",
+      "substep": null,
+      "task": "T003",
+      "kind": "complete",
+      "by": "ai",
+      "at": "2026-11-07T03:01:01.465Z"
+    },
+    {
+      "step": "implement",
+      "substep": null,
+      "task": "T007",
+      "kind": "complete",
+      "by": "ai",
+      "at": "2026-11-07T03:02:28.234Z"
+    },
+    {
+      "step": "implement",
+      "substep": null,
+      "task": "T006",
+      "kind": "complete",
+      "by": "ai",
+      "at": "2026-11-07T03:02:39.347Z"
+    },
+    {
+      "step": "implement",
+      "substep": null,
+      "task": "T004",
+      "kind": "complete",
+      "by": "ai",
+      "at": "2026-11-07T03:03:16.087Z"
+    },
+    {
+      "step": "implement",
+      "substep": null,
+      "task": "T008",
+      "kind": "complete",
+      "by": "ai",
+      "at": "2026-11-07T03:03:16.152Z"
+    },
+    {
+      "step": "implement",
+      "substep": null,
+      "task": "T005",
+      "kind": "complete",
+      "by": "ai",
+      "at": "2026-11-07T03:04:02.214Z"
+    },
+    {
+      "step": "implement",
+      "substep": null,
+      "task": "T009",
+      "kind": "complete",
+      "by": "ai",
+      "at": "2026-11-07T03:09:37.071Z"
+    },
+    {
+      "step": "implement",
+      "substep": null,
+      "task": "T013",
+      "kind": "complete",
+      "by": "ai",
+      "at": "2026-11-07T03:09:37.139Z"
+    },
+    {
+      "step": "implement",
+      "substep": null,
+      "task": "T017",
+      "kind": "complete",
+      "by": "ai",
+      "at": "2026-11-07T03:09:37.205Z"
+    },
+    {
+      "step": "implement",
+      "substep": null,
+      "task": "T012",
+      "kind": "complete",
+      "by": "ai",
+      "at": "2026-11-07T03:10:37.649Z"
+    },
+    {
+      "step": "implement",
+      "substep": null,
+      "task": "T016",
+      "kind": "complete",
+      "by": "ai",
+      "at": "2026-11-07T03:10:37.713Z"
+    },
+    {
+      "step": "implement",
+      "substep": null,
+      "task": "T020",
+      "kind": "complete",
+      "by": "ai",
+      "at": "2026-11-07T03:10:37.779Z"
+    },
+    {
+      "step": "implement",
+      "substep": null,
+      "task": "T011",
+      "kind": "complete",
+      "by": "ai",
+      "at": "2026-11-07T03:11:47.441Z"
+    },
+    {
+      "step": "implement",
+      "substep": null,
+      "task": "T015",
+      "kind": "complete",
+      "by": "ai",
+      "at": "2026-11-07T03:11:47.510Z"
+    },
+    {
+      "step": "implement",
+      "substep": null,
+      "task": "T019",
+      "kind": "complete",
+      "by": "ai",
+      "at": "2026-11-07T03:11:47.576Z"
+    },
+    {
+      "step": "implement",
+      "substep": null,
+      "task": "T010",
+      "kind": "complete",
+      "by": "ai",
+      "at": "2026-11-07T03:12:14.875Z"
+    },
+    {
+      "step": "implement",
+      "substep": null,
+      "task": "T014",
+      "kind": "complete",
+      "by": "ai",
+      "at": "2026-11-07T03:12:14.941Z"
+    },
+    {
+      "step": "implement",
+      "substep": null,
+      "task": "T018",
+      "kind": "complete",
+      "by": "ai",
+      "at": "2026-11-07T03:12:15.009Z"
+    },
+    {
+      "step": "implement",
+      "substep": null,
+      "task": "T027",
+      "kind": "complete",
+      "by": "ai",
+      "at": "2026-11-07T03:15:38.250Z"
+    },
+    {
+      "step": "implement",
+      "substep": null,
+      "task": "T029",
+      "kind": "complete",
+      "by": "ai",
+      "at": "2026-11-07T03:15:53.769Z"
+    },
+    {
+      "step": "implement",
+      "substep": null,
+      "task": "T021",
+      "kind": "complete",
+      "by": "ai",
+      "at": "2026-11-07T03:16:28.614Z"
+    },
+    {
+      "step": "implement",
+      "substep": null,
+      "task": "T023",
+      "kind": "complete",
+      "by": "ai",
+      "at": "2026-11-07T03:16:28.695Z"
+    },
+    {
+      "step": "implement",
+      "substep": null,
+      "task": "T025",
+      "kind": "complete",
+      "by": "ai",
+      "at": "2026-11-07T03:16:28.774Z"
+    },
+    {
+      "step": "implement",
+      "substep": null,
+      "task": "T024",
+      "kind": "complete",
+      "by": "ai",
+      "at": "2026-11-07T03:16:47.255Z"
+    },
+    {
+      "step": "implement",
+      "substep": null,
+      "task": "T030",
+      "kind": "complete",
+      "by": "ai",
+      "at": "2026-11-07T03:18:09.780Z"
+    },
+    {
+      "step": "implement",
+      "substep": null,
+      "task": "T022",
+      "kind": "complete",
+      "by": "ai",
+      "at": "2026-11-07T03:18:35.469Z"
+    },
+    {
+      "step": "implement",
+      "substep": null,
+      "task": "T031",
+      "kind": "complete",
+      "by": "ai",
+      "at": "2026-11-07T03:21:13.112Z"
+    },
+    {
+      "step": "implement",
+      "substep": null,
+      "task": "T032",
+      "kind": "complete",
+      "by": "ai",
+      "at": "2026-11-07T03:21:13.181Z"
+    },
+    {
+      "step": "implement",
+      "substep": null,
+      "task": "T033",
+      "kind": "complete",
+      "by": "ai",
+      "at": "2026-11-07T03:21:13.250Z"
+    },
+    {
+      "step": "implement",
+      "substep": null,
+      "task": "T034",
+      "kind": "complete",
+      "by": "ai",
+      "at": "2026-11-07T03:21:13.317Z"
+    },
+    {
+      "step": "implement",
+      "substep": null,
+      "task": "T035",
+      "kind": "complete",
+      "by": "ai",
+      "at": "2026-11-07T03:21:57.116Z"
+    },
+    {
+      "step": "implement",
+      "substep": null,
+      "task": "T036",
+      "kind": "complete",
+      "by": "ai",
+      "at": "2026-11-07T03:21:57.183Z"
+    },
+    {
+      "step": "implement",
+      "substep": null,
+      "task": "T037",
+      "kind": "complete",
+      "by": "ai",
+      "at": "2026-11-07T03:21:57.252Z"
+    },
+    {
+      "step": "implement",
+      "substep": null,
+      "task": "T043",
+      "kind": "complete",
+      "by": "ai",
+      "at": "2026-11-07T03:21:58.245Z"
+    },
+    {
+      "step": "implement",
+      "substep": null,
+      "task": "T038",
+      "kind": "complete",
+      "by": "ai",
+      "at": "2026-11-07T03:22:00.777Z"
+    },
+    {
+      "step": "implement",
+      "substep": null,
+      "task": "T040",
+      "kind": "complete",
+      "by": "ai",
+      "at": "2026-11-07T03:23:39.903Z"
+    },
+    {
+      "step": "implement",
+      "substep": null,
+      "task": "T042",
+      "kind": "complete",
+      "by": "ai",
+      "at": "2026-11-07T03:23:39.968Z"
+    },
+    {
+      "step": "implement",
+      "substep": null,
+      "task": "T044",
+      "kind": "complete",
+      "by": "ai",
+      "at": "2026-11-07T03:23:40.036Z"
+    },
+    {
+      "step": "implement",
+      "substep": null,
+      "task": "T028",
+      "kind": "complete",
+      "by": "ai",
+      "at": "2026-11-07T03:23:40.101Z"
+    },
+    {
+      "step": "implement",
+      "substep": null,
+      "task": "T039",
+      "kind": "complete",
+      "by": "ai",
+      "at": "2026-11-07T03:25:22.109Z"
+    },
+    {
+      "step": "implement",
+      "substep": null,
+      "task": "T041",
+      "kind": "complete",
+      "by": "ai",
+      "at": "2026-11-07T03:25:22.177Z"
+    },
+    {
+      "step": "implement",
+      "substep": null,
+      "task": "T026",
+      "kind": "complete",
+      "by": "ai",
+      "at": "2026-11-07T03:25:22.252Z"
+    },
+    {
+      "step": "implement",
+      "substep": null,
+      "task": "T045",
+      "kind": "complete",
+      "by": "ai",
+      "at": "2026-11-07T03:46:21.776Z"
+    },
+    {
+      "step": "implement",
+      "substep": null,
+      "task": "T046",
+      "kind": "complete",
+      "by": "ai",
+      "at": "2026-11-07T03:46:21.844Z"
+    },
+    {
+      "step": "implement",
+      "substep": null,
+      "task": "T047",
+      "kind": "complete",
+      "by": "ai",
+      "at": "2026-11-07T03:46:21.912Z"
+    },
+    {
+      "step": "implement",
+      "substep": null,
+      "task": "T048",
+      "kind": "complete",
+      "by": "ai",
+      "at": "2026-11-07T03:48:08.929Z"
+    },
+    {
+      "step": "implement",
+      "substep": null,
+      "task": "T049",
+      "kind": "complete",
+      "by": "ai",
+      "at": "2026-11-07T03:48:08.994Z"
+    },
+    {
+      "step": "implement",
+      "substep": null,
+      "task": "T050",
+      "kind": "complete",
+      "by": "ai",
+      "at": "2026-11-07T08:02:08.657Z"
+    },
+    {
+      "step": "implement",
+      "substep": null,
+      "task": "T051",
+      "kind": "complete",
+      "by": "ai",
+      "at": "2026-11-07T08:02:08.720Z"
+    },
+    {
+      "step": "implement",
+      "substep": null,
+      "task": "T052",
+      "kind": "complete",
+      "by": "ai",
+      "at": "2026-11-07T08:02:08.784Z"
+    },
+    {
+      "step": "implement",
+      "substep": null,
+      "task": "T053",
+      "kind": "complete",
+      "by": "ai",
+      "at": "2026-11-07T08:02:08.848Z"
+    },
+    {
+      "step": "implement",
+      "substep": null,
+      "task": "T054",
+      "kind": "complete",
+      "by": "ai",
+      "at": "2026-11-07T08:02:08.911Z"
+    },
+    {
+      "step": "implement",
+      "substep": null,
+      "task": "T055",
+      "kind": "complete",
+      "by": "ai",
+      "at": "2026-11-07T08:02:08.974Z"
+    },
+    {
+      "step": "implement",
+      "substep": null,
+      "task": "T057",
+      "kind": "complete",
+      "by": "ai",
+      "at": "2026-11-07T08:02:09.038Z"
+    },
+    {
+      "step": "implement",
+      "substep": null,
+      "task": "T058",
+      "kind": "complete",
+      "by": "ai",
+      "at": "2026-11-07T08:02:09.100Z"
+    },
+    {
+      "step": "implement",
+      "substep": null,
+      "task": "T059",
+      "kind": "complete",
+      "by": "ai",
+      "at": "2026-11-07T08:02:09.162Z"
+    },
+    {
+      "step": "implement",
+      "substep": null,
+      "task": "T060",
+      "kind": "complete",
+      "by": "ai",
+      "at": "2026-11-07T08:08:03.694Z"
+    },
+    {
+      "step": "implement",
+      "substep": null,
+      "task": "T061",
+      "kind": "complete",
+      "by": "ai",
+      "at": "2026-11-07T08:08:03.756Z"
+    },
+    {
+      "step": "implement",
+      "substep": null,
+      "task": "T063",
+      "kind": "complete",
+      "by": "ai",
+      "at": "2026-11-07T08:08:03.819Z"
+    },
+    {
+      "step": "implement",
+      "substep": null,
+      "task": "T068",
+      "kind": "complete",
+      "by": "ai",
+      "at": "2026-11-07T08:08:03.882Z"
+    },
+    {
+      "step": "implement",
+      "substep": null,
+      "task": "T069",
+      "kind": "complete",
+      "by": "ai",
+      "at": "2026-11-07T08:08:03.945Z"
+    },
+    {
+      "step": "implement",
+      "substep": null,
+      "task": "T070",
+      "kind": "complete",
+      "by": "ai",
+      "at": "2026-11-07T08:08:04.007Z"
+    },
+    {
+      "step": "implement",
+      "substep": null,
+      "task": "T071",
+      "kind": "complete",
+      "by": "ai",
+      "at": "2026-11-07T08:08:04.072Z"
+    },
+    {
+      "step": "implement",
+      "substep": null,
+      "task": "T072",
+      "kind": "complete",
+      "by": "ai",
+      "at": "2026-11-07T08:08:04.134Z"
+    },
+    {
+      "step": "implement",
+      "substep": null,
+      "task": "T073",
+      "kind": "complete",
+      "by": "ai",
+      "at": "2026-11-07T08:08:04.197Z"
+    },
+    {
+      "step": "implement",
+      "substep": null,
+      "task": "T056",
+      "kind": "complete",
+      "by": "ai",
+      "at": "2026-11-07T08:13:57.738Z"
+    },
+    {
+      "step": "implement",
+      "substep": null,
+      "task": "T062",
+      "kind": "complete",
+      "by": "ai",
+      "at": "2026-11-07T08:13:57.801Z"
+    },
+    {
+      "step": "implement",
+      "substep": null,
+      "task": "T064",
+      "kind": "complete",
+      "by": "ai",
+      "at": "2026-11-07T08:13:57.866Z"
+    },
+    {
+      "step": "implement",
+      "substep": null,
+      "task": "T065",
+      "kind": "complete",
+      "by": "ai",
+      "at": "2026-11-07T08:13:57.931Z"
+    },
+    {
+      "step": "implement",
+      "substep": null,
+      "task": "T066",
+      "kind": "complete",
+      "by": "ai",
+      "at": "2026-11-07T08:13:57.993Z"
+    },
+    {
+      "step": "implement",
+      "substep": null,
+      "task": "T067",
+      "kind": "complete",
+      "by": "ai",
+      "at": "2026-11-07T08:13:58.056Z"
+    },
+    {
+      "step": "implement",
+      "substep": null,
+      "task": "T074",
+      "kind": "complete",
+      "by": "ai",
+      "at": "2026-11-07T08:13:58.118Z"
+    },
+    {
+      "step": "implement",
+      "substep": null,
+      "task": "T075",
+      "kind": "complete",
+      "by": "ai",
+      "at": "2026-11-07T08:13:58.183Z"
+    },
+    {
+      "step": "implement",
+      "substep": null,
+      "task": "T076",
+      "kind": "complete",
+      "by": "ai",
+      "at": "2026-11-07T08:13:58.246Z"
+    },
+    {
+      "step": "implement",
+      "substep": null,
+      "task": "T077",
+      "kind": "complete",
+      "by": "ai",
+      "at": "2026-11-07T08:13:58.310Z"
+    },
+    {
+      "step": "implement",
+      "substep": null,
+      "task": "T078",
+      "kind": "complete",
+      "by": "ai",
+      "at": "2026-11-07T08:13:58.373Z"
+    },
+    {
+      "step": "implement",
+      "substep": null,
+      "task": "T079",
+      "kind": "complete",
+      "by": "ai",
+      "at": "2026-11-07T08:13:58.439Z"
+    },
+    {
+      "step": "implement",
+      "substep": null,
+      "task": "T080",
+      "kind": "complete",
+      "by": "ai",
+      "at": "2026-11-07T08:37:26.302Z"
+    },
+    {
+      "step": "implement",
+      "substep": null,
+      "task": "T081",
+      "kind": "complete",
+      "by": "ai",
+      "at": "2026-11-07T08:37:26.366Z"
+    },
+    {
+      "step": "implement",
+      "substep": null,
+      "task": "T082",
+      "kind": "complete",
+      "by": "ai",
+      "at": "2026-11-07T08:37:26.433Z"
+    },
+    {
+      "step": "implement",
+      "substep": null,
+      "task": "T083",
+      "kind": "complete",
+      "by": "ai",
+      "at": "2026-11-07T08:37:26.497Z"
+    },
+    {
+      "step": "implement",
+      "substep": null,
+      "task": "T084",
+      "kind": "complete",
+      "by": "ai",
+      "at": "2026-11-07T08:37:26.562Z"
+    },
+    {
+      "step": "implement",
+      "substep": null,
+      "task": "T085",
+      "kind": "complete",
+      "by": "ai",
+      "at": "2026-11-07T08:37:26.629Z"
+    },
+    {
+      "step": "implement",
+      "substep": null,
+      "task": "T086",
+      "kind": "complete",
+      "by": "ai",
+      "at": "2026-11-07T08:37:26.693Z"
+    },
+    {
+      "step": "implement",
+      "substep": null,
+      "task": "T087",
+      "kind": "complete",
+      "by": "ai",
+      "at": "2026-11-07T08:37:26.773Z"
+    },
+    {
+      "step": "implement",
+      "substep": null,
+      "task": "T088",
+      "kind": "complete",
+      "by": "ai",
+      "at": "2026-11-07T08:37:26.839Z"
+    },
+    {
+      "step": "implement",
+      "substep": null,
+      "task": "T118",
+      "kind": "complete",
+      "by": "ai",
+      "at": "2026-11-07T08:37:26.905Z"
+    },
+    {
+      "step": "implement",
+      "substep": null,
+      "task": "T090",
+      "kind": "complete",
+      "by": "ai",
+      "at": "2026-11-07T08:37:26.972Z"
+    },
+    {
+      "step": "implement",
+      "substep": null,
+      "task": "T091",
+      "kind": "complete",
+      "by": "ai",
+      "at": "2026-11-07T08:37:27.062Z"
+    },
+    {
+      "step": "implement",
+      "substep": null,
+      "task": "T119",
+      "kind": "complete",
+      "by": "ai",
+      "at": "2026-11-07T08:37:27.129Z"
+    },
+    {
+      "step": "implement",
+      "substep": null,
+      "task": "T096",
+      "kind": "complete",
+      "by": "ai",
+      "at": "2026-11-07T08:38:53.247Z"
+    },
+    {
+      "step": "implement",
+      "substep": null,
+      "task": "T092",
+      "kind": "complete",
+      "by": "ai",
+      "at": "2026-11-07T08:38:53.313Z"
+    },
+    {
+      "step": "implement",
+      "substep": null,
+      "task": "T109",
+      "kind": "complete",
+      "by": "ai",
+      "at": "2026-11-07T08:43:46.861Z"
+    },
+    {
+      "step": "implement",
+      "substep": null,
+      "task": "T089",
+      "kind": "complete",
+      "by": "ai",
+      "at": "2026-11-07T08:57:23.042Z"
+    },
+    {
+      "step": "implement",
+      "substep": null,
+      "task": "T093",
+      "kind": "complete",
+      "by": "ai",
+      "at": "2026-11-07T08:57:23.117Z"
+    },
+    {
+      "step": "implement",
+      "substep": null,
+      "task": "T094",
+      "kind": "complete",
+      "by": "ai",
+      "at": "2026-11-07T08:57:23.184Z"
+    },
+    {
+      "step": "implement",
+      "substep": null,
+      "task": "T095",
+      "kind": "complete",
+      "by": "ai",
+      "at": "2026-11-07T08:57:23.251Z"
+    },
+    {
+      "step": "implement",
+      "substep": null,
+      "task": "T097",
+      "kind": "complete",
+      "by": "ai",
+      "at": "2026-11-07T08:57:23.319Z"
+    },
+    {
+      "step": "implement",
+      "substep": null,
+      "task": "T098",
+      "kind": "complete",
+      "by": "ai",
+      "at": "2026-11-07T08:57:23.397Z"
+    },
+    {
+      "step": "implement",
+      "substep": null,
+      "task": "T099",
+      "kind": "complete",
+      "by": "ai",
+      "at": "2026-11-07T08:57:23.472Z"
+    },
+    {
+      "step": "implement",
+      "substep": null,
+      "task": "T100",
+      "kind": "complete",
+      "by": "ai",
+      "at": "2026-11-07T08:57:23.539Z"
+    },
+    {
+      "step": "implement",
+      "substep": null,
+      "task": "T103",
+      "kind": "complete",
+      "by": "ai",
+      "at": "2026-11-07T08:57:23.608Z"
+    },
+    {
+      "step": "implement",
+      "substep": null,
+      "task": "T104",
+      "kind": "complete",
+      "by": "ai",
+      "at": "2026-11-07T08:57:23.686Z"
+    },
+    {
+      "step": "implement",
+      "substep": null,
+      "task": "T105",
+      "kind": "complete",
+      "by": "ai",
+      "at": "2026-11-07T08:57:23.751Z"
+    },
+    {
+      "step": "implement",
+      "substep": null,
+      "task": "T106",
+      "kind": "complete",
+      "by": "ai",
+      "at": "2026-11-07T08:57:23.817Z"
+    },
+    {
+      "step": "implement",
+      "substep": null,
+      "task": "T107",
+      "kind": "complete",
+      "by": "ai",
+      "at": "2026-11-07T08:57:23.884Z"
+    },
+    {
+      "step": "implement",
+      "substep": null,
+      "task": "T108",
+      "kind": "complete",
+      "by": "ai",
+      "at": "2026-11-07T08:57:23.950Z"
+    },
+    {
+      "step": "implement",
+      "substep": null,
+      "task": "T110",
+      "kind": "complete",
+      "by": "ai",
+      "at": "2026-11-07T08:57:24.022Z"
+    },
+    {
+      "step": "implement",
+      "substep": null,
+      "task": "T101",
+      "kind": "complete",
+      "by": "ai",
+      "at": "2026-11-07T08:58:27.895Z"
+    },
+    {
+      "step": "implement",
+      "substep": null,
+      "task": "T102",
+      "kind": "complete",
+      "by": "ai",
+      "at": "2026-11-07T08:58:27.962Z"
+    },
+    {
+      "step": "implement",
+      "substep": null,
+      "task": "T111",
+      "kind": "complete",
+      "by": "ai",
+      "at": "2026-11-07T09:18:02.593Z"
+    },
+    {
+      "step": "implement",
+      "substep": null,
+      "task": "T112",
+      "kind": "complete",
+      "by": "ai",
+      "at": "2026-11-07T09:18:02.735Z"
+    },
+    {
+      "step": "implement",
+      "substep": null,
+      "task": "T113",
+      "kind": "complete",
+      "by": "ai",
+      "at": "2026-11-07T09:19:01.166Z"
+    },
+    {
+      "step": "implement",
+      "substep": null,
+      "task": "T114",
+      "kind": "complete",
+      "by": "ai",
+      "at": "2026-11-07T09:19:26.636Z"
+    },
+    {
+      "step": "implement",
+      "substep": null,
+      "task": "T115",
+      "kind": "complete",
+      "by": "ai",
+      "at": "2026-11-07T09:19:53.875Z"
+    },
+    {
+      "step": "implement",
+      "substep": null,
+      "task": "T117",
+      "kind": "complete",
+      "by": "ai",
+      "at": "2026-11-07T09:23:46.151Z"
+    },
+    {
+      "step": "implement",
+      "substep": null,
+      "kind": "complete",
+      "by": "extension",
+      "at": "2026-11-08T00:03:19.396Z"
+    }
+  ],
+  "telemetryInstanceId": "d0bd2a5c-0a2f-41d2-ae3a-6e8f0c06ad58",
+  "selectedAt": "2026-11-07T01:39:22.117Z",
+  "last_action": "fixed npm run dev not starting the server; checkpoints #245-#246 pass",
+  "coverage": {
+    "FR-001": {
+      "title": "List the configured repository's open PRs and let the user select one",
+      "tasks": [
+        "T057",
+        "T060",
+        "T070",
+        "T079"
+      ]
+    },
+    "FR-002": {
+      "title": "Retrieve PR title, description, author, branches, commits, diff and changed-file metadata",
+      "tasks": [
+        "T050",
+        "T060",
+        "T061",
+        "T078"
+      ]
+    },
+    "FR-003": {
+      "title": "Extract issue references with their source; Jira keys only when configured or confirmed; #123 PRs shown as PR references",
+      "tasks": [
+        "T048",
+        "T051",
+        "T055",
+        "T062",
+        "T065",
+        "T074"
+      ]
+    },
+    "FR-004": {
+      "title": "Fetch each issue's title and description read-only as plain text; no Jira access gives 'no Jira access configured'",
+      "tasks": [
+        "T051",
+        "T057",
+        "T062",
+        "T063",
+        "T074"
+      ]
+    },
+    "FR-005": {
+      "title": "Analyse code only in an isolated workspace from the existing clone; never clone; missing-repository notice without one",
+      "tasks": [
+        "T058",
+        "T064",
+        "T078"
+      ]
+    },
+    "FR-006": {
+      "title": "Exactly one review session per repository and PR",
+      "tasks": [
+        "T057",
+        "T078"
+      ]
+    },
+    "FR-007": {
+      "title": "Context-completeness list with PR, repository and issue rows found, missing or stale",
+      "tasks": [
+        "T049",
+        "T057",
+        "T066",
+        "T071"
+      ]
+    },
+    "FR-008": {
+      "title": "Never switch the reviewer's branch or change working files, index or stash",
+      "tasks": [
+        "T015",
+        "T038",
+        "T052",
+        "T064",
+        "T078"
+      ]
+    },
+    "FR-009": {
+      "title": "Remove isolated workspaces on session close and leftovers at start-up",
+      "tasks": [
+        "T054",
+        "T075",
+        "T087",
+        "T109",
+        "T112"
+      ],
+      "tests": [
+        "test/integration/workspace-lifecycle.test.ts::VO-028"
+      ]
+    },
+    "FR-010": {
+      "title": "Keep a fixed snapshot per PR head commit",
+      "tasks": [
+        "T055",
+        "T078"
+      ]
+    },
+    "FR-011": {
+      "title": "One shared evidence model, append-only, with staleness and issue re-fetch on refresh",
+      "tasks": [
+        "T055",
+        "T067"
+      ]
+    },
+    "FR-012": {
+      "title": "PR, per-file and impact summaries as labelled claims, streamed, stored and regenerated per snapshot",
+      "tasks": [
+        "T090",
+        "T104",
+        "T108"
+      ]
+    },
+    "FR-013": {
+      "title": "Questions scoped to PR, file or line range (method = labelled range)",
+      "tasks": [
+        "T091",
+        "T099",
+        "T102",
+        "T105",
+        "T107"
+      ]
+    },
+    "FR-014": {
+      "title": "Six question categories; Requirements draws only on issue text",
+      "tasks": [
+        "T091",
+        "T102",
+        "T107"
+      ]
+    },
+    "FR-015": {
+      "title": "Suggested questions as fixed templates per scope and category",
+      "tasks": [
+        "T082",
+        "T096"
+      ]
+    },
+    "FR-016": {
+      "title": "Every answer shows references that open the code or issue",
+      "tasks": [
+        "T091",
+        "T098",
+        "T110"
+      ]
+    },
+    "FR-017": {
+      "title": "Claims labelled Evidence or Inference; documented intent shown apart from inferred",
+      "tasks": [
+        "T084",
+        "T098",
+        "T103"
+      ]
+    },
+    "FR-018": {
+      "title": "Evidence without a resolvable reference shown as Inference",
+      "tasks": [
+        "T084",
+        "T095",
+        "T103"
+      ]
+    },
+    "FR-019": {
+      "title": "Unparseable answer shown as one Inference with a warning",
+      "tasks": [
+        "T084",
+        "T103"
+      ]
+    },
+    "FR-020": {
+      "title": "Keep provider, timestamp, prompt and context version with every question and answer",
+      "tasks": [
+        "T083",
+        "T091",
+        "T102",
+        "T107"
+      ]
+    },
+    "FR-021": {
+      "title": "Stream raw text marked in progress, replaced by checked claims; cancellable",
+      "tasks": [
+        "T091",
+        "T093",
+        "T107"
+      ]
+    },
+    "FR-022": {
+      "title": "AI provider runs read-only, workspace-confined, no network, no repo config, untrusted input delimited",
+      "tasks": [
+        "T083",
+        "T085",
+        "T088",
+        "T094",
+        "T101",
+        "T102"
+      ]
+    },
+    "FR-023": {
+      "title": "Each question answered by exactly one provider",
+      "tasks": [
+        "T086",
+        "T101",
+        "T107"
+      ]
+    },
+    "FR-024": {
+      "title": "Business-language questions through the same interface",
+      "tasks": [
+        "T091",
+        "T102"
+      ]
+    },
+    "FR-025": {
+      "title": "Bitbucket Cloud, Jira Cloud, GitHub and GitHub Issues through connectors only",
+      "tasks": [
+        "T009",
+        "T021",
+        "T031",
+        "T032",
+        "T033",
+        "T034",
+        "T050",
+        "T051",
+        "T060",
+        "T061",
+        "T062",
+        "T074",
+        "T076"
+      ]
+    },
+    "FR-026": {
+      "title": "Store references, branches and PR references with their platform",
+      "tasks": [
+        "T055",
+        "T065",
+        "T078"
+      ]
+    },
+    "FR-027": {
+      "title": "Never change any PR, issue or repository on any platform",
+      "tasks": [
+        "T014",
+        "T035"
+      ]
+    },
+    "FR-028": {
+      "title": "Credentials only in the OS keychain; never shown, logged or sent to the AI",
+      "tasks": [
+        "T013",
+        "T037",
+        "T111",
+        "T112"
+      ],
+      "tests": [
+        "test/end-to-end/full-app.test.ts::VO-040",
+        "test/unit/credentials.test.ts"
+      ]
+    },
+    "FR-029": {
+      "title": "Code and context only to the configured AI provider; no telemetry",
+      "tasks": [
+        "T111",
+        "T112"
+      ],
+      "tests": [
+        "test/end-to-end/full-app.test.ts::VO-041"
+      ]
+    },
+    "FR-030": {
+      "title": "Reachable only from the user's machine and browser session",
+      "tasks": [
+        "T019",
+        "T020",
+        "T028",
+        "T040",
+        "T042",
+        "T044"
+      ],
+      "tests": [
+        "test/end-to-end/full-app.test.ts::VO-045",
+        "test/end-to-end/server-guard.test.ts"
+      ]
+    },
+    "FR-031": {
+      "title": "No metric that scores, ranks or times an individual",
+      "tasks": [
+        "T116"
+      ]
+    },
+    "FR-032": {
+      "title": "A failing source shows as a gap with its reason and blocks nothing else",
+      "tasks": [
+        "T067",
+        "T078",
+        "T090",
+        "T108",
+        "T110"
+      ]
+    },
+    "FR-033": {
+      "title": "Show each changed file's diff with status and line counts",
+      "tasks": [
+        "T016",
+        "T024",
+        "T089",
+        "T099",
+        "T110"
+      ]
+    },
+    "FR-034": {
+      "title": "Select a new- or old-side range or whole file as question scope",
+      "tasks": [
+        "T091",
+        "T099",
+        "T105"
+      ]
+    },
+    "FR-035": {
+      "title": "Open cited lines at the head commit, removed lines at the base commit",
+      "tasks": [
+        "T091",
+        "T095",
+        "T100",
+        "T110"
+      ]
+    },
+    "FR-036": {
+      "title": "Fetch head and target only into the app-owned ref namespace, forks included",
+      "tasks": [
+        "T052",
+        "T053",
+        "T064"
+      ]
+    },
+    "FR-037": {
+      "title": "Isolated workspace is a detached worktree in an app-owned directory",
+      "tasks": [
+        "T052",
+        "T053",
+        "T064"
+      ]
+    },
+    "FR-038": {
+      "title": "Local merge-base diff when fetched, else platform diff; record the source and base",
+      "tasks": [
+        "T053",
+        "T064",
+        "T078"
+      ]
+    },
+    "FR-039": {
+      "title": "Configure repository, clone path and tracker; config holds no credentials",
+      "tasks": [
+        "T012",
+        "T036",
+        "T068"
+      ]
+    },
+    "FR-040": {
+      "title": "Separate per-platform sign-in in the keychain, checked read-only, re-prompt only the rejected platform",
+      "tasks": [
+        "T059",
+        "T069",
+        "T076",
+        "T077"
+      ]
+    },
+    "FR-041": {
+      "title": "List sessions incl. closed/merged; those open read-only",
+      "tasks": [
+        "T057",
+        "T078",
+        "T091",
+        "T107"
+      ]
+    },
+    "FR-042": {
+      "title": "Closing a session keeps the record and removes only its workspace",
+      "tasks": [
+        "T054",
+        "T078",
+        "T112"
+      ]
+    },
+    "FR-043": {
+      "title": "Store and workspaces in the per-user application-data directory",
+      "tasks": [
+        "T010",
+        "T022"
+      ]
+    },
+    "FR-044": {
+      "title": "Confirmed whole-session delete; single questions and answers immutable",
+      "tasks": [
+        "T018",
+        "T026",
+        "T039",
+        "T041",
+        "T056",
+        "T078"
+      ]
+    },
+    "FR-045": {
+      "title": "Cancelled answer kept with its text as Inference, marked cancelled",
+      "tasks": [
+        "T087",
+        "T091",
+        "T103",
+        "T107",
+        "T109"
+      ]
+    },
+    "FR-046": {
+      "title": "Show unsupported assumptions apart from claims",
+      "tasks": [
+        "T091",
+        "T103"
+      ]
+    },
+    "FR-047": {
+      "title": "Show suggested follow-ups; selecting one asks with the same scope",
+      "tasks": [
+        "T091",
+        "T105",
+        "T107"
+      ]
+    },
+    "FR-048": {
+      "title": "Answer for Technical or Business, stored with the question",
+      "tasks": [
+        "T088",
+        "T091",
+        "T102"
+      ]
+    },
+    "FR-049": {
+      "title": "File and prompt size limits, configurable, skipped files listed with reasons",
+      "tasks": [
+        "T017",
+        "T025",
+        "T066",
+        "T108"
+      ]
+    },
+    "FR-050": {
+      "title": "Answer from scope, snapshot and issues only; follow-ups add only their parent",
+      "tasks": [
+        "T083",
+        "T091",
+        "T102"
+      ]
+    },
+    "FR-051": {
+      "title": "New work only on the latest snapshot; older answers marked with their head",
+      "tasks": [
+        "T090",
+        "T091",
+        "T107",
+        "T108"
+      ],
+      "tests": [
+        "test/end-to-end/supersede.test.ts::VO-075"
+      ]
+    },
+    "FR-052": {
+      "title": "Check head on open and refresh only; snapshot only at start and refresh",
+      "tasks": [
+        "T057",
+        "T078"
+      ]
+    },
+    "FR-053": {
+      "title": "Auto summaries per snapshot; one summary and one question at a time per session",
+      "tasks": [
+        "T090",
+        "T091",
+        "T097",
+        "T107",
+        "T108"
+      ]
+    },
+    "FR-054": {
+      "title": "Structured, rotated logs with no secrets, code, prompts or PR text",
+      "tasks": [
+        "T011",
+        "T023",
+        "T111",
+        "T112"
+      ],
+      "tests": [
+        "test/end-to-end/full-app.test.ts::VO-060",
+        "test/unit/log.test.ts"
+      ]
+    }
+  },
+  "size": "oversized",
+  "classification": {
+    "projectedFiles": 45,
+    "projectedTasks": 70,
+    "scopeSignal": "larger",
+    "verdict": "oversized"
+  },
+  "expectations": [
+    "Cross-PR semantic analysis and cross-repository graphs",
+    "Full blast-radius analysis",
+    "Copilot or any second AI provider",
+    "Running tests, mutation testing",
+    "Approving, declining, merging or commenting on PRs",
+    "Developer performance metrics",
+    "Specification editing or Jira project management",
+    "Risk classification and changed-line coverage (later Phase 1 features)",
+    "Spec discovery, traceability, SonarQube, readiness, lenses (Phase 2)"
+  ],
+  "context": [
+    "source: MVP/MVP.md (FR-1 to FR-8, sections 5-8)",
+    "constraint: constitution 1.0.0 (repository safety IX, provider neutrality VIII, local server security X, MVP scope Q.2)",
+    "constraint: develop on GitHub/GitHub Issues, target Bitbucket Cloud/Jira via adapters",
+    "area: greenfield, no source code yet",
+    "decision: docs/domain_knowledge/adr/0001-phase-1-scope.md",
+    "glossary: docs/domain_knowledge/CONTEXT.md"
+  ],
+  "intent": "Phase 1 feature 1: open a PR with its context safely, then summarise and interrogate it with evidence-labelled claims",
+  "assistant": "claude",
+  "verified": [
+    {
+      "what": "plan blocks check out",
+      "command": "python3 .specify/extensions/companion/scripts/check_plan.py --feature-dir specs/001-pr-review-workbench --strict",
+      "source": "derived",
+      "exitCode": 0,
+      "durationSeconds": 0,
+      "result": "[plan-check] plan.md: 3 call paths, 26 lines, 2 screens, 24 parts, 2 state blocks (9 states). Every cited file and line checks out."
+    },
+    {
+      "what": "typecheck",
+      "command": "npm run typecheck",
+      "source": "derived",
+      "exitCode": 0,
+      "durationSeconds": 2.1,
+      "result": "> pr-review-workbench@0.1.0 typecheck · > tsc --noEmit"
+    },
+    {
+      "what": "full suite",
+      "command": "npm test",
+      "source": "derived",
+      "exitCode": 0,
+      "durationSeconds": 9,
+      "result": "ℹ skipped 0 · ℹ todo 0 · ℹ duration_ms 8869.751791"
+    },
+    {
+      "what": "build",
+      "command": "npm run build",
+      "source": "derived",
+      "exitCode": 0,
+      "durationSeconds": 1.5,
+      "result": "> pr-review-workbench@0.1.0 build · > tsc -p tsconfig.build.json && node -e \"require('node:fs').cpSync('src/store/schema.sql','dist/store/schema.sql')\""
+    },
+    {
+      "what": "UI bundle",
+      "command": "npm run build:ui",
+      "source": "derived",
+      "exitCode": 0,
+      "durationSeconds": 0.1,
+      "result": "  dist/ui/launch.html   504b  ·   dist/ui/index.html    468b  · ⚡ Done in 9ms"
+    },
+    {
+      "what": "real-CLI suite",
+      "command": "npm run test:live",
+      "source": "derived",
+      "exitCode": 0,
+      "durationSeconds": 54.4,
+      "result": "ℹ skipped 0 · ℹ todo 0 · ℹ duration_ms 54256.078781"
+    },
+    {
+      "what": "tdd_check compliance and gate --all",
+      "command": "tdd_check.py compliance; tdd_check.py gate --all",
+      "result": "COMPLIANT; 118 completed tasks gate; MV-001..005 open as notices"
+    },
+    {
+      "what": "Smoke run of the built npx entry with a fake opener",
+      "command": "node bin/prwb.mjs (temp XDG_DATA_HOME)",
+      "result": "URL printed with token in fragment, /launch 200 with CSP, /api/config 401 unauthenticated, opener called without a shell, exits on SIGINT"
+    }
+  ],
+  "planBlocks": [
+    "calls",
+    "states",
+    "screens"
+  ],
+  "decisions": [
+    {
+      "decision": "Run TypeScript from source via Node 24 type stripping; tsc only for typecheck and the published dist",
+      "why": "P.5 no build step for the dev server, no loader dependency",
+      "rejected": "tsx or ts-node"
+    },
+    {
+      "decision": "node:sqlite review store with append-only enforced by SQLite triggers; whole-session delete via a marker row in one transaction",
+      "why": "III.2 needs the store to refuse history edits even outside the store module",
+      "rejected": "better-sqlite3 (native dep), JSON files (no atomic cascade)"
+    },
+    {
+      "decision": "Claude Code CLI run --restricted with --tools Read,Grep,Glob and --strict-mcp-config, cwd an empty app-owned dir, worktree via --add-dir, prompt on stdin",
+      "why": "Meets FR-022 (c)(d) without --bare, which refuses OAuth; empty cwd keeps the PR CLAUDE.md out; stdin avoids Windows argv limits",
+      "rejected": "--bare; cwd = worktree"
+    },
+    {
+      "decision": "Git via execFile with core.hooksPath set to an empty app dir; fetch into refs/prwb/* with --no-write-fetch-head; remove only own worktrees, never prune",
+      "why": "worktree add runs post-checkout, and a tracked hooksPath would run PR code; prune can drop the reviewer worktree entries",
+      "rejected": "isomorphic-git or nodegit; fetching into refs/remotes"
+    },
+    {
+      "decision": "Launch token in URL fragment, exchanged by POST for an HttpOnly SameSite=Strict cookie",
+      "why": "Keeps the token out of logs and history, keeps GET stateless, and lets EventSource and static assets authenticate",
+      "rejected": "token in query string; bearer header only"
+    },
+    {
+      "decision": "Preact UI bundled by esbuild, all PR and AI text rendered as text nodes",
+      "why": "Strict CSP forbids an inline import map; text-only rendering closes XSS from PR and AI content",
+      "rejected": "React with Vite; htm without a build"
+    },
+    {
+      "decision": "Add failed as a final question and summary outcome",
+      "why": "FR-032 and EC-02 need a provider error kept as a gap with its reason; cancelled implies a user or a restart",
+      "rejected": "reusing cancelled"
+    },
+    {
+      "decision": "A refresh retires older worktrees only after the work running at that moment ends, through an afterRunning(sessionId) dep wired to lanes.settledRunning",
+      "why": "FR-051: running work finishes against its own snapshot; the real CLI would lose its --add-dir worktree mid-answer",
+      "rejected": "per-snapshot tracking (more code for little gain); sessions importing lanes (breaks the ownership rule)"
+    },
+    {
+      "decision": "Stopping the workbench cancels running AI work with reason restart",
+      "why": "matches what start-up recovery records after a kill (FR-045)",
+      "rejected": "reason user, which would misattribute the cancel"
+    },
+    {
+      "decision": "Request log lines carry sessionId and snapshotId from matched route params, kept only when id-shaped",
+      "why": "FR-054 requires session and snapshot ids; the full-session test showed none were logged",
+      "rejected": "logging raw path segments, which could carry text into the log"
+    },
+    {
+      "decision": "OverviewScreen children became a render function of its current detail",
+      "why": "the summaries panel follows a refresh instead of showing the old snapshot",
+      "rejected": "the router fetching its own copy of the detail"
+    },
+    {
+      "decision": "The US2 harness gained a composed mode booting src/main.ts, with a fake browser opener on PATH",
+      "why": "full-app test reuses the same fixtures and no test can open a real browser",
+      "rejected": "duplicating the fixture setup in full-app.test.ts"
+    }
+  ],
+  "step_summaries": {
+    "plan": {
+      "summary": "Plan, research (R1 to R19), data model, contracts (HTTP API, provider contracts, UI), a Verification Plan with 71 obligations, and a 66-item behaviour checklist; edge cases labelled EC-01 to EC-18 in the spec",
+      "key_finding": "Claude Code CLI 2.1.319 has --restricted, --tools and --strict-mcp-config, so FR-022 (c) and (d) can be enforced without --bare; an empty cwd plus --add-dir keeps the PR CLAUDE.md out"
+    },
+    "tasks": {
+      "summary": "117 tasks in 5 phases: Setup (3), Foundational (41, 6 waves), US1 (35), US2 (31), Polish (7); every task labelled VO or NT; tdd_check tasks passes"
+    },
+    "implement": {
+      "summary": "US2 (summaries, scoped questions, claims, provider under FR-022) and Polish (main.ts launcher, UI router, npx entry, README) built; 210 tests, typecheck, builds and live CLI suite pass; only manual T116 remains"
+    }
+  },
+  "concerns": [
+    {
+      "note": "integrated-tdd tdd_check.py reads spec.md, but this feature's spec is pr-review-workbench.spec.md; the plan check passed only on a scratch copy renamed to spec.md. tasks and implement gates will fail until that is resolved."
+    },
+    {
+      "note": "Verification commands name package.json scripts that do not exist yet (greenfield); the first setup task must create them as declared."
+    },
+    {
+      "note": "data-model.md Open points 2 to 6 (pr refs and Evidence, superseded queued work, snapshot on unchanged head, reopened PRs, follow-up scope across snapshots) are modelled defaults the spec does not settle."
+    },
+    {
+      "note": "U1: spec is pr-review-workbench.spec.md, not spec.md; check-prerequisites.sh aborts and tdd_check.py plan exits 2 in place, so T003 baseline and the G11 gate block implement",
+      "step": "analyze"
+    },
+    {
+      "note": "C1: constitution X.3 requires rejecting any request whose Origin is present and foreign; guard (R3, http-api.md, T040) checks Origin only on non-GET",
+      "step": "analyze"
+    },
+    {
+      "note": "C2: constitution XI.3 fingerprint-before/after is applied only to start, refresh, close (T052) and a question (T111); delete (T056), start-up sweep (T054) and cancel are not fingerprinted, though SC-001 lists cancel and sweep",
+      "step": "analyze"
+    },
+    {
+      "note": "C3: plan Constitution Check marks PASS without recording two departures G.3 needs justified: X.2 unauthenticated /launch, /launch.js, /api/auth; IX.3/FR-022(a) provider cwd is an empty dir with the worktree via --add-dir",
+      "step": "analyze"
+    },
+    {
+      "note": "H1: VO-044 expects 403 for a foreign Host; http-api.md, T020 and T040 return 421",
+      "step": "analyze"
+    },
+    {
+      "note": "H2: FR-036, EC-16 and VO-049 say a fork PR is fetched from the fork; R10 and T060 fetch GitHub forks from the base repo refs/pull/<n>/head",
+      "step": "analyze"
+    },
+    {
+      "note": "H3: X.10/FR-022(c)(d) enforcement is tested only by the opt-in live suite (VO-017, VO-071); skipped node:test runs exit 0, and no default test asserts the provider argv, cwd or env the fake CLI records",
+      "step": "analyze"
+    },
+    {
+      "note": "M1: plan States and data-model add a Failed question/summary outcome; spec Key Entities still lists only queued, in progress, completed, cancelled",
+      "step": "analyze"
+    },
+    {
+      "note": "M2: data-model open points 2-5 (pr refs not Evidence, superseded queued work, snapshot after failed fetch at same head, reopened PRs stay read-only) are implemented by tasks but neither settled in the spec nor verified by an obligation",
+      "step": "analyze"
+    },
+    {
+      "note": "M3: summaries for a session with no clone or a failed fetch are unspecified; FR-005/EC-01 skip code analysis while FR-053 auto-generates summaries, and neither VO-026 nor T090 states the outcome",
+      "step": "analyze"
+    },
+    {
+      "note": "M4: VO-041/T111 assert the only child processes are git and the AI CLI, but T112's launcher spawns open/xdg-open/rundll32",
+      "step": "analyze"
+    },
+    {
+      "note": "M5: plan Project Structure and call paths (routes.ts handlers, ~45 files, three platform adapters) drift from tasks (routes/context.ts, routes/interrogation.ts, signins, lanes, work-recovery, repo/files, ai-registry, contracts/http, ~60 files, four adapters)",
+      "step": "analyze"
+    },
+    {
+      "note": "L1: .spec-context.json coverage map lists FR-055 to FR-073, which the spec does not hold, all without tasks",
+      "step": "analyze"
+    },
+    {
+      "note": "T116 (MV-001 to MV-005) is open: it needs a person to walk the screens, run a real Bitbucket Cloud PR with a real Jira Cloud issue, rate outputs, review for scoring of people, and time first summary and answer. The spec is not marked complete.",
+      "step": "implement"
+    },
+    {
+      "note": "Provider capabilities are re-probed on every question and summary start (three short CLI processes each); no cache.",
+      "step": "implement"
+    },
+    {
+      "note": "// simplified ceilings left by the US2 worker: provider run timeout fixed at 15 minutes; summary file sections whose path is not a changed file are dropped.",
+      "step": "implement"
+    },
+    {
+      "note": "Older worktrees after a refresh wait for every job running at the refresh, including an older summary run, so they can linger until that work ends; close, delete and the start-up sweep remove leftovers.",
+      "step": "implement"
+    },
+    {
+      "note": "US2 changed files outside its ownership: src/contracts/http.ts (FileDiff gained status, linesAdded, linesRemoved, previousPath; Summary and Answer gained optional failureReason). Polish changed src/core/sessions.ts, src/server/http.ts, src/server/routes/context.ts and src/ui/screens/overview.tsx as seams.",
+      "step": "implement"
+    },
+    {
+      "note": "A hung tdd_check chain (killed only at the node level) kept running and at 09:27Z overwrote tests/tdd-evidence.md from a stale copy, erasing records made after 09:07Z. All were re-recorded by re-running (#233-#244, XC-15 to XC-25, notes say re-run); compliance is COMPLIANT again. tdd_check writes the whole file without locking, so two concurrent runs lose updates.",
+      "step": "implement"
+    },
+    {
+      "note": "npm run dev ran node src/main.ts, which only exported startWorkbench, so the process exited at once while the esbuild watcher kept the terminal busy. No test or smoke run covered the dev script. Fixed: main.ts starts itself when it is the entry (realpath of argv[1], since Node 24.2 leaves import.meta.main false for a type-stripped .ts). Verified by running node src/main.ts and bin/prwb.mjs.",
+      "step": "implement"
+    }
+  ],
+  "approach": "A local node:http server on 127.0.0.1 with a cookie-exchanged launch token serves a Preact UI. Core services assemble context through three provider-neutral contracts and a git-CLI Repository manager that fetches into refs/prwb/* and uses detached worktrees. The Claude Code CLI runs restricted with read and search tools only, and its output is validated into labelled claims stored append-only in node:sqlite.",
+  "currentTask": "T117",
+  "task_summaries": {
+    "T001": {
+      "status": "DONE",
+      "did": "package.json with scripts, deps installed",
+      "files": [
+        "package.json",
+        "package-lock.json"
+      ]
+    },
+    "T002": {
+      "status": "DONE",
+      "did": "tsconfig.json (strict, type-stripping safe) and tsconfig.build.json",
+      "files": [
+        "tsconfig.json",
+        "tsconfig.build.json"
+      ]
+    },
+    "T003": {
+      "status": "DONE",
+      "did": "Baseline recorded (#1, 0 tests, pass); typecheck runs, TS18003 until src/ exists",
+      "files": [
+        "specs/001-pr-review-workbench/tests/tdd-evidence.md"
+      ]
+    },
+    "T007": {
+      "status": "DONE",
+      "did": "In-memory keyring helper with the @napi-rs/keyring Entry and findCredentials shape, plus seed/peek/secrets/unavailable controls, injectable into credentials.ts",
+      "files": [
+        "test/helpers/fake-keyring.ts"
+      ]
+    },
+    "T006": {
+      "status": "DONE",
+      "did": "Recorded-fetch replayer: serves test/fixtures/<platform>/*.json by method and normalised URL, logs method/host/headers, rejects and lists unrecorded requests",
+      "files": [
+        "test/helpers/recorded-fetch.ts"
+      ]
+    },
+    "T004": {
+      "status": "DONE",
+      "did": "Temp app-data helper: points the per-OS env var appdata.ts reads (XDG_DATA_HOME/LOCALAPPDATA/HOME) at a fresh temp dir, restores it and removes the dir after the test",
+      "files": [
+        "test/helpers/app-data.ts",
+        "test/helpers/app-data.test.ts"
+      ]
+    },
+    "T008": {
+      "status": "DONE",
+      "did": "Test server helper: starts src/server/http.ts startServer() with given route modules, runs the /api/auth exchange, returns a node:http client sending cookie, Host and Origin (overridable)",
+      "files": [
+        "test/helpers/server.ts",
+        "test/helpers/server.test.ts"
+      ]
+    },
+    "T005": {
+      "status": "DONE",
+      "did": "Git sandbox helper: bare platform + fork, reviewer clone, PRs with refs/pull and source-branch heads, push/force-push/advance-target/prune/unreachable fork, dirty clone, and fingerprint(clone) for XI.3",
+      "files": [
+        "test/helpers/git-sandbox.ts"
+      ]
+    },
+    "T009": {
+      "status": "DONE",
+      "did": "Failing VO-036 test: platform-name scan of src/ outside src/adapters/, proved on planted trees, real-tree check requires src/contracts/shared.ts; red recorded",
+      "files": [
+        "test/unit/platform-names.test.ts"
+      ]
+    },
+    "T013": {
+      "status": "DONE",
+      "did": "Failing VO-040 test for createCredentials: keyring-only storage, no API returns secret, authorize() header, scrubber registration, no file leak; red recorded",
+      "files": [
+        "test/unit/credentials.test.ts"
+      ]
+    },
+    "T017": {
+      "status": "DONE",
+      "did": "Failing VO-058 test for limits: DEFAULT_LIMITS, excludedReason order, fillBudget in diff order with prompt limit, lowered limits; red recorded",
+      "files": [
+        "test/unit/limits.test.ts"
+      ]
+    },
+    "T012": {
+      "status": "DONE",
+      "did": "VO-052 failing-first config tests (save, missing clonePath, unknown token field, defaults, registered platforms); red #5 valid",
+      "files": [
+        "test/unit/config.test.ts"
+      ]
+    },
+    "T016": {
+      "status": "DONE",
+      "did": "VO-047 failing-first unified-diff parser tests (added, modified, renamed, deleted, binary; hunks and line numbers; patch); red #6 valid",
+      "files": [
+        "test/unit/unified-diff.test.ts"
+      ]
+    },
+    "T020": {
+      "status": "DONE",
+      "did": "VO-043/044/045 failing-first end-to-end guard tests over the real server (401, auth cookie, token not in logs, 421, 403, security headers, no CORS); red #7-#9 valid",
+      "files": [
+        "test/end-to-end/server-guard.test.ts"
+      ]
+    },
+    "T011": {
+      "status": "DONE",
+      "did": "Failing-first VO-060 tests for src/log.ts: allowlisted fields, dropped extras, secret and Authorization scrubbing, daily UTC file, 7-day retention sweep (red record #10 valid)",
+      "files": [
+        "test/unit/log.test.ts"
+      ]
+    },
+    "T015": {
+      "status": "DONE",
+      "did": "Failing-first VO-067 tests for src/repo/git.ts command table and runner: forbidden/allowed subcommands, refs/prwb-only writes, execFile with no shell, hardened -c options, allowlisted env, injection and ref-escape refusal (red record #11 valid)",
+      "files": [
+        "test/unit/git-commands.test.ts"
+      ]
+    },
+    "T019": {
+      "status": "DONE",
+      "did": "Failing-first VO-042 tests: server listens on 127.0.0.1 on a launch-chosen port and is unreachable on every other local address (red record #12 valid)",
+      "files": [
+        "test/integration/server-bind.test.ts"
+      ]
+    },
+    "T010": {
+      "status": "DONE",
+      "did": "Failing VO-054 tests for per-OS app-data resolution, layout, creation and clone-overlap refusal; red recorded (#13)",
+      "files": [
+        "test/unit/appdata.test.ts"
+      ]
+    },
+    "T014": {
+      "status": "DONE",
+      "did": "Failing VO-039 tests: non-GET refused before any network call, GET passes, AdapterError mapping, log holds only GETs; red recorded (#14)",
+      "files": [
+        "test/unit/read-only-http.test.ts"
+      ]
+    },
+    "T018": {
+      "status": "DONE",
+      "did": "Failing VO-055 store tests: db pragmas and single schema apply, UPDATE/DELETE abort on every history table, status upsert only, transactional deleteSession; red recorded (#15)",
+      "files": [
+        "test/integration/review-store.test.ts"
+      ]
+    },
+    "T027": {
+      "status": "DONE",
+      "did": "Per-session SSE hub createEventHub(): subscribe/publish with event/data framing, retry hint, shared unref'd heartbeat, cleanup on close/error, closeSession/close",
+      "files": [
+        "src/server/events.ts"
+      ]
+    },
+    "T029": {
+      "status": "DONE",
+      "did": "UI shell page loading /app.js and /app.css with no inline script or style, plus base styles and theme tokens",
+      "files": [
+        "src/ui/index.html",
+        "src/ui/app.css"
+      ]
+    },
+    "T021": {
+      "status": "DONE",
+      "did": "Neutral shared contracts: PlatformId, AdapterError, Authorize, ReadOnlyFetch, AdapterDescriptor (green #25)",
+      "files": [
+        "src/contracts/shared.ts"
+      ]
+    },
+    "T023": {
+      "status": "DONE",
+      "did": "JSON-lines logger with allowlist, secret scrubber, daily file, retention sweep (green #24)",
+      "files": [
+        "src/log.ts"
+      ]
+    },
+    "T025": {
+      "status": "DONE",
+      "did": "Limits defaults, excludedReason, fillBudget in diff order (green #26)",
+      "files": [
+        "src/core/limits.ts"
+      ]
+    },
+    "T024": {
+      "status": "DONE",
+      "did": "Unified-diff parser plus diffFingerprint over the normalised patch",
+      "files": [
+        "src/repo/unified-diff.ts"
+      ]
+    },
+    "T030": {
+      "status": "DONE",
+      "did": "Stored-to-display label maps from contracts/ui.md (claim labels, categories, completeness statuses, Answer for, intent groups); tracker-access reason left to the server",
+      "files": [
+        "src/ui/labels.ts"
+      ]
+    },
+    "T022": {
+      "status": "DONE",
+      "did": "Per-OS app-data resolution, subdirs, refuses overlap with the clone",
+      "files": [
+        "src/appdata.ts"
+      ]
+    },
+    "T031": {
+      "status": "DONE",
+      "did": "SourceControlProvider contract with RepoRef, PullRequestInfo, CommitInfo, ChangedFileInfo, HeadLocation; PlatformId neutral",
+      "files": [
+        "src/contracts/source-control.ts"
+      ]
+    },
+    "T032": {
+      "status": "DONE",
+      "did": "IssueTracker contract with RawIssueReference, IssueRefForm (neutral 'project-key' form), IssueLookup",
+      "files": [
+        "src/contracts/issue-tracker.ts"
+      ]
+    },
+    "T033": {
+      "status": "DONE",
+      "did": "AiProvider contract (id: string), RestrictionId, ProviderCapabilities, AskRequest, AskEvent, RESTRICTION_IDS, BLOCKING_RESTRICTIONS",
+      "files": [
+        "src/contracts/ai-provider.ts"
+      ]
+    },
+    "T034": {
+      "status": "DONE",
+      "did": "HTTP wire types for http-api.md sections 2-9 incl. ErrorBody/ErrorCode, ERROR_STATUS, Config with logRetentionDays, event payload map",
+      "files": [
+        "src/contracts/http.ts"
+      ]
+    },
+    "T035": {
+      "status": "DONE",
+      "did": "GET-only fetch wrapper refusing other methods before the network; 401/403->unauthorized, 404->not_found, other non-2xx/network->unavailable",
+      "files": [
+        "src/adapters/read-only-http.ts"
+      ]
+    },
+    "T036": {
+      "status": "DONE",
+      "did": "config.json load/validate/save: unknown_field refusal, invalid_request naming the field, registered platform ids passed in, limits and logRetentionDays defaults, atomic write",
+      "files": [
+        "src/config.ts"
+      ]
+    },
+    "T037": {
+      "status": "DONE",
+      "did": "Credential store over injected keyring: one entry per platform under pr-review-workbench, save/remove/has/account/authorize plus authorizeWith for unsaved sign-in checks; secrets registered with scrubber, never returned",
+      "files": [
+        "src/credentials.ts"
+      ]
+    },
+    "T043": {
+      "status": "DONE",
+      "did": "Typed UI API client for every http-api.md route, signin_required routes to #/signin, per-session EventSource wrapper that re-reads questions and latest summaries on reconnect",
+      "files": [
+        "src/ui/api.ts"
+      ]
+    },
+    "T038": {
+      "status": "DONE",
+      "did": "Git runner: execFile with argument array, named command table per R9, hardened -c options, allowlisted env, refuses unknown commands, missing params, option injection and malformed refs/prwb/ refs before running git",
+      "files": [
+        "src/repo/git.ts"
+      ]
+    },
+    "T040": {
+      "status": "DONE",
+      "did": "Request guard: Host 421, Origin 403 (foreign or missing on non-GET), constant-time cookie 401 except bootstrap routes, POST /api/auth cookie exchange, security headers, CORS headers blocked",
+      "files": [
+        "src/server/guard.ts"
+      ]
+    },
+    "T042": {
+      "status": "DONE",
+      "did": "Router: RouteModule with read/write deps views (GET gets read), :param matching, capped JSON body, validation helpers, HttpError/ErrorBody per ErrorCode, 404 not_found",
+      "files": [
+        "src/server/routes.ts"
+      ]
+    },
+    "T044": {
+      "status": "DONE",
+      "did": "node:http server on 127.0.0.1 port 0: guard, static UI from dist/ui, router; one log line per request with route pattern only, default logger in <app-data>/logs",
+      "files": [
+        "src/server/http.ts"
+      ]
+    },
+    "T028": {
+      "status": "DONE",
+      "did": "Launch page/script verified end to end against the real guard and /api/auth exchange (VO-043 green)",
+      "files": [
+        "src/ui/launch.html",
+        "src/ui/launch.ts"
+      ]
+    },
+    "T039": {
+      "status": "DONE",
+      "did": "Review-store connection: DatabaseSync at <app-data>/review.db, foreign_keys on, WAL, busy timeout, schema.sql applied once via user_version",
+      "files": [
+        "src/store/db.ts"
+      ]
+    },
+    "T041": {
+      "status": "DONE",
+      "did": "Review store: append* per entity, upsertSessionStatus, deleteSession (marker, cascade, marker removed, one transaction), transaction helper with savepoints, read/list/find lookups incl. by PR and by issue key",
+      "files": [
+        "src/store/review-store.ts"
+      ]
+    },
+    "T026": {
+      "status": "DONE",
+      "did": "Schema verified unchanged against VO-055 through db.ts and review-store.ts: all tables, cascades, append-only and marker-gated delete triggers",
+      "files": [
+        "src/store/schema.sql"
+      ]
+    },
+    "T045": {
+      "status": "DONE",
+      "did": "Recorded GitHub REST v3 fixtures (open list, PR states incl. merged/closed/reopened/deleted, fork PR, commits, files, diff media type, /user, issues incl. PR number and 404/403); recorded-fetch now matches a fixture's Accept header",
+      "files": [
+        "test/fixtures/github/",
+        "test/helpers/recorded-fetch.ts"
+      ]
+    },
+    "T046": {
+      "status": "DONE",
+      "did": "Recorded Bitbucket Cloud 2.0 fixtures (open list, PR detail, fork PR, commits, commit lookups, diffstat, diff, /2.0/user, a 401)",
+      "files": [
+        "test/fixtures/bitbucket/"
+      ]
+    },
+    "T047": {
+      "status": "DONE",
+      "did": "Recorded Jira Cloud v3 fixtures (ADF issue, configured/unconfigured project keys, 404, 403, 500, /myself)",
+      "files": [
+        "test/fixtures/jira/"
+      ]
+    },
+    "T048": {
+      "status": "DONE",
+      "did": "VO-063 unit test: one reference per issue with every origin, one lookup per key (red #50)",
+      "files": [
+        "test/unit/references.test.ts",
+        "src/contracts/issue-tracker.ts"
+      ]
+    },
+    "T049": {
+      "status": "DONE",
+      "did": "VO-027 unit test: PR, repository and issue rows for each input, skipped files in diff order, rows not read from Evidence, prompt-limit from store (red #51)",
+      "files": [
+        "test/unit/completeness.test.ts"
+      ]
+    },
+    "T050": {
+      "status": "DONE",
+      "did": "VO-022 SourceControlProvider contract suite over both source-control fixture sets via the registry (red #52)",
+      "files": [
+        "test/contract/source-control.contract.test.ts"
+      ]
+    },
+    "T051": {
+      "status": "DONE",
+      "did": "IssueTracker contract suite for both trackers: VO-037 shared suite, VO-023 confirmation, VO-024 PR refs, VO-025 ADF and no-credential, VO-064 unresolved reasons (red #53-57)",
+      "files": [
+        "test/contract/issue-tracker.contract.test.ts"
+      ]
+    },
+    "T052": {
+      "status": "DONE",
+      "did": "Repository-safety fingerprints across start/refresh/close, PR branch checked out, tracked hook dir, delete and start-up sweep: VO-005/009/068/072 (red #58-61)",
+      "files": [
+        "test/integration/repo-safety.test.ts"
+      ]
+    },
+    "T053": {
+      "status": "DONE",
+      "did": "Repo-fetch integration test (red #62-65); harness correction XC-08 (restore hook ordering, no assertion changed)",
+      "files": [
+        "test/integration/repo-fetch.test.ts"
+      ]
+    },
+    "T054": {
+      "status": "DONE",
+      "did": "VO-028 close keeps records and removes only the worktree; reopen recreates it; start-up sweep removes leftovers and keeps reviewer worktrees (red #66)",
+      "files": [
+        "test/integration/workspace-lifecycle.test.ts"
+      ]
+    },
+    "T055": {
+      "status": "DONE",
+      "did": "Session context: VO-002 origins, VO-007 snapshot 2 and stale commit-bound evidence, VO-029 issue re-fetch, VO-038 lookup by platform+key, VO-062 force-push, VO-077 snapshot rule (red #71,72,84,86-88; #67-70,#85 classified: wrong expect text)",
+      "files": [
+        "test/integration/session-context.test.ts"
+      ]
+    },
+    "T057": {
+      "status": "DONE",
+      "did": "Sessions over HTTP: VO-001/003/004/006/008/010/061/076 (red #74-81)",
+      "files": [
+        "test/end-to-end/sessions.test.ts"
+      ]
+    },
+    "T058": {
+      "status": "DONE",
+      "did": "VO-026 no clone and foreign-remote clone: repository row missing, platform diff, no workspace, no clone created (red #82)",
+      "files": [
+        "test/end-to-end/no-clone.test.ts"
+      ]
+    },
+    "T059": {
+      "status": "DONE",
+      "did": "VO-053 sign-in descriptors, read-only checks, rejection, per-platform expiry (red #83)",
+      "files": [
+        "test/end-to-end/signin.test.ts"
+      ]
+    },
+    "T060": {
+      "status": "DONE",
+      "did": "GitHub REST v3 source-control adapter: list/get/commits/files/diff media type, base-repo PR ref head location, /user sign-in check, page cap as truncated (green #89)",
+      "files": [
+        "src/adapters/github/source-control.ts"
+      ]
+    },
+    "T061": {
+      "status": "DONE",
+      "did": "Bitbucket Cloud 2.0 adapter: Basic email+API token, full head SHA via commit lookup, fork clone URL + source branch head location, commits oldest first, diffstat, diff (green #90)",
+      "files": [
+        "src/adapters/bitbucket/source-control.ts"
+      ]
+    },
+    "T063": {
+      "status": "DONE",
+      "did": "ADF node walker to plain text: paragraphs, headings, lists, code, mentions, links as text (green #95)",
+      "files": [
+        "src/adapters/jira/adf.ts"
+      ]
+    },
+    "T068": {
+      "status": "DONE",
+      "did": "Setup screen: repository/tracker platforms from /api/platforms, clone path, site, project keys, limits; server field errors shown as text",
+      "files": [
+        "src/ui/screens/setup.tsx"
+      ]
+    },
+    "T069": {
+      "status": "DONE",
+      "did": "Sign-in screen: one signin-form-<platform> per configured platform from descriptor fields; secret cleared after each attempt",
+      "files": [
+        "src/ui/screens/signin.tsx",
+        "src/contracts/http.ts"
+      ]
+    },
+    "T070": {
+      "status": "DONE",
+      "did": "Home screen: pr-list/pr-item-<number> starting or opening a session; session-list with session-status",
+      "files": [
+        "src/ui/screens/home.tsx"
+      ]
+    },
+    "T071": {
+      "status": "DONE",
+      "did": "Overview screen: header, refresh vs read-only-notice with status note, close, two-step delete, completeness rows with data-status, issues, skipped-file and changed-file rows",
+      "files": [
+        "src/ui/screens/overview.tsx"
+      ]
+    },
+    "T072": {
+      "status": "DONE",
+      "did": "Issue view: stored title and plain-text description as text nodes",
+      "files": [
+        "src/ui/screens/issue.tsx"
+      ]
+    },
+    "T073": {
+      "status": "DONE",
+      "did": "PR description view as a text node",
+      "files": [
+        "src/ui/screens/description.tsx"
+      ]
+    },
+    "T056": {
+      "status": "DONE",
+      "did": "VO-055 session delete: refused without confirm, confirmed delete removes records, worktree and refs/prwb/<id>/ only (red #73, green #142)",
+      "files": [
+        "test/integration/session-delete.test.ts"
+      ]
+    },
+    "T062": {
+      "status": "DONE",
+      "did": "GitHub Issues tracker: #123 and owner/repo#123 expanded to lower-cased keys, one GET per key, pull-request kind, bodies as text, not found/forbidden/unreachable reasons (green #92-94,#103)",
+      "files": [
+        "src/adapters/github/issues.ts"
+      ]
+    },
+    "T064": {
+      "status": "DONE",
+      "did": "Repository manager: clone match by normalised remotes, fetch into refs/prwb with scheme-matched URL and head check, merge-base local diff (numstat+patch+sizes), detached worktrees, removal by path, session ref delete (green #104-111; XC-09)",
+      "files": [
+        "src/repo/manager.ts"
+      ]
+    },
+    "T065": {
+      "status": "DONE",
+      "did": "collectReferences: tracker extraction over branch/title/description, merge by (platform,key) with all origins, one lookup per key, unconfirmed dropped, pull-request kind (green #101,#112,#113)",
+      "files": [
+        "src/core/references.ts",
+        "src/contracts/issue-tracker.ts"
+      ]
+    },
+    "T066": {
+      "status": "DONE",
+      "did": "Completeness derivation: PR/repository rows from status and snapshot, issue row from latest issue Evidence, skipped files in diff order incl. latest completed prompt's prompt-limit (green #102,#114)",
+      "files": [
+        "src/core/completeness.ts"
+      ]
+    },
+    "T067": {
+      "status": "DONE",
+      "did": "Issue Evidence: isolated lookups, current/missing/stale-with-lastGoodId transitions appended only, derived commit-bound staleness (green #115,#116)",
+      "files": [
+        "src/core/evidence.ts"
+      ]
+    },
+    "T074": {
+      "status": "DONE",
+      "did": "Jira Cloud tracker: case-insensitive project keys, configured accepted, others need confirmation, Basic GET with ADF to text, no credential gives 'no Jira access configured' with no request, /myself check (green #96-99)",
+      "files": [
+        "src/adapters/jira/issues.ts"
+      ]
+    },
+    "T075": {
+      "status": "DONE",
+      "did": "Start-up sweep: every <workspaces>/<session>/<snapshot> removed from its owning clone by path (via the worktree .git file) and from disk; no prune (green #117,#118)",
+      "files": [
+        "src/core/recovery.ts"
+      ]
+    },
+    "T076": {
+      "status": "DONE",
+      "did": "Platform registry: ids to adapter factories, read-only adapter deps, descriptors, sign-in verification (green #91,#100,#119)",
+      "files": [
+        "src/adapters/registry.ts"
+      ]
+    },
+    "T077": {
+      "status": "DONE",
+      "did": "Sign-in service: read-only check before keychain save, signin_rejected otherwise, in-memory signed-in/signed-out/expired, unauthorized marks only that platform (green #120)",
+      "files": [
+        "src/core/signins.ts"
+      ]
+    },
+    "T078": {
+      "status": "DONE",
+      "did": "Session service: start/open/refresh/close/delete with gaps per source, one-transaction snapshot append, snapshot only on moved head or failed fetch, read-only and reopened note, workspace before onSnapshot (green #121-136; XC-10)",
+      "files": [
+        "src/core/sessions.ts"
+      ]
+    },
+    "T079": {
+      "status": "DONE",
+      "did": "Context routes: config, platforms (+descriptors), sign-ins, pulls, sessions, open/refresh/close/delete, snapshots, events; boundary validation; platform_error only for pulls and start (green #137-141)",
+      "files": [
+        "src/server/routes/context.ts"
+      ]
+    },
+    "T080": {
+      "status": "DONE",
+      "did": "Fake AI CLI script: --version/--help variants, auth status, stream-json runs for five scenarios, records argv/env/cwd/stdin",
+      "files": [
+        "test/fixtures/fake-claude/fake-claude.mjs"
+      ]
+    },
+    "T081": {
+      "status": "DONE",
+      "did": "Fake CLI helper: launcher first on PATH, real CLI dirs dropped, scenario config, invocation reader, release; plus the US2 workbench harness",
+      "files": [
+        "test/helpers/fake-ai-cli.ts"
+      ]
+    },
+    "T082": {
+      "status": "DONE",
+      "did": "VO-030 failing test for fixed suggested-question templates per scope (red #145)",
+      "files": [
+        "test/unit/suggestions.test.ts"
+      ]
+    },
+    "T083": {
+      "status": "DONE",
+      "did": "VO-034/VO-069 failing tests for delimited prompt and context version (red #146, #147)",
+      "files": [
+        "test/unit/prompt.test.ts"
+      ]
+    },
+    "T084": {
+      "status": "DONE",
+      "did": "VO-013/014/031 failing tests for the claims finaliser against real git (red #148-#150)",
+      "files": [
+        "test/unit/claims.test.ts"
+      ]
+    },
+    "T085": {
+      "status": "DONE",
+      "did": "VO-033 failing test for the capability probe mapping help text to restrictions (red #151)",
+      "files": [
+        "test/unit/ai-capabilities.test.ts"
+      ]
+    },
+    "T086": {
+      "status": "DONE",
+      "did": "VO-035 failing test: one provider run per question, answer names the provider (red #152)",
+      "files": [
+        "test/unit/interrogation.test.ts"
+      ]
+    },
+    "T087": {
+      "status": "DONE",
+      "did": "VO-066 failing test for start-up recovery of interrupted AI work (red #153)",
+      "files": [
+        "test/integration/work-recovery.test.ts"
+      ]
+    },
+    "T088": {
+      "status": "DONE",
+      "did": "Live CLI suite for VO-017/018/071 written; red #156 on the missing module, run later via test-live",
+      "files": [
+        "test/live/live-cli.live.ts"
+      ]
+    },
+    "T118": {
+      "status": "DONE",
+      "did": "VO-074 failing test for the CLI invocation restrictions with the fake CLI (red #155)",
+      "files": [
+        "test/integration/ai-invocation.test.ts"
+      ]
+    },
+    "T090": {
+      "status": "DONE",
+      "did": "VO-011/021/046/065 (+VO-026 half) failing end-to-end summaries tests (red #157-#160, #174)",
+      "files": [
+        "test/end-to-end/summaries.test.ts"
+      ]
+    },
+    "T091": {
+      "status": "DONE",
+      "did": "VO-012..073 (+VO-008/026 halves) failing end-to-end interrogation tests (red #161-#171, #173, #174)",
+      "files": [
+        "test/end-to-end/interrogation.test.ts"
+      ]
+    },
+    "T119": {
+      "status": "DONE",
+      "did": "VO-075 failing end-to-end supersede test (red #172)",
+      "files": [
+        "test/end-to-end/supersede.test.ts"
+      ]
+    },
+    "T096": {
+      "status": "DONE",
+      "did": "Fixed suggested-question templates per scope and category (VO-030 green #176)",
+      "files": [
+        "src/core/suggestions.ts"
+      ]
+    },
+    "T092": {
+      "status": "DONE",
+      "did": "Answer and summary JSON schemas with embedded claim $defs per provider-contracts.md",
+      "files": [
+        "src/adapters/claude-code-cli/schemas.ts"
+      ]
+    },
+    "T109": {
+      "status": "DONE",
+      "did": "Start-up recovery: cancelled/restart for unfinished questions and summary runs, chunks as one Inference (VO-066 green #186)",
+      "files": [
+        "src/core/work-recovery.ts",
+        "src/core/claims.ts"
+      ]
+    },
+    "T089": {
+      "status": "DONE",
+      "did": "VO-047 diff route test passes against the interrogation routes (green #223)",
+      "files": [
+        "test/end-to-end/diff.test.ts"
+      ]
+    },
+    "T093": {
+      "status": "DONE",
+      "did": "Stream-json parser: text/json deltas, result with structured_output, error results (VO-032 green #187)",
+      "files": [
+        "src/adapters/claude-code-cli/stream.ts"
+      ]
+    },
+    "T094": {
+      "status": "DONE",
+      "did": "Capability probe: shell-free resolution, --version/--help/auth status, restrictions (a)-(e), env allowlist (VO-033 #175, VO-065 #188)",
+      "files": [
+        "src/adapters/claude-code-cli/capabilities.ts"
+      ]
+    },
+    "T095": {
+      "status": "DONE",
+      "did": "File access at a commit for reference checks and the code view (VO-013 #182, VO-019 #189)",
+      "files": [
+        "src/repo/files.ts"
+      ]
+    },
+    "T097": {
+      "status": "DONE",
+      "did": "Per-session summary and question lanes, FIFO by seq, cancel, cancelQueued superseded, close (VO-059 #190, VO-075 #191)",
+      "files": [
+        "src/core/lanes.ts"
+      ]
+    },
+    "T098": {
+      "status": "DONE",
+      "did": "Claims list UI with labels, intent groups, refs, warning, context version, restrictions",
+      "files": [
+        "src/ui/components/claims.tsx"
+      ]
+    },
+    "T099": {
+      "status": "DONE",
+      "did": "Diff screen UI: status, counts, hunks, head/base line selection to range, whole file, label input",
+      "files": [
+        "src/ui/screens/diff.tsx"
+      ]
+    },
+    "T100": {
+      "status": "DONE",
+      "did": "Code view UI at head or base, scrolled to the cited line",
+      "files": [
+        "src/ui/screens/code.tsx"
+      ]
+    },
+    "T103": {
+      "status": "DONE",
+      "did": "Claims finaliser: guards, ref checks, workbench-decided label and intent, unstructured/cancelled as one Inference (VO-013/014/031 #179-181, VO-056 #196, VO-057 #197)",
+      "files": [
+        "src/core/claims.ts"
+      ]
+    },
+    "T104": {
+      "status": "DONE",
+      "did": "Summaries panel UI: sections, streamed raw text, skipped files, older-snapshot marker, provider/workspace reasons",
+      "files": [
+        "src/ui/components/summaries.tsx"
+      ]
+    },
+    "T105": {
+      "status": "DONE",
+      "did": "Interrogation panel UI: scope, category, Answer for, suggestions, questions with state, cancel, claims, follow-ups, provenance",
+      "files": [
+        "src/ui/screens/ask.tsx"
+      ]
+    },
+    "T106": {
+      "status": "DONE",
+      "did": "AI registry naming the provider id and factory (VO-033 green #185)",
+      "files": [
+        "src/adapters/ai-registry.ts"
+      ]
+    },
+    "T107": {
+      "status": "DONE",
+      "did": "Interrogation service: readiness refusals, append/queue, stored prompt, chunks and deltas, finalise, cancel, follow-up scope copy (greens #198-#210)",
+      "files": [
+        "src/core/interrogation.ts"
+      ]
+    },
+    "T108": {
+      "status": "DONE",
+      "did": "Summaries: onSnapshot supersedes older queued work then queues a run; sections per kind and file (greens #211-#216)",
+      "files": [
+        "src/core/summaries.ts"
+      ]
+    },
+    "T110": {
+      "status": "DONE",
+      "did": "Interrogation routes with AskBody/scope validation: provider, summaries, diff, file, suggestions, questions, cancel (greens #217-#222)",
+      "files": [
+        "src/server/routes/interrogation.ts",
+        "src/contracts/http.ts"
+      ]
+    },
+    "T101": {
+      "status": "DONE",
+      "did": "Claude Code CLI provider: empty per-request cwd, R12 restricted args, stdin data, allowlisted env, cancel kills, cwd removed (VO-074 #183, VO-033 #184, VO-035 #192, live VO-017/071 #224)",
+      "files": [
+        "src/adapters/claude-code-cli/provider.ts"
+      ]
+    },
+    "T102": {
+      "status": "DONE",
+      "did": "Prompt builder: fixed instructions with audience rule, nonce-delimited data block, budget, Requirements issue-only, context version (VO-034 #177, VO-069 #178, VO-012/015/020 #193-195, live VO-018 #224)",
+      "files": [
+        "src/core/prompt.ts"
+      ]
+    },
+    "T111": {
+      "status": "DONE",
+      "did": "Full-app test: composed main.ts session with summaries and a question; hosts, child processes, tokens, GET CSP/store, log fields, retention, clone fingerprint",
+      "files": [
+        "test/end-to-end/full-app.test.ts",
+        "test/helpers/fake-ai-cli.ts"
+      ]
+    },
+    "T112": {
+      "status": "DONE",
+      "did": "startWorkbench(): app-data, logger with configured retention, store, keychain credentials, both route modules, start-up sweep then work recovery, server, launch URL and browser opener; stop cancels AI work as restart and removes workspaces; request log carries session/snapshot ids (FR-054)",
+      "files": [
+        "src/main.ts",
+        "src/server/http.ts",
+        "src/core/lanes.ts"
+      ]
+    },
+    "T113": {
+      "status": "DONE",
+      "did": "Hash router composing every screen; setup first when config is null, signin via api.ts; overview children now a render function so summaries follow a refresh",
+      "files": [
+        "src/ui/app.tsx",
+        "src/ui/screens/overview.tsx"
+      ]
+    },
+    "T114": {
+      "status": "DONE",
+      "did": "npx entry importing dist/main.js and calling startWorkbench(); smoke-run from dist: URL printed, /launch served, opener called, SIGINT exits",
+      "files": [
+        "bin/prwb.mjs"
+      ]
+    },
+    "T115": {
+      "status": "DONE",
+      "did": "README: start, configuration, per-platform sign-in, what it never does, data locations, test:live",
+      "files": [
+        "README.md"
+      ]
+    },
+    "T117": {
+      "status": "DONE",
+      "did": "typecheck #240, test checkpoint #245 (210/210), build and build:ui ok, test-live pass #242; tasks passed, compliance COMPLIANT; SC-001 now fingerprinted across start, refresh, ask, cancel, close and start-up sweep",
+      "files": [
+        "test/integration/workspace-lifecycle.test.ts"
+      ]
+    }
+  }
+}

@@ -1,0 +1,22 @@
+{
+  "request": {
+    "method": "GET",
+    "url": "https://acme.atlassian.net/rest/api/3/issue/XYZ-7?fields=summary,description"
+  },
+  "response": {
+    "status": 200,
+    "headers": {
+      "content-type": "application/json;charset=UTF-8"
+    },
+    "body": {
+      "expand": "renderedFields,names,schema,operations,editmeta,changelog,versionedRepresentations",
+      "id": "20007",
+      "self": "https://acme.atlassian.net/rest/api/3/issue/20007",
+      "key": "XYZ-7",
+      "fields": {
+        "summary": "Shared token library upgrade",
+        "description": null
+      }
+    }
+  }
+}

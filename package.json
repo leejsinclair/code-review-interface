@@ -1,0 +1,39 @@
+{
+  "name": "pr-review-workbench",
+  "version": "0.1.0",
+  "description": "Local workbench for understanding and interrogating a pull request with its context.",
+  "type": "module",
+  "license": "UNLICENSED",
+  "private": true,
+  "engines": {
+    "node": ">=24"
+  },
+  "bin": {
+    "prwb": "bin/prwb.mjs"
+  },
+  "files": [
+    "bin/",
+    "dist/"
+  ],
+  "scripts": {
+    "test": "node --test \"test/**/*.test.ts\"",
+    "test:live": "node --test \"test/live/*.live.ts\"",
+    "typecheck": "tsc --noEmit",
+    "build": "tsc -p tsconfig.build.json && node -e \"require('node:fs').cpSync('src/store/schema.sql','dist/store/schema.sql')\"",
+    "build:ui": "esbuild src/ui/app.tsx src/ui/launch.ts src/ui/app.css src/ui/index.html src/ui/launch.html --bundle --outdir=dist/ui --format=esm --target=es2022 --jsx=automatic --jsx-import-source=preact --loader:.html=copy",
+    "dev": "npm run build:ui -- --watch=forever & node src/main.ts",
+    "gitlab:up": "gitlab/gitlab.sh up",
+    "gitlab:bootstrap": "gitlab/gitlab.sh bootstrap",
+    "gitlab:down": "gitlab/gitlab.sh down",
+    "gitlab:reset": "gitlab/gitlab.sh reset"
+  },
+  "dependencies": {
+    "@napi-rs/keyring": "^1.1.0",
+    "preact": "^10.26.0"
+  },
+  "devDependencies": {
+    "@types/node": "^24.0.0",
+    "esbuild": "^0.25.0",
+    "typescript": "^5.8.0"
+  }
+}

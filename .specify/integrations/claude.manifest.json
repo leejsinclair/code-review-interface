@@ -14,7 +14,7 @@
     ".claude/skills/speckit-tasks/SKILL.md": "d148aeda1011260c4465c5f105fa1e045a0b0224ccb3e6e0c1ec32c732cae1ae",
     ".claude/skills/speckit-taskstoissues/SKILL.md": "471edc95cb41acdc18d4ab3c0f024334bbc4bac9936f955dde30fc3cb9d77473",
     ".specify/events.py": "e78e7edb7dd8c5d3a86d61386eb4313ed5b1f8eb6891e496a04b2a53ff7ea984",
-    ".claude/settings.json": "eddfaf7e83ff695c8756d0df91869e1f5fb869c1a32c3efff0b1b284dd4d5460"
+    ".claude/settings.json": "0d8813b28a0c8ee71b560f33226e607603c90b782c8dbc8d505680e0067f19df"
   },
   "ownership_modes": {
     ".specify/events.py": "shared",

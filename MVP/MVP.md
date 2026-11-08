@@ -2,6 +2,8 @@
 
 Nov 7, 2026 · @Lee Sinclair
 
+**This document is Phase 1, the MVP.** Phase 1 delivers FR-1, FR-2, FR-3 and core changed-line coverage (FR-5.1, 5.2, 5.4, 5.5), the smallest set that tests the concept (see [ADR 0001](../docs/domain_knowledge/adr/0001-phase-1-scope.md)). Requirements moved out of Phase 1, and the work planned after validation, are in [Phase 2](<Phase 2.md>). The backlog is in [Phase 3](<Phase 3.md>). Requirement IDs are unchanged.
+
 ## 1. Purpose, positioning and scope
 
 The PR Review Workbench is a decision-support tool that helps a reviewer understand a Bitbucket Cloud pull request, see where review attention is needed, and judge whether the available evidence supports merging. It assembles evidence around the PR; it does not approve, merge or replace any existing system.
@@ -36,7 +38,7 @@ The PR Review Workbench is a decision-support tool that helps a reviewer underst
 
 ## 2. Users, roles and journeys
 
-There is one workflow with three presentation lenses. Roles are a view filter, not a permission system; no role administration is built in the MVP.
+There is one workflow with three presentation lenses. Roles are a view filter, not a permission system; no role administration is built in the MVP. Phase 1 has a single view; switchable role lenses (FR-8) are Phase 2.
 
 | Role | Primary question | Default view contents |
 | --- | --- | --- |
@@ -50,14 +52,14 @@ There is one workflow with three presentation lenses. Roles are a view filter, n
 2. **Understand.** Read the PR summary and per-file explanations.
 3. **Prioritise.** Filter the diff by risk class; see why each item was flagged; skim low-risk items.
 4. **Interrogate.** Select code (or the whole PR) and ask what/why/how/what-if/risk/requirement questions.
-5. **Assess evidence.** Review requirement traceability, changed-line coverage and SonarQube findings.
-6. **Decide.** Review the readiness recommendation, disposition findings, record verification, then approve or reject **in the source-control platform** (Bitbucket Cloud in the target environment).
+5. **Assess evidence.** Review changed-line coverage against the risk classes. (Requirement traceability and SonarQube findings are Phase 2.)
+6. **Decide.** Approve or reject **in the source-control platform** (Bitbucket Cloud in the target environment). (The readiness recommendation and recorded dispositions are Phase 2.)
 
 ### 2.2 Secondary journeys
 
-- **Re-review after new commits.** Refresh the PR; only affected findings are re-analysed; prior dispositions persist where the underlying code is unchanged.
-- **BA business-language question.** The BA asks, for example, whether a customer can reset a password more than once, and gets an answer linked to code and requirement evidence without needing to read code.
-- **Missing evidence.** No coverage report, no issue reference or no specification is shown as an explicit gap, never silently skipped.
+- **Re-review after new commits.** Refresh the PR; classifications and changed-line coverage are recalculated for the new head. (Carrying dispositions across refreshes is Phase 2.)
+- **BA business-language question.** The BA asks, for example, whether a customer can reset a password more than once, and gets an answer linked to code and issue evidence without needing to read code.
+- **Missing evidence.** No coverage report or no issue reference is shown as an explicit gap, never silently skipped.
 
 ## 3. Constraints and architecture
 
@@ -72,9 +74,9 @@ The workbench is a local TypeScript/Node.js application that orchestrates four e
 | Source control | Bitbucket Cloud in the target environment; GitHub for development and dogfooding. Both behind a `SourceControlProvider` contract; personal authentication per platform |
 | Issue tracking | Jira in the target environment; GitHub Issues for development and dogfooding. Both behind an `IssueTracker` contract (read-only) |
 | AI | Claude Code CLI (no direct API dependency); GitHub Copilot is a future provider |
-| Static analysis | Local SonarQube, manually engaged; evidence imported or refreshed manually |
-| Specifications | Spec Kit, associated automatically; may live in `project-<code>` repositories |
-| Spec discovery | May require fetching `develop` and searching open branches for the specification folder |
+| Static analysis | Local SonarQube, manually engaged; evidence imported or refreshed manually (Phase 2) |
+| Specifications | Spec Kit, associated automatically; may live in `project-<code>` repositories (Phase 2) |
+| Spec discovery | May require fetching `develop` and searching open branches for the specification folder (Phase 2) |
 | Repositories | Single repository initially |
 | Persistence | Local application storage; database choice subject to existing architecture |
 | Safety | Must not interfere with the developer's active branch or uncommitted work |
@@ -87,8 +89,8 @@ The workbench is a local TypeScript/Node.js application that orchestrates four e
 | Repository manager | Isolated read-only checkouts (temporary worktrees); fetch without touching the active branch | Local git |
 | Context assembler | Builds the review context: PR, diff, repo, issue references, specification, evidence | All connectors |
 | Issue-tracker interface | Provider-neutral, read-only contract for issue-reference extraction and issue lookup; Jira adapter (target) and GitHub Issues adapter (development) | Jira (read), GitHub Issues (read) |
-| Requirements connector | Specification discovery, related-PR lookup | `project-<code>` repos, issue tracker, source-control provider |
-| Evidence service | Imports coverage (LCOV) and SonarQube reports; normalises to the evidence model | Local files, SonarQube export/API |
+| Requirements connector (Phase 2) | Specification discovery, related-PR lookup | `project-<code>` repos, issue tracker, source-control provider |
+| Evidence service | Imports coverage (LCOV) reports, and SonarQube reports in Phase 2; normalises to the evidence model | Local files, SonarQube export/API |
 | Risk engine | Deterministic rules plus AI-assisted behavioural analysis; produces explainable classifications | Context assembler, AI provider |
 | AI provider interface | Provider-neutral contract; Claude Code CLI adapter first | `claude` CLI |
 | Review store | Sessions, findings, dispositions, conversations, evidence references | Local storage |
@@ -105,7 +107,7 @@ The workbench is a local TypeScript/Node.js application that orchestrates four e
 
 ## 4. Functional requirements
 
-Seven capabilities plus role lenses make up the MVP. Each requirement has an ID for traceability to wireframes (section 8.4) and tests. "Must" is mandatory for MVP exit.
+Phase 1 delivers FR-1, FR-2, FR-3 and FR-5.1, 5.2, 5.4 and 5.5. FR-4, FR-5.3, FR-5.6, FR-6, FR-7 and FR-8 are specified in [Phase 2](<Phase 2.md>), under the same IDs. Each requirement has an ID for traceability to wireframes (section 8.4) and tests. "Must" is mandatory for MVP exit.
 
 ### FR-1 PR discovery and context assembly
 
@@ -116,7 +118,9 @@ Seven capabilities plus role lenses make up the MVP. Each requirement has an ID 
 | FR-1.3 | Must extract issue references (Jira keys, or GitHub issue references such as `#123` and `owner/repo#123`) from branch name, PR title and description, and show which source each reference came from. |
 | FR-1.4 | Must resolve the local repository and create an isolated read-only workspace for the PR. |
 | FR-1.5 | Must create one ReviewSession per PR; refreshing a PR updates it and never duplicates history. |
-| FR-1.6 | Must show a visible "context completeness" list (PR, repo, issue reference, specification, coverage, SonarQube) with found / missing / stale status. |
+| FR-1.6 | Must show a visible "context completeness" list (PR, repo, issue reference, coverage) with found / missing / stale status. It shows only sources the workbench checks; specification and SonarQube rows arrive with their Phase 2 features. |
+
+Phase 1 also fetches each linked issue's title and description, read-only, as documented intent for interrogation (part of FR-4.1). Jira is read with a personal API token kept in the OS keychain; without one, the issue shows as unresolved with the reason "no Jira access configured".
 
 **Acceptance:** a reviewer can select an open PR and start analysis; source and target branches are correct; commit-to-commit changes are identifiable; the developer's branch and uncommitted files are untouched.
 
@@ -127,7 +131,7 @@ Seven capabilities plus role lenses make up the MVP. Each requirement has an ID 
 | FR-2.1 | Must generate an overall PR summary, a per-file summary, and functional and technical impact statements. |
 | FR-2.2 | Must allow questions scoped to a selected line range, method, file, or the whole PR. |
 | FR-2.3 | Must support question categories: What, Why, How, What-if, Risk, Requirements. |
-| FR-2.4 | Must offer contextual suggested questions, varied by role lens. |
+| FR-2.4 | Must offer contextual suggested questions, varied by scope (and by role lens once FR-8 lands in Phase 2). |
 | FR-2.5 | Must display source references (file:line, requirement ID) with every answer, navigable to the code or requirement. |
 | FR-2.6 | Must label each statement in an answer as **Evidence** (directly supported) or **Inference** (AI reasoning), and distinguish documented intent from inferred intent. |
 | FR-2.7 | Must persist all questions and answers with provider, timestamp and the context version used. |
@@ -151,65 +155,22 @@ Seven capabilities plus role lenses make up the MVP. Each requirement has an ID 
 
 **Acceptance:** every flag has an explanation; Low items remain viewable; nothing is auto-approved.
 
-### FR-4 Requirements and change intent
-
-| ID | Requirement |
-| --- | --- |
-| FR-4.1 | Must associate the PR with an issue (from FR-1.3) and display its key, summary and acceptance criteria. |
-| FR-4.2 | Must discover the Spec Kit specification automatically, including in `project-<code>` repositories, by searching `develop` and applicable open branches. |
-| FR-4.3 | Must display the relevant functional and technical specification content. |
-| FR-4.4 | Must produce a traceability table: each acceptance criterion with an assessment (Implementation identified / Implementation and test identified / Requires verification / Not found). |
-| FR-4.5 | Must flag apparent scope deviations: implemented but not requested, and requested but not implemented. |
-| FR-4.6 | Must list assumptions and ambiguities found. |
-| FR-4.7 | Must label AI-generated mappings **Inferred** until a reviewer marks them **Verified**. |
-| FR-4.8 | Should show other PRs referencing the same issue with their status (basic related-PR discovery); must not imply the issue is complete because one PR merged. |
-
 ### FR-5 PR-specific test coverage
 
 | ID | Requirement |
 | --- | --- |
 | FR-5.1 | Must import or locate existing coverage reports (LCOV first). |
 | FR-5.2 | Must compute changed-executable-line coverage and list uncovered changed lines. |
-| FR-5.3 | Should report uncovered new functions where the report supports it, and branch coverage where the tooling supplies it. |
 | FR-5.4 | Must link uncovered lines to the diff view. |
 | FR-5.5 | Must show "no coverage evidence" explicitly, with report timestamp and commit when available, and never invent a percentage. |
-| FR-5.6 | Should show suggested missing test scenarios, labelled as recommendations, not results. |
+
+FR-5.3 and FR-5.6 are Phase 2.
 
 **Out of scope for FR-5:** running tests, a new test runner, mutation testing.
 
-### FR-6 Static analysis and quality evidence
-
-| ID | Requirement |
-| --- | --- |
-| FR-6.1 | Must import or manually refresh SonarQube results for the PR/branch. |
-| FR-6.2 | Must show new bugs, vulnerabilities, code smells, and complexity and duplication where available. |
-| FR-6.3 | Must separate new findings from pre-existing technical debt where the data supports it. |
-| FR-6.4 | Must display scan timestamp and the commit it covers, and flag the evidence as **stale** when the PR head has moved. |
-| FR-6.5 | Must link each finding to its original in SonarQube. |
-| FR-6.6 | Must store evidence in the generic evidence model (section 5) so other harnesses can be added without new UI. |
-
-### FR-7 Review readiness and human decisions
-
-| ID | Requirement |
-| --- | --- |
-| FR-7.1 | Must consolidate risk, test, requirements and static-analysis findings into one readiness panel. |
-| FR-7.2 | Must show one of four states: **Insufficient evidence**, **Review required**, **Ready for human approval**, **Blocked** (rules in section 7.2). |
-| FR-7.3 | Must separate Confirmed issues, Recommendations, Unknowns and Human review obligations. |
-| FR-7.4 | Must let reviewers acknowledge, verify, or dismiss each finding; dismissal requires a reason. |
-| FR-7.5 | Must keep dispositions across refreshes where the underlying code is unchanged, and reopen them where it changed. |
-| FR-7.6 | Must keep an auditable, append-only review history (who, what, when, why). |
-| FR-7.7 | Must not approve, decline or merge the PR, and must not show a green "approved" badge. |
-
-### FR-8 Role lenses
-
-| ID | Requirement |
-| --- | --- |
-| FR-8.1 | Must provide Developer, Technical lead and BA lenses over the same data, switchable in one click. |
-| FR-8.2 | Must remember the last lens per user locally; no permissions model. |
-
 ## 5. Data model
 
-Three record families are kept strictly apart: **Evidence** (facts from tools), **Assessment** (AI or rules output) and **Disposition** (human decisions). Every Assessment cites Evidence; every Disposition cites a Finding. *\[Assumption\]* Entity and field names below are indicative; storage technology follows the existing architecture.
+Three record families are kept strictly apart: **Evidence** (facts from tools), **Assessment** (AI or rules output) and **Disposition** (human decisions). Every Assessment cites Evidence; every Disposition cites a Finding. Requirement, TraceabilityLink and ReadinessSnapshot are Phase 2 entities. *\[Assumption\]* Entity and field names below are indicative; storage technology follows the existing architecture.
 
 | Entity | Key fields | Notes |
 | --- | --- | --- |
@@ -217,13 +178,10 @@ Three record families are kept strictly apart: **Evidence** (facts from tools), 
 | PrSnapshot | sessionId, headCommit, diffHash, files\[\], commits\[\] | Immutable per head commit; enables commit-to-commit comparison |
 | ChangedFile | path, status, additions, deletions, isGenerated, language | Part of a snapshot |
 | Evidence | id, sessionId, kind (`coverage` / `sonar` / `spec` / `issue` / `lint` / `custom`), source, capturedAt, commit, payloadRef, status (`current` / `stale` / `missing`) | Generic model so new harnesses need no UI change |
-| Requirement | id, source (issue tracker / Spec Kit), text, criterionRef | Read from source; never edited here |
 | Finding | id, sessionId, category (`risk` / `requirement` / `coverage` / `static` / `scope`), severity, title, explanation, origin (`rule` / `ai` / `tool`), confidence, evidenceRefs\[\], codeRefs\[\] | Origin and evidence are mandatory |
 | RiskClassification | targetType (file / range), targetRef, class, reasons\[\], ruleIds\[\], overriddenBy | Recomputed on each snapshot |
 | Conversation / Message | id, sessionId, scope (PR / file / range), provider, contextVersion, role, text, claims\[\] | Claim = {text, type: evidence / inference, refs\[\]} |
-| TraceabilityLink | requirementId, codeRefs\[\], testRefs\[\], state (`inferred` / `verified` / `rejected`), by | AI creates as inferred |
-| Disposition | id, findingId, action (`acknowledge` / `verify` / `dismiss` / `override`), reason, actor, at, codeHashAtTime | Append-only; reopened when `codeHashAtTime` no longer matches |
-| ReadinessSnapshot | sessionId, snapshotId, state, reasons\[\], computedAt | Recommendation only; derived, never user-set |
+| Disposition | id, findingId, action (`acknowledge` / `verify` / `dismiss` / `override`), reason, actor, at, codeHashAtTime | Append-only; reopened when `codeHashAtTime` no longer matches. Phase 1 records `override` only (FR-3.6) |
 
 ### 5.1 Data rules
 
@@ -278,11 +236,11 @@ interface AskResult {
 | Never switch the active branch | All inspection uses `git worktree` in an application-owned directory |
 | Never touch uncommitted files | The user's working tree is never a target of any command |
 | Fetching is non-destructive | Fetch into remote-tracking refs only; no pull, merge, rebase or checkout in the user's tree |
-| Specification discovery | Fetch `develop` and relevant open branches, then read specification folders from the object store or a temporary worktree |
+| Specification discovery (Phase 2) | Fetch `develop` and relevant open branches, then read specification folders from the object store or a temporary worktree |
 | Cleanup | Worktrees are removed on session close and by a startup sweep of orphans |
 | Visibility | If a repo or spec cannot be resolved, show a missing-context notice; do not substitute assumptions |
 
-## 7. Risk rules, readiness logic and quality attributes
+## 7. Risk rules and quality attributes
 
 ### 7.1 Risk classification
 
@@ -303,26 +261,13 @@ Classification is hybrid: deterministic rules set a floor, AI assessment may rai
 - Generated files and lockfiles are Low *candidates*, flagged "mechanical", with a link to open the diff.
 - Every classification stores: class, reasons, rule IDs, and the changed lines responsible.
 
-### 7.2 Readiness recommendation
-
-Readiness is derived and cannot be set by a user. States are evaluated top-down; the first match wins.
-
-| Order | State | Condition *\[Assumption: exact thresholds\]* |
-| --- | --- | --- |
-| 1 | Blocked | Any Critical finding or Critical-class change without a Verify or Dismiss-with-reason disposition |
-| 2 | Insufficient evidence | Required evidence missing or stale: no specification/issue link, no coverage for changed code (where a report is expected), or SonarQube evidence stale |
-| 3 | Review required | Any Elevated finding, uncovered changed lines, unmapped acceptance criteria or scope deviation without disposition |
-| 4 | Ready for human approval | None of the above; remaining items are Low or already dispositioned |
-
-The panel always shows its reasons and the unknowns. The state is labelled a recommendation, uses neutral styling (no green approval badge), and the approve/decline action stays in the source-control platform.
-
-### 7.3 Non-functional requirements
+### 7.2 Non-functional requirements
 
 | Attribute | Requirement |
 | --- | --- |
 | Safety | Zero modifications to the user's working tree, branch or uncommitted files (exit criterion). |
 | Trust | Every Finding has an origin and evidence references; no unreferenced claim is displayed as fact. |
-| Auditability | Review history is append-only and exportable (JSON or Markdown). *\[Assumption: export format\]* |
+| Auditability | Review history is append-only. Export (JSON or Markdown) arrives with FR-7 in Phase 2. *\[Assumption: export format\]* |
 | Performance | PR context assembled and summary started within 60 s for a typical PR; interrogation answers stream. *\[Assumption: targets to be baselined\]* |
 | Resilience | Any missing source degrades to a visible gap; one failed connector does not block the rest. |
 | Security | Source-control and issue-tracker credentials stored in the OS keychain or equivalent; code and context are sent only to the configured provider. *\[Assumption\]* |
@@ -336,11 +281,11 @@ The panel always shows its reasons and the unknowns. The state is labelled a rec
 
 | Phase | Scope |
 | --- | --- |
-| 1 — MVP (6–8 weeks) | FR-1 to FR-8 as specified above |
-| 2 — After validation | Test quality assessment, blast-radius / regression impact, consolidated Jira implementation view, API contract analysis, Copilot as a second provider |
-| 3 — Backlog | Cross-PR semantic analysis, historical defect intelligence, mutation testing, deployment and migration analysis, architectural conformance, review analytics, engineering knowledge graph |
+| 1 — MVP (6–8 weeks) | FR-1, FR-2, FR-3 and FR-5.1, 5.2, 5.4, 5.5, as specified above |
+| 2 — After validation | Requirements moved from Phase 1 and work planned after validation: see [Phase 2](<Phase 2.md>) |
+| 3 — Backlog | See [Phase 3](<Phase 3.md>) |
 
-**Delivery sequence** *(planning allocation, not an estimate)*: Week 1 discovery, context assembly, data model · Week 2 diff presentation and PR summary · Weeks 3–4 interrogation and risk analysis · Week 5 Jira/specification traceability · Week 6 coverage and SonarQube evidence · Week 7 readiness, dispositions, role lenses · Week 8 integration testing, UX refinement, hardening.
+**Delivery sequence** *(planning allocation, not an estimate; \[Assumption: re-planned after the Phase 1 cut\])*: Week 1 discovery, context assembly, data model · Week 2 diff presentation and PR summary · Weeks 3–4 interrogation and risk analysis · Week 5 changed-line coverage · Week 6 integration testing, UX refinement, hardening.
 
 **Validation checkpoint (end of Week 3 or 4):** review five real PRs with the existing process and with the workbench; compare time to understand, issues found, time on low-risk files, questions that needed the author, requirement and test gaps, and reviewer confidence. If scope must shrink, protect interrogation and the evidence foundation first.
 
@@ -350,7 +295,7 @@ Cross-PR semantic analysis; cross-repository dependency graph; full blast-radius
 
 ### 8.3 Success measures and exit criteria
 
-Baseline a sample of existing PRs before judging the MVP. These are hypotheses to test, not established expectations: cut initial comprehension time by 30%; cut time on low-risk changes by 40%; at least 80% of AI findings rated useful; changed-line coverage shown for at least 80% of PRs where reports exist; fewer review cycles caused by misunderstood requirements.
+Baseline a sample of existing PRs before judging the MVP. These are hypotheses to test, not established expectations: cut initial comprehension time by 30%; cut time on low-risk changes by 40%; at least 80% of AI findings rated useful; changed-line coverage shown for at least 80% of PRs where reports exist. (Fewer review cycles caused by misunderstood requirements is a Phase 2 measure.)
 
 The MVP is complete only when, using real PRs, it demonstrates:
 
@@ -360,36 +305,30 @@ The MVP is complete only when, using real PRs, it demonstrates:
 | Understanding | Produces an accurate PR summary |
 | Interrogation | Answers contextual questions with source evidence |
 | Risk | Identifies meaningful high-risk changes; correctly marks common mechanical changes Low |
-| Requirements | Associates a PR with its issue (Jira in the target environment) and specification context |
+| Issue context | Associates a PR with its issue (Jira in the target environment) and shows its title and description |
 | Coverage | Shows measured changed-line coverage when a report exists |
-| SonarQube | Shows manually refreshed analysis evidence |
-| Readiness | Surfaces unresolved issues and evidence gaps |
-| Human decisions | Records dispositions and verification |
 | Repository safety | Never alters the developer's working state |
 
-Test set: UI change; complex business logic; security-sensitive change; database migration; PR with generated files; PR with poor coverage; PR that does not match its specification; PR with several related changes.
+Test set: UI change; complex business logic; security-sensitive change; database migration; PR with generated files; PR with poor coverage; PR with several related changes. (PR that does not match its specification is a Phase 2 case.)
 
 ### 8.4 Wireframe index
 
-The wireframes are in the companion design artifact *PR Review Workbench — Wireframes*.
+The wireframes are PNG files in this folder, linked by ID below. They were exported from the companion design artifact *PR Review Workbench — Wireframes*. W5 and W7 are Phase 2 screens, indexed in [Phase 2](<Phase 2.md>).
 
 | ID | Screen | Lens | Requirements shown |
 | --- | --- | --- | --- |
-| W1 | PR list and session start | All | FR-1.1, FR-1.5 |
-| W2 | Review overview and context completeness | All | FR-1.2–1.6, FR-2.1, FR-3.1, FR-3.5, FR-4.8, FR-8 |
-| W3 | Diff with risk overlay | Developer | FR-3.1–3.7, FR-5.4 |
-| W4 | AI interrogation panel | Developer, BA | FR-2.2–2.9 |
-| W5 | Requirements traceability | BA | FR-4.1–4.8 |
-| W6 | Test and static-analysis evidence | Technical lead | FR-5.1–5.6, FR-6.1–6.6 |
-| W7 | Review readiness and dispositions | Technical lead | FR-7.1–7.7 |
-| W8 | Review history | All | FR-7.6, FR-2.7 |
+| [W1](<W1 PR list and session start.png>) | PR list and session start | All | FR-1.1, FR-1.5 |
+| [W2](<W2 Review overview.png>) | Review overview and context completeness | All | FR-1.2–1.6, FR-2.1, FR-3.1, FR-3.5 (FR-4.8 and FR-8 parts are Phase 2) |
+| [W3](<W3 Diff with risk overlay.png>) | Diff with risk overlay | Developer | FR-3.1–3.7, FR-5.4 |
+| [W4](<W4 AI interrogation.png>) | AI interrogation panel | Developer, BA | FR-2.2–2.9 |
+| [W6](<W6 Test and static-analysis evidence.png>) | Test and static-analysis evidence (coverage part) | Technical lead | FR-5.1, 5.2, 5.4, 5.5 (static analysis is Phase 2) |
+| [W8](<W8 Review history.png>) | Review history (interrogation part) | All | FR-2.7 (decision history is Phase 2) |
 
 ### 8.5 Open questions
 
-- Which Jira access path is allowed (personal API token, MCP, or Jira keys only)? FR-4.1 acceptance-criteria display depends on it.
-- Where do SonarQube results come from for a manual import: a local report file, the local server's API, or both?
+- ~~Which Jira access path is allowed?~~ Resolved 2026-11-07: a personal API token in the OS keychain, read-only (spec 001).
 - Which coverage report formats exist across target repositories beyond LCOV?
 - What is the exact read-only permission configuration of the Claude Code CLI in the target environment (Week 1 spike)?
 - Should the initial mandatory-scrutiny rule set be seeded from existing engineering standards?
-- Which GitHub issue field or convention carries acceptance criteria (issue body section, task list, or label), so FR-4.1 works in development?
 - Is the existing application foundation (local repository management, Bitbucket auth) already in place? If not, the panel advised reducing scope rather than weakening interrogation.
+- SonarQube import and GitHub acceptance-criteria questions moved to [Phase 2](<Phase 2.md>).

@@ -1,0 +1,47 @@
+# Local GitLab CE for repeatable integration tests.
+# See gitlab/README.md. Based on https://docs.gitlab.com/install/docker/installation/
+#
+# Everything is bound to 127.0.0.1 only. The root password and the test token
+# below are throwaway values for a local, disposable instance — never reuse them.
+name: prwb-gitlab
+
+services:
+  gitlab:
+    # Pin a version so test runs are reproducible; bump deliberately.
+    image: gitlab/gitlab-ce:${GITLAB_VERSION:-19.5.3-ce.0}
+    container_name: prwb-gitlab
+    restart: unless-stopped
+    hostname: localhost
+    environment:
+      # Applied only on first boot (empty data volume).
+      GITLAB_ROOT_PASSWORD: ${GITLAB_ROOT_PASSWORD:-prwb-Local-Test-2026!}
+      GITLAB_OMNIBUS_CONFIG: |
+        external_url 'http://localhost:${GITLAB_HTTP_PORT:-8929}'
+        gitlab_rails['gitlab_shell_ssh_port'] = ${GITLAB_SSH_PORT:-2424}
+
+        # Trim the footprint: this instance only serves tests.
+        puma['worker_processes'] = 0
+        sidekiq['concurrency'] = 10
+        prometheus_monitoring['enable'] = false
+        gitlab_rails['usage_ping_enabled'] = false
+        registry['enable'] = false
+        gitlab_kas['enable'] = false
+    ports:
+      - '127.0.0.1:${GITLAB_HTTP_PORT:-8929}:${GITLAB_HTTP_PORT:-8929}'
+      - '127.0.0.1:${GITLAB_SSH_PORT:-2424}:22'
+    volumes:
+      # Git-ignored; delete with `gitlab/gitlab.sh reset` (files are root-owned).
+      - ./volumes/config:/etc/gitlab
+      - ./volumes/logs:/var/log/gitlab
+      - ./volumes/data:/var/opt/gitlab
+    shm_size: '256m'
+    # The image's own healthcheck can pass before Rails is serving, so
+    # `docker compose up --wait` would return too early. Readiness only
+    # passes once nginx, Workhorse, Puma, the DB, Redis and Gitaly are all up.
+    healthcheck:
+      test: ['CMD', 'curl', '-fsS', '-o', '/dev/null', 'http://localhost:${GITLAB_HTTP_PORT:-8929}/-/readiness']
+      interval: 10s
+      timeout: 10s
+      retries: 6
+      start_period: 15m
+      start_interval: 5s

@@ -1,0 +1,13 @@
+{
+  "request": {
+    "method": "GET",
+    "url": "https://api.bitbucket.org/2.0/repositories/acme/widgets/pullrequests/3/diff"
+  },
+  "response": {
+    "status": 200,
+    "headers": {
+      "content-type": "text/plain; charset=utf-8"
+    },
+    "body": "diff --git a/src/util.js b/src/util.js\nindex 3f4e5d6..7a8b9c0 100644\n--- a/src/util.js\n+++ b/src/util.js\n@@ -1,3 +1,4 @@\n export function add(a, b) {\n+  if (a == null || b == null) throw new TypeError('missing operand');\n   return a + b;\n }\n"
+  }
+}

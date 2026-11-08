@@ -1,0 +1,35 @@
+{
+  "request": {
+    "method": "GET",
+    "url": "https://api.bitbucket.org/2.0/user"
+  },
+  "response": {
+    "status": 200,
+    "headers": {
+      "content-type": "application/json; charset=utf-8"
+    },
+    "body": {
+      "display_name": "Alice Developer",
+      "links": {
+        "self": {
+          "href": "https://api.bitbucket.org/2.0/users/%7B1c2d3e4f-0000-4000-8000-00000000a11c%7D"
+        },
+        "avatar": {
+          "href": "https://secure.gravatar.com/avatar/alice-dev"
+        },
+        "html": {
+          "href": "https://bitbucket.org/%7B1c2d3e4f-0000-4000-8000-00000000a11c%7D/"
+        }
+      },
+      "type": "user",
+      "uuid": "{1c2d3e4f-0000-4000-8000-00000000a11c}",
+      "account_id": "712020:aa11c000-0000-4000-8000-000000000001",
+      "nickname": "alice-dev",
+      "created_on": "2019-05-01T10:00:00.000000+00:00",
+      "is_staff": false,
+      "location": null,
+      "has_2fa_enabled": null,
+      "username": "alice-dev"
+    }
+  }
+}

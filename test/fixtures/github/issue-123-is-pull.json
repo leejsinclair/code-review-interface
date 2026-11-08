@@ -1,0 +1,52 @@
+{
+  "request": {
+    "method": "GET",
+    "url": "https://api.github.com/repos/acme/widgets/issues/123"
+  },
+  "response": {
+    "status": 200,
+    "headers": {
+      "content-type": "application/json; charset=utf-8",
+      "x-github-media-type": "github.v3; format=json"
+    },
+    "body": {
+      "url": "https://api.github.com/repos/acme/widgets/issues/123",
+      "repository_url": "https://api.github.com/repos/acme/widgets",
+      "html_url": "https://github.com/acme/widgets/pull/123",
+      "id": 3100000123,
+      "node_id": "I_kwDOAcme0123",
+      "number": 123,
+      "title": "Refactor token module",
+      "user": {
+        "login": "bob-dev",
+        "id": 41002,
+        "node_id": "MDQ6VXNlcj41002",
+        "avatar_url": "https://avatars.githubusercontent.com/u/41002?v=4",
+        "url": "https://api.github.com/users/bob-dev",
+        "html_url": "https://github.com/bob-dev",
+        "type": "User",
+        "site_admin": false
+      },
+      "labels": [],
+      "state": "open",
+      "locked": false,
+      "assignee": null,
+      "assignees": [],
+      "milestone": null,
+      "comments": 0,
+      "created_at": "2026-10-20T10:00:00Z",
+      "updated_at": "2026-10-21T10:00:00Z",
+      "closed_at": null,
+      "author_association": "MEMBER",
+      "body": "Pull request body.",
+      "state_reason": null,
+      "pull_request": {
+        "url": "https://api.github.com/repos/acme/widgets/pulls/123",
+        "html_url": "https://github.com/acme/widgets/pull/123",
+        "diff_url": "https://github.com/acme/widgets/pull/123.diff",
+        "patch_url": "https://github.com/acme/widgets/pull/123.patch",
+        "merged_at": null
+      }
+    }
+  }
+}

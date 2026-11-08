@@ -29,13 +29,17 @@ text in its output.
 
 ## Install
 
-Install the extension first, then the preset, from a release archive. The address below
-is that of the `v0.3.0` tag, which exists once the release is published:
+Install the extension first, then the preset, from the published `v0.3.0` release archive:
 
 ```bash
 specify extension add integrated-tdd --from https://github.com/leejsinclair/speckit-tdd-integrated/archive/refs/tags/v0.3.0.zip
 specify preset add integrated-tdd --from https://github.com/leejsinclair/speckit-tdd-integrated/archive/refs/tags/v0.3.0.zip
 ```
+
+Spec Kit may show an **Untrusted Source** warning because `--from` bypasses its trusted
+catalogs. Confirm only if you trust this repository. This warning is separate from a
+download error: **HTTP 404** means the archive is unavailable. Check that the version's
+tag has been published; changing a manifest or the README alone does not create it.
 
 Install from a release archive, not from a working copy. A release archive holds only the
 shipped files. Spec Kit copies a preset's whole source directory, so `--dev` on a clone of
@@ -306,7 +310,17 @@ These are limits of the first release. None is presented as covered.
 
 Both manifests declare the version; the tag must match (`v0.3.0` for `0.3.0`). Pushing a tag
 runs `.github/workflows/release.yml`, which builds the zip and attaches it to a GitHub
-release. The same zip can be built locally from any tag, local or on GitHub:
+release. After committing the version, changelog and install URL updates to `main`, publish
+the tag explicitly:
+
+```bash
+git tag v0.3.0
+git push origin v0.3.0
+```
+
+Wait for the release workflow to finish, then check that both install commands above can
+download the archive. Do not advertise a new install URL before its tag is published.
+The same zip can be built locally from any tag, local or on GitHub:
 
 ```bash
 tools/release-zip.sh v0.3.0        # writes dist/speckit-tdd-integrated-0.3.0.zip

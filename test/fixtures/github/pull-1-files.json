@@ -1,0 +1,64 @@
+{
+  "request": {
+    "method": "GET",
+    "url": "https://api.github.com/repos/acme/widgets/pulls/1/files?per_page=100"
+  },
+  "response": {
+    "status": 200,
+    "headers": {
+      "content-type": "application/json; charset=utf-8",
+      "x-github-media-type": "github.v3; format=json"
+    },
+    "body": [
+      {
+        "sha": "3b18e51a0000000000000000000000000000000a",
+        "filename": "docs/reset.md",
+        "status": "added",
+        "additions": 3,
+        "deletions": 0,
+        "changes": 3,
+        "blob_url": "https://github.com/acme/widgets/blob/a3f9c2e17b4d58e6f0a1c3b5d7e9f2a4c6b8d0e1/docs/reset.md",
+        "raw_url": "https://github.com/acme/widgets/raw/a3f9c2e17b4d58e6f0a1c3b5d7e9f2a4c6b8d0e1/docs/reset.md",
+        "contents_url": "https://api.github.com/repos/acme/widgets/contents/docs/reset.md?ref=a3f9c2e17b4d58e6f0a1c3b5d7e9f2a4c6b8d0e1",
+        "patch": "@@ -0,0 +1,3 @@\n+# Password reset\n+\n+A customer can reset a password more than once."
+      },
+      {
+        "sha": "f00d9a1a0000000000000000000000000000000b",
+        "filename": "src/auth/reset.js",
+        "status": "modified",
+        "additions": 1,
+        "deletions": 1,
+        "changes": 2,
+        "blob_url": "https://github.com/acme/widgets/blob/a3f9c2e17b4d58e6f0a1c3b5d7e9f2a4c6b8d0e1/src/auth/reset.js",
+        "raw_url": "https://github.com/acme/widgets/raw/a3f9c2e17b4d58e6f0a1c3b5d7e9f2a4c6b8d0e1/src/auth/reset.js",
+        "contents_url": "https://api.github.com/repos/acme/widgets/contents/src/auth/reset.js?ref=a3f9c2e17b4d58e6f0a1c3b5d7e9f2a4c6b8d0e1",
+        "patch": "@@ -1,4 +1,4 @@\n export function canReset(token) {\n-  return !token.used;\n+  return token.expiresAt > Date.now();\n }\n "
+      },
+      {
+        "sha": "5d6e7f8a0000000000000000000000000000000c",
+        "filename": "src/auth/token.js",
+        "status": "renamed",
+        "additions": 1,
+        "deletions": 1,
+        "changes": 2,
+        "blob_url": "https://github.com/acme/widgets/blob/a3f9c2e17b4d58e6f0a1c3b5d7e9f2a4c6b8d0e1/src/auth/token.js",
+        "raw_url": "https://github.com/acme/widgets/raw/a3f9c2e17b4d58e6f0a1c3b5d7e9f2a4c6b8d0e1/src/auth/token.js",
+        "contents_url": "https://api.github.com/repos/acme/widgets/contents/src/auth/token.js?ref=a3f9c2e17b4d58e6f0a1c3b5d7e9f2a4c6b8d0e1",
+        "patch": "@@ -1,3 +1,3 @@\n-export function makeToken() {\n+export function createToken() {\n   return crypto.randomUUID();\n }",
+        "previous_filename": "src/token.js"
+      },
+      {
+        "sha": "0000000000000000000000000000000000000000",
+        "filename": "src/legacy.js",
+        "status": "removed",
+        "additions": 0,
+        "deletions": 2,
+        "changes": 2,
+        "blob_url": "https://github.com/acme/widgets/blob/a3f9c2e17b4d58e6f0a1c3b5d7e9f2a4c6b8d0e1/src/legacy.js",
+        "raw_url": "https://github.com/acme/widgets/raw/a3f9c2e17b4d58e6f0a1c3b5d7e9f2a4c6b8d0e1/src/legacy.js",
+        "contents_url": "https://api.github.com/repos/acme/widgets/contents/src/legacy.js?ref=a3f9c2e17b4d58e6f0a1c3b5d7e9f2a4c6b8d0e1",
+        "patch": "@@ -1,2 +0,0 @@\n-// legacy reset flow\n-export const legacy = true;"
+      }
+    ]
+  }
+}

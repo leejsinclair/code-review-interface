@@ -1,0 +1,18 @@
+{
+  "request": {
+    "method": "GET",
+    "url": "https://acme.atlassian.net/rest/api/3/issue/ABC-88?fields=summary,description"
+  },
+  "response": {
+    "status": 500,
+    "headers": {
+      "content-type": "application/json;charset=UTF-8"
+    },
+    "body": {
+      "errorMessages": [
+        "Internal server error"
+      ],
+      "errors": {}
+    }
+  }
+}

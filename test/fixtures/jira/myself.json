@@ -1,0 +1,32 @@
+{
+  "request": {
+    "method": "GET",
+    "url": "https://acme.atlassian.net/rest/api/3/myself"
+  },
+  "response": {
+    "status": 200,
+    "headers": {
+      "content-type": "application/json;charset=UTF-8"
+    },
+    "body": {
+      "self": "https://acme.atlassian.net/rest/api/3/user?accountId=712020:aa11c000-0000-4000-8000-000000000001",
+      "accountId": "712020:aa11c000-0000-4000-8000-000000000001",
+      "accountType": "atlassian",
+      "emailAddress": "alice@acme.example",
+      "avatarUrls": {},
+      "displayName": "Alice Developer",
+      "active": true,
+      "timeZone": "Europe/London",
+      "locale": "en_GB",
+      "groups": {
+        "size": 3,
+        "items": []
+      },
+      "applicationRoles": {
+        "size": 1,
+        "items": []
+      },
+      "expand": "groups,applicationRoles"
+    }
+  }
+}

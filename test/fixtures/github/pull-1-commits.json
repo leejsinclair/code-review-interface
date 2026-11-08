@@ -1,0 +1,129 @@
+{
+  "request": {
+    "method": "GET",
+    "url": "https://api.github.com/repos/acme/widgets/pulls/1/commits?per_page=100"
+  },
+  "response": {
+    "status": 200,
+    "headers": {
+      "content-type": "application/json; charset=utf-8",
+      "x-github-media-type": "github.v3; format=json"
+    },
+    "body": [
+      {
+        "sha": "5b7e2d9f1a3c4e6b8d0f2a4c6e8b1d3f5a7c9e2b",
+        "node_id": "C_kwDO5b7e2d9f1a",
+        "url": "https://api.github.com/repos/acme/widgets/commits/5b7e2d9f1a3c4e6b8d0f2a4c6e8b1d3f5a7c9e2b",
+        "html_url": "https://github.com/acme/widgets/commit/5b7e2d9f1a3c4e6b8d0f2a4c6e8b1d3f5a7c9e2b",
+        "commit": {
+          "author": {
+            "name": "Alice Developer",
+            "email": "alice-dev@example.com",
+            "date": "2026-11-02T10:15:00Z"
+          },
+          "committer": {
+            "name": "Alice Developer",
+            "email": "alice-dev@example.com",
+            "date": "2026-11-02T10:15:00Z"
+          },
+          "message": "Allow repeated password resets\n\nABC-12",
+          "tree": {
+            "sha": "0000000000000000000000000000000000000000",
+            "url": "https://api.github.com/repos/acme/widgets/git/trees/0000000000000000000000000000000000000000"
+          },
+          "url": "https://api.github.com/repos/acme/widgets/git/commits/5b7e2d9f1a3c4e6b8d0f2a4c6e8b1d3f5a7c9e2b",
+          "comment_count": 0,
+          "verification": {
+            "verified": false,
+            "reason": "unsigned",
+            "signature": null,
+            "payload": null
+          }
+        },
+        "author": {
+          "login": "alice-dev",
+          "id": 41001,
+          "node_id": "MDQ6VXNlcj41001",
+          "avatar_url": "https://avatars.githubusercontent.com/u/41001?v=4",
+          "url": "https://api.github.com/users/alice-dev",
+          "html_url": "https://github.com/alice-dev",
+          "type": "User",
+          "site_admin": false
+        },
+        "committer": {
+          "login": "alice-dev",
+          "id": 41001,
+          "node_id": "MDQ6VXNlcj41001",
+          "avatar_url": "https://avatars.githubusercontent.com/u/41001?v=4",
+          "url": "https://api.github.com/users/alice-dev",
+          "html_url": "https://github.com/alice-dev",
+          "type": "User",
+          "site_admin": false
+        },
+        "parents": [
+          {
+            "sha": "e4d2c1b0a9f8e7d6c5b4a3f2e1d0c9b8a7f6e5d4",
+            "url": "https://api.github.com/repos/acme/widgets/commits/e4d2c1b0a9f8e7d6c5b4a3f2e1d0c9b8a7f6e5d4"
+          }
+        ]
+      },
+      {
+        "sha": "a3f9c2e17b4d58e6f0a1c3b5d7e9f2a4c6b8d0e1",
+        "node_id": "C_kwDOa3f9c2e17b",
+        "url": "https://api.github.com/repos/acme/widgets/commits/a3f9c2e17b4d58e6f0a1c3b5d7e9f2a4c6b8d0e1",
+        "html_url": "https://github.com/acme/widgets/commit/a3f9c2e17b4d58e6f0a1c3b5d7e9f2a4c6b8d0e1",
+        "commit": {
+          "author": {
+            "name": "Alice Developer",
+            "email": "alice-dev@example.com",
+            "date": "2026-11-03T09:00:00Z"
+          },
+          "committer": {
+            "name": "Alice Developer",
+            "email": "alice-dev@example.com",
+            "date": "2026-11-03T09:00:00Z"
+          },
+          "message": "Document password reset",
+          "tree": {
+            "sha": "0000000000000000000000000000000000000000",
+            "url": "https://api.github.com/repos/acme/widgets/git/trees/0000000000000000000000000000000000000000"
+          },
+          "url": "https://api.github.com/repos/acme/widgets/git/commits/a3f9c2e17b4d58e6f0a1c3b5d7e9f2a4c6b8d0e1",
+          "comment_count": 0,
+          "verification": {
+            "verified": false,
+            "reason": "unsigned",
+            "signature": null,
+            "payload": null
+          }
+        },
+        "author": {
+          "login": "alice-dev",
+          "id": 41001,
+          "node_id": "MDQ6VXNlcj41001",
+          "avatar_url": "https://avatars.githubusercontent.com/u/41001?v=4",
+          "url": "https://api.github.com/users/alice-dev",
+          "html_url": "https://github.com/alice-dev",
+          "type": "User",
+          "site_admin": false
+        },
+        "committer": {
+          "login": "alice-dev",
+          "id": 41001,
+          "node_id": "MDQ6VXNlcj41001",
+          "avatar_url": "https://avatars.githubusercontent.com/u/41001?v=4",
+          "url": "https://api.github.com/users/alice-dev",
+          "html_url": "https://github.com/alice-dev",
+          "type": "User",
+          "site_admin": false
+        },
+        "parents": [
+          {
+            "sha": "5b7e2d9f1a3c4e6b8d0f2a4c6e8b1d3f5a7c9e2b",
+            "url": "https://api.github.com/repos/acme/widgets/commits/5b7e2d9f1a3c4e6b8d0f2a4c6e8b1d3f5a7c9e2b"
+          }
+        ]
+      }
+    ]
+  }
+}

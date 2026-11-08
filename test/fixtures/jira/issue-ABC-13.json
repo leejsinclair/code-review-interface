@@ -1,0 +1,36 @@
+{
+  "request": {
+    "method": "GET",
+    "url": "https://acme.atlassian.net/rest/api/3/issue/ABC-13?fields=summary,description"
+  },
+  "response": {
+    "status": 200,
+    "headers": {
+      "content-type": "application/json;charset=UTF-8"
+    },
+    "body": {
+      "expand": "renderedFields,names,schema,operations,editmeta,changelog,versionedRepresentations",
+      "id": "10013",
+      "self": "https://acme.atlassian.net/rest/api/3/issue/10013",
+      "key": "ABC-13",
+      "fields": {
+        "summary": "Reset emails are sent twice",
+        "description": {
+          "type": "doc",
+          "version": 1,
+          "content": [
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "Two emails arrive for one request."
+                }
+              ]
+            }
+          ]
+        }
+      }
+    }
+  }
+}

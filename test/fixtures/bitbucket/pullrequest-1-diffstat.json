@@ -1,0 +1,105 @@
+{
+  "request": {
+    "method": "GET",
+    "url": "https://api.bitbucket.org/2.0/repositories/acme/widgets/pullrequests/1/diffstat"
+  },
+  "response": {
+    "status": 200,
+    "headers": {
+      "content-type": "application/json; charset=utf-8"
+    },
+    "body": {
+      "values": [
+        {
+          "type": "diffstat",
+          "lines_added": 3,
+          "lines_removed": 0,
+          "status": "added",
+          "old": null,
+          "new": {
+            "path": "docs/reset.md",
+            "type": "commit_file",
+            "escaped_path": "docs/reset.md",
+            "links": {
+              "self": {
+                "href": "https://api.bitbucket.org/2.0/repositories/acme/widgets/src/a3f9c2e17b4d58e6f0a1c3b5d7e9f2a4c6b8d0e1/docs/reset.md"
+              }
+            }
+          }
+        },
+        {
+          "type": "diffstat",
+          "lines_added": 1,
+          "lines_removed": 1,
+          "status": "modified",
+          "old": {
+            "path": "src/auth/reset.js",
+            "type": "commit_file",
+            "escaped_path": "src/auth/reset.js",
+            "links": {
+              "self": {
+                "href": "https://api.bitbucket.org/2.0/repositories/acme/widgets/src/e4d2c1b0a9f8e7d6c5b4a3f2e1d0c9b8a7f6e5d4/src/auth/reset.js"
+              }
+            }
+          },
+          "new": {
+            "path": "src/auth/reset.js",
+            "type": "commit_file",
+            "escaped_path": "src/auth/reset.js",
+            "links": {
+              "self": {
+                "href": "https://api.bitbucket.org/2.0/repositories/acme/widgets/src/a3f9c2e17b4d58e6f0a1c3b5d7e9f2a4c6b8d0e1/src/auth/reset.js"
+              }
+            }
+          }
+        },
+        {
+          "type": "diffstat",
+          "lines_added": 1,
+          "lines_removed": 1,
+          "status": "renamed",
+          "old": {
+            "path": "src/token.js",
+            "type": "commit_file",
+            "escaped_path": "src/token.js",
+            "links": {
+              "self": {
+                "href": "https://api.bitbucket.org/2.0/repositories/acme/widgets/src/e4d2c1b0a9f8e7d6c5b4a3f2e1d0c9b8a7f6e5d4/src/token.js"
+              }
+            }
+          },
+          "new": {
+            "path": "src/auth/token.js",
+            "type": "commit_file",
+            "escaped_path": "src/auth/token.js",
+            "links": {
+              "self": {
+                "href": "https://api.bitbucket.org/2.0/repositories/acme/widgets/src/a3f9c2e17b4d58e6f0a1c3b5d7e9f2a4c6b8d0e1/src/auth/token.js"
+              }
+            }
+          }
+        },
+        {
+          "type": "diffstat",
+          "lines_added": 0,
+          "lines_removed": 2,
+          "status": "removed",
+          "old": {
+            "path": "src/legacy.js",
+            "type": "commit_file",
+            "escaped_path": "src/legacy.js",
+            "links": {
+              "self": {
+                "href": "https://api.bitbucket.org/2.0/repositories/acme/widgets/src/e4d2c1b0a9f8e7d6c5b4a3f2e1d0c9b8a7f6e5d4/src/legacy.js"
+              }
+            }
+          },
+          "new": null
+        }
+      ],
+      "pagelen": 500,
+      "size": 4,
+      "page": 1
+    }
+  }
+}

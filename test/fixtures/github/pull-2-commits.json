@@ -1,0 +1,72 @@
+{
+  "request": {
+    "method": "GET",
+    "url": "https://api.github.com/repos/acme/widgets/pulls/2/commits?per_page=100"
+  },
+  "response": {
+    "status": 200,
+    "headers": {
+      "content-type": "application/json; charset=utf-8",
+      "x-github-media-type": "github.v3; format=json"
+    },
+    "body": [
+      {
+        "sha": "7c1e3a5b9d2f4e6a8c0b1d3f5e7a9c2b4d6f8e0a",
+        "node_id": "C_kwDO7c1e3a5b9d",
+        "url": "https://api.github.com/repos/acme/widgets/commits/7c1e3a5b9d2f4e6a8c0b1d3f5e7a9c2b4d6f8e0a",
+        "html_url": "https://github.com/acme/widgets/commit/7c1e3a5b9d2f4e6a8c0b1d3f5e7a9c2b4d6f8e0a",
+        "commit": {
+          "author": {
+            "name": "Bob Developer",
+            "email": "bob-dev@example.com",
+            "date": "2026-11-04T07:59:00Z"
+          },
+          "committer": {
+            "name": "Bob Developer",
+            "email": "bob-dev@example.com",
+            "date": "2026-11-04T07:59:00Z"
+          },
+          "message": "Fix typo in README",
+          "tree": {
+            "sha": "0000000000000000000000000000000000000000",
+            "url": "https://api.github.com/repos/acme/widgets/git/trees/0000000000000000000000000000000000000000"
+          },
+          "url": "https://api.github.com/repos/acme/widgets/git/commits/7c1e3a5b9d2f4e6a8c0b1d3f5e7a9c2b4d6f8e0a",
+          "comment_count": 0,
+          "verification": {
+            "verified": false,
+            "reason": "unsigned",
+            "signature": null,
+            "payload": null
+          }
+        },
+        "author": {
+          "login": "bob-dev",
+          "id": 41002,
+          "node_id": "MDQ6VXNlcj41002",
+          "avatar_url": "https://avatars.githubusercontent.com/u/41002?v=4",
+          "url": "https://api.github.com/users/bob-dev",
+          "html_url": "https://github.com/bob-dev",
+          "type": "User",
+          "site_admin": false
+        },
+        "committer": {
+          "login": "bob-dev",
+          "id": 41002,
+          "node_id": "MDQ6VXNlcj41002",
+          "avatar_url": "https://avatars.githubusercontent.com/u/41002?v=4",
+          "url": "https://api.github.com/users/bob-dev",
+          "html_url": "https://github.com/bob-dev",
+          "type": "User",
+          "site_admin": false
+        },
+        "parents": [
+          {
+            "sha": "e4d2c1b0a9f8e7d6c5b4a3f2e1d0c9b8a7f6e5d4",
+            "url": "https://api.github.com/repos/acme/widgets/commits/e4d2c1b0a9f8e7d6c5b4a3f2e1d0c9b8a7f6e5d4"
+          }
+        ]
+      }
+    ]
+  }
+}

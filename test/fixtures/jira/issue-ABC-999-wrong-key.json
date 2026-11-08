@@ -1,0 +1,18 @@
+{
+  "request": {
+    "method": "GET",
+    "url": "https://acme.atlassian.net/rest/api/3/issue/ABC-999?fields=summary,description"
+  },
+  "response": {
+    "status": 404,
+    "headers": {
+      "content-type": "application/json;charset=UTF-8"
+    },
+    "body": {
+      "errorMessages": [
+        "Issue does not exist or you do not have permission to see it."
+      ],
+      "errors": {}
+    }
+  }
+}

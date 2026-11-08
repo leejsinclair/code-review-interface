@@ -1,0 +1,146 @@
+{
+  "request": {
+    "method": "GET",
+    "url": "https://api.bitbucket.org/2.0/repositories/acme/widgets/pullrequests/1"
+  },
+  "response": {
+    "status": 200,
+    "headers": {
+      "content-type": "application/json; charset=utf-8"
+    },
+    "body": {
+      "comment_count": 0,
+      "task_count": 0,
+      "type": "pullrequest",
+      "id": 1,
+      "title": "Allow password reset more than once",
+      "description": "Fixes ABC-12.\r\n\r\nReset tokens are no longer single use.",
+      "rendered": {
+        "title": {
+          "type": "rendered",
+          "raw": "Allow password reset more than once",
+          "markup": "markdown",
+          "html": "<p>Allow password reset more than once</p>"
+        },
+        "description": {
+          "type": "rendered",
+          "raw": "Fixes ABC-12.\r\n\r\nReset tokens are no longer single use.",
+          "markup": "markdown",
+          "html": ""
+        }
+      },
+      "state": "OPEN",
+      "merge_commit": null,
+      "close_source_branch": false,
+      "closed_by": null,
+      "author": {
+        "display_name": "Alice Developer",
+        "links": {
+          "self": {
+            "href": "https://api.bitbucket.org/2.0/users/%7B1c2d3e4f-0000-4000-8000-00000000a11c%7D"
+          },
+          "avatar": {
+            "href": "https://secure.gravatar.com/avatar/alice-dev"
+          },
+          "html": {
+            "href": "https://bitbucket.org/%7B1c2d3e4f-0000-4000-8000-00000000a11c%7D/"
+          }
+        },
+        "type": "user",
+        "uuid": "{1c2d3e4f-0000-4000-8000-00000000a11c}",
+        "account_id": "712020:aa11c000-0000-4000-8000-000000000001",
+        "nickname": "alice-dev"
+      },
+      "reason": "",
+      "created_on": "2026-11-02T10:00:00.123456+00:00",
+      "updated_on": "2026-11-03T09:05:12.345678+00:00",
+      "destination": {
+        "branch": {
+          "name": "main"
+        },
+        "commit": {
+          "type": "commit",
+          "hash": "e4d2c1b0a9f8",
+          "links": {
+            "self": {
+              "href": "https://api.bitbucket.org/2.0/repositories/acme/widgets/commit/e4d2c1b0a9f8"
+            }
+          }
+        },
+        "repository": {
+          "type": "repository",
+          "full_name": "acme/widgets",
+          "links": {
+            "self": {
+              "href": "https://api.bitbucket.org/2.0/repositories/acme/widgets"
+            },
+            "html": {
+              "href": "https://bitbucket.org/acme/widgets"
+            },
+            "avatar": {
+              "href": "https://bytebucket.org/ravatar/%7B9a8b7c6d-0000-4000-8000-0000000acbe1%7D?ts=default"
+            }
+          },
+          "name": "widgets",
+          "uuid": "{9a8b7c6d-0000-4000-8000-0000000acbe1}"
+        }
+      },
+      "source": {
+        "branch": {
+          "name": "feature/ABC-12-reset"
+        },
+        "commit": {
+          "type": "commit",
+          "hash": "a3f9c2e17b4d",
+          "links": {
+            "self": {
+              "href": "https://api.bitbucket.org/2.0/repositories/acme/widgets/commit/a3f9c2e17b4d"
+            }
+          }
+        },
+        "repository": {
+          "type": "repository",
+          "full_name": "acme/widgets",
+          "links": {
+            "self": {
+              "href": "https://api.bitbucket.org/2.0/repositories/acme/widgets"
+            },
+            "html": {
+              "href": "https://bitbucket.org/acme/widgets"
+            },
+            "avatar": {
+              "href": "https://bytebucket.org/ravatar/%7B9a8b7c6d-0000-4000-8000-0000000acbe1%7D?ts=default"
+            }
+          },
+          "name": "widgets",
+          "uuid": "{9a8b7c6d-0000-4000-8000-0000000acbe1}"
+        }
+      },
+      "links": {
+        "self": {
+          "href": "https://api.bitbucket.org/2.0/repositories/acme/widgets/pullrequests/1"
+        },
+        "html": {
+          "href": "https://bitbucket.org/acme/widgets/pull-requests/1"
+        },
+        "commits": {
+          "href": "https://api.bitbucket.org/2.0/repositories/acme/widgets/pullrequests/1/commits"
+        },
+        "diff": {
+          "href": "https://api.bitbucket.org/2.0/repositories/acme/widgets/diff/acme/widgets:a3f9c2e17b4d%0De4d2c1b0a9f8?from_pullrequest_id=1&topic=true"
+        },
+        "diffstat": {
+          "href": "https://api.bitbucket.org/2.0/repositories/acme/widgets/diffstat/acme/widgets:a3f9c2e17b4d%0De4d2c1b0a9f8?from_pullrequest_id=1&topic=true"
+        }
+      },
+      "summary": {
+        "type": "rendered",
+        "raw": "Fixes ABC-12.\r\n\r\nReset tokens are no longer single use.",
+        "markup": "markdown",
+        "html": ""
+      },
+      "reviewers": [],
+      "participants": []
+    }
+  }
+}

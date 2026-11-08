@@ -2,9 +2,11 @@
 
 All notable changes to this project are recorded here. Versions follow semantic versioning.
 
-## Unreleased
+## Releases
 
 ### 0.3.0
+
+Released 2026-11-07.
 
 Work that tests cannot verify: a project with no test tooling, a test that cannot run, and
 checks only a person can do.

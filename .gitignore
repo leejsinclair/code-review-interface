@@ -16,3 +16,6 @@ dist/
 coverage/
 .env
 .env.*
+
+# Local GitLab test instance: runtime data (see gitlab/README.md)
+gitlab/volumes/
