@@ -1,0 +1,101 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Wireframe: Files and Diff</title>
+<link rel="stylesheet" href="wf.css"><script src="wf.js" defer></script>
+</head>
+<body>
+<div data-wf="app-header"></div>
+<div data-wf="review-shell" data-tab="files" data-ask="none"></div>
+
+<div class="workspace">
+  <aside class="files" aria-labelledby="files-h">
+    <div class="panel-head"><h2 id="files-h">Changed files</h2>
+      <button type="button" aria-expanded="true" aria-controls="file-list" data-focus="12">« Collapse</button></div>
+    <label for="ff">Filter files <span class="wf-new">[NEW]</span><input id="ff" type="search" data-focus="13"></label>
+    <ul class="plain" id="file-list">
+      <li><a class="mono" href="#" aria-current="page" data-focus="14">✎ src/webhooks/retry.ts</a> <span class="reason">+48 −12</span></li>
+      <li><a class="mono" href="#">✎ src/webhooks/queue.ts</a> <span class="reason">+6 −2</span></li>
+      <li><a class="mono" href="#">＋ test/retry.test.ts</a> <span class="reason">+80 −0</span></li>
+      <li><span class="mono">＋ fixtures/events.json</span> <span class="badge">⊘ skipped</span></li>
+    </ul>
+    <p class="wf-note">≥1200 px: collapsible left region. 900–1199 px: drawer opened by the "Files" button. Status shown by icon + word in the accessible name (e.g. "modified").</p>
+  </aside>
+
+  <main id="content" class="main" tabindex="-1">
+    <div class="row">
+      <button type="button" class="drawer-toggle" aria-expanded="false" data-focus="12">☰ Files</button>
+      <span class="narrow-only row"><a href="#">‹ Previous file</a> <a href="overview.html">All changed files</a> <a href="diff.html">Next file ›</a></span>
+    </div>
+    <h1 class="mono">src/webhooks/retry.ts</h1>
+    <p><span class="badge">✎ modified</span> <span class="muted">+48 −12</span></p>
+
+    <div class="diff-scroll" role="grid" aria-label="Diff of src/webhooks/retry.ts" aria-multiselectable="true">
+      <div class="hunk-head">@@ -8,7 +8,11 @@ export async function deliver(</div>
+      <table class="diff"><tbody>
+        <tr class="diff-line" data-type="context" aria-selected="false"><td class="ln"><button tabindex="-1">8</button></td><td class="ln"><button tabindex="-1">8</button></td><td class="mark"> </td><td>  const body = JSON.stringify(event);</td></tr>
+        <tr class="diff-line" data-type="remove" aria-selected="false" data-testid="diff-line-base-9"><td class="ln"><button tabindex="-1" aria-label="Old line 9, removed">9</button></td><td class="ln"></td><td class="mark">−</td><td>  await post(url, body);</td></tr>
+        <tr class="diff-line" data-type="add" aria-selected="false" data-testid="diff-line-head-9"><td class="ln"></td><td class="ln"><button tabindex="-1" aria-label="New line 9, added">9</button></td><td class="mark">+</td><td>  for (let attempt = 1; attempt &lt;= MAX_ATTEMPTS; attempt++) {</td></tr>
+        <tr class="diff-line" data-type="add" aria-selected="true" data-testid="diff-line-head-10"><td class="ln"></td><td class="ln"><button tabindex="-1" aria-label="New line 10, added, selection anchor">10</button></td><td class="mark">+</td><td>    try {</td></tr>
+        <tr class="diff-line" data-type="add" aria-selected="true" data-testid="diff-line-head-11"><td class="ln"></td><td class="ln"><button tabindex="-1">11</button></td><td class="mark">+</td><td>      return await post(url, body);</td></tr>
+        <tr class="diff-line" data-type="add" aria-selected="true" data-testid="diff-line-head-12"><td class="ln"></td><td class="ln"><button tabindex="-1">12</button></td><td class="mark">+</td><td>    } catch (error) {</td></tr>
+        <tr class="diff-line" data-type="add" aria-selected="true" data-testid="diff-line-head-13"><td class="ln"></td><td class="ln"><button tabindex="-1">13</button></td><td class="mark">+</td><td>      await sleep(backoff(attempt));</td></tr>
+        <tr class="diff-line" data-type="add" aria-selected="true" data-testid="diff-line-head-14"><td class="ln"></td><td class="ln"><button tabindex="0" aria-label="New line 14, added, selected" data-focus="15">14</button></td><td class="mark">+</td><td>    }</td></tr>
+        <tr class="diff-line" data-type="context" aria-selected="false"><td class="ln"><button tabindex="-1">10</button></td><td class="ln"><button tabindex="-1">15</button></td><td class="mark"> </td><td>  }</td></tr>
+      </tbody></table>
+    </div>
+    <p class="wf-note">Rows: class="diff-line" data-type="add|remove|context" aria-selected. Meaning is carried by the +/− mark and the selection bar (left edge), not only colour. Existing test ids diff-line-head-&lt;n&gt; / diff-line-base-&lt;n&gt; stay on the rows. Hunk header sticks while scrolling. Binary, no-change and skipped files show a state instead of a table (State gallery).</p>
+    <div class="wf-note">Keyboard path (the diff is one Tab stop, focus 15, roving tabindex):
+      <ol>
+        <li>Tab into the diff: focus lands on the anchor if one exists, otherwise the first line number.</li>
+        <li>↑ / ↓ move between line numbers on the same side; ← / → switch between old and new column.</li>
+        <li>Enter or Space: set the anchor (a one-line selection). On the other side it starts a new selection.</li>
+        <li>Shift+↑ / Shift+↓: extend the selection one line from the anchor.</li>
+        <li>Escape: clear the selection; focus stays on the line.</li>
+        <li>Tab: leave the diff for the scope bar (16–19).</li>
+      </ol>
+      Mouse: click a line number to anchor, Shift+click to extend.</div>
+
+    <div class="scope-bar">
+      <span data-testid="scope-indicator" aria-live="polite">Selected: src/webhooks/retry.ts lines 10–14 (new side)</span>
+      <label for="lbl" class="field-hint">Label (optional)<input id="lbl" value="retry loop" data-testid="scope-label-input" data-focus="16"></label>
+      <button type="button" data-focus="17">Clear</button>
+      <button type="button" data-testid="scope-whole-file" data-focus="18">Whole file</button>
+      <button type="button" class="primary" id="ask-sel" data-focus="19">Ask about selection</button>
+    </div>
+    <p class="wf-note">The live region announces the scope text once the selection settles (throttled). Below 900 px "Ask about selection" opens the full-page Ask route (#/sessions/:id/ask?type=range&amp;path&amp;side&amp;start&amp;end&amp;label) instead of the panel.</p>
+  </main>
+
+  <aside class="panel-region" aria-labelledby="ask-h">
+    <div class="panel-head">
+      <h2 id="ask-h" tabindex="-1" data-focus="20">Ask</h2>
+      <button type="button" aria-label="Close Ask panel" data-focus="21">✕</button>
+    </div>
+    <p class="wf-note">On open, focus moves to the heading "Ask" (20). Close or Escape returns focus to "Ask about selection" (19). 900–1199 px: same panel overlays the page.</p>
+    <form class="stack">
+      <p class="row"><span class="badge wrap" data-testid="scope-indicator">Scope: src/webhooks/retry.ts lines 10–14 (new side) "retry loop"</span>
+        <button type="button" data-focus="22">Change to whole PR</button></p>
+      <fieldset><legend>Category</legend>
+        <label><input type="radio" name="c" checked data-testid="category-what" data-focus="23"> What</label>
+        <label><input type="radio" name="c"> Why</label><label><input type="radio" name="c"> How</label>
+        <label><input type="radio" name="c"> What-if</label><label><input type="radio" name="c"> Risk</label>
+        <label><input type="radio" name="c"> Requirements</label></fieldset>
+      <fieldset><legend>Answer for</legend>
+        <label><input type="radio" name="a" data-testid="answer-for-technical" data-focus="24"> Technical</label>
+        <label><input type="radio" name="a" checked data-testid="answer-for-business"> Business</label></fieldset>
+      <div class="row"><span class="field-hint">Suggested:</span>
+        <button type="button" data-testid="suggested-question" data-focus="25">What does this range do?</button>
+        <button type="button" data-testid="suggested-question">What happens if it fails?</button></div>
+      <label for="q">Your question</label>
+      <textarea id="q" data-testid="question-input" data-focus="26">Does this retry change what customers are charged?</textarea>
+      <div class="row">
+        <button type="submit" class="primary" data-testid="ask-button" data-focus="27">Ask</button>
+      </div>
+      <a href="questions.html" data-focus="28">Open full page</a>
+    </form>
+    <p class="wf-note">Business is kept because the reviewer chose it earlier this session (FR-018). Draft, Category and Answer for survive closing the panel and navigating away (kept in this tab's session storage only).</p>
+  </aside>
+</div>
+</body>
+</html>

@@ -1,0 +1,106 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>UI Redesign Wireframes</title>
+<link rel="stylesheet" href="wf.css">
+<style>
+  body { display: grid; grid-template-columns: 240px minmax(0, 1fr); min-height: 100vh; }
+  .wf-nav { padding: 16px; border-right: 1px solid var(--border); background: var(--surface); position: sticky; top: 0; height: 100vh; overflow: auto; }
+  .wf-nav a { display: block; padding: 4px 6px; border-radius: 4px; text-decoration: none; color: var(--fg); }
+  .wf-nav a[aria-current="page"] { background: var(--surface-muted); font-weight: 700; }
+  .wf-main { padding: 16px; min-width: 0; }
+  .frame { margin: 0 0 32px; }
+  .frame figcaption { font-weight: 700; margin-bottom: 6px; }
+  .frame .box { overflow: hidden; border: 1px solid var(--border); border-radius: 6px; background: var(--bg); }
+  .frame iframe { border: 0; transform-origin: 0 0; display: block; }
+  @media (max-width: 800px) { body { grid-template-columns: 1fr; } .wf-nav { position: static; height: auto; } }
+</style>
+</head>
+<body>
+<nav class="wf-nav" aria-label="Wireframes">
+  <h1>Wireframes</h1>
+  <p class="muted">003-ui-redesign · Stage 1 · low fidelity</p>
+  <div id="screens"></div>
+  <hr>
+  <fieldset>
+    <legend>Theme</legend>
+    <label><input type="radio" name="theme" value="light" checked> Light</label>
+    <label><input type="radio" name="theme" value="dark"> Dark</label>
+  </fieldset>
+  <label><input type="checkbox" id="notes" checked> Show focus order and notes</label>
+  <p class="muted">Approval: <a href="approval.md">approval.md</a></p>
+</nav>
+<main class="wf-main">
+  <h2 id="screen-title"></h2>
+  <p id="screen-desc" class="muted"></p>
+  <p><a id="open-alone" href="#">Open this screen alone</a> (resize the window to check breakpoints at 1200 and 900 pixels).</p>
+  <div id="frames"></div>
+</main>
+<script>
+  const SCREENS = [
+    ['home', 'Home: PR dashboard', 'Open PRs across every repository under the base folder; repository and text filters; one repository failing; Back to dashboard returns here.'],
+    ['overview', 'Overview', 'Review shell; PR summary → context → changed files → referenced PRs; reserved Review focus.'],
+    ['diff', 'Files / Diff + Ask panel', 'Range selected on the new side; scope bar; Ask panel open; keyboard path annotated.'],
+    ['questions', 'Questions + Evidence panel', 'Thread with claims; Evidence panel open on a 6-line reference; focus return annotated.'],
+    ['code', 'Code (full page)', 'Range 45–50 highlighted; whitespace preserved; long line scrolls inside the code region.'],
+    ['description', 'Description', 'Sources tab; PR text shown as literal text.'],
+    ['issue', 'Issue', 'Sources tab; linked issue with source badge and stale status.'],
+    ['setup-github', 'Setup: GitHub', 'Base folder for a hosted platform; repositories found, skipped and duplicate; Rescan.'],
+    ['setup-selfhosted', 'Setup: self-hosted + errors', 'Base address recognises the instance; base-folder and address errors at fields and in a summary.'],
+    ['setup-tracker', 'Setup: issue tracker + checklist', 'Tracker that declares site and project keys; Advanced limits open; connection checklist after save.'],
+    ['setup-bitbucket', 'Setup: Bitbucket Cloud + Jira', 'Target platforms: base folder, repositories found, Jira site and project keys; checklist waiting on two Atlassian sign-ins.'],
+    ['signin', 'Sign-in', 'Why sign-in is needed, read-only access, return to the originating page.'],
+    ['signin-bitbucket', 'Sign-in: Bitbucket + Jira', 'Atlassian email and API token for each platform; a rejected Bitbucket token; return to Setup.'],
+    ['delete-dialog', 'Delete confirmation', 'Session actions menu and the Delete dialog with focus on Cancel.'],
+    ['states', 'State gallery', 'Loading, empty, failed, unknown, stale, live updates paused, provider unavailable, read-only, older head, discovery states.'],
+  ];
+  const WIDTHS = [[1440, 1000], [1000, 1100], [400, 1600]];
+  const nav = document.getElementById('screens');
+  const frames = document.getElementById('frames');
+
+  function query() {
+    const theme = document.querySelector('input[name=theme]:checked').value;
+    const notes = document.getElementById('notes').checked ? '1' : '0';
+    document.documentElement.dataset.theme = theme;
+    return `?theme=${theme}&notes=${notes}`;
+  }
+
+  function fit() {
+    frames.querySelectorAll('.frame').forEach((f) => {
+      const w = Number(f.dataset.w), h = Number(f.dataset.h);
+      const scale = Math.min(1, f.clientWidth / w);
+      const iframe = f.querySelector('iframe');
+      iframe.style.transform = `scale(${scale})`;
+      f.querySelector('.box').style.height = `${Math.round(h * scale)}px`;
+    });
+  }
+
+  function show() {
+    const id = location.hash.slice(1) || 'home';
+    const entry = SCREENS.find((s) => s[0] === id) || SCREENS[0];
+    nav.querySelectorAll('a').forEach((a) => {
+      if (a.dataset.id === entry[0]) a.setAttribute('aria-current', 'page');
+      else a.removeAttribute('aria-current');
+    });
+    document.getElementById('screen-title').textContent = entry[1];
+    document.getElementById('screen-desc').textContent = entry[2];
+    const src = `${entry[0]}.html${query()}`;
+    document.getElementById('open-alone').href = src;
+    frames.innerHTML = WIDTHS.map(([w, h]) => `
+      <figure class="frame" data-w="${w}" data-h="${h}">
+        <figcaption>${w} px wide</figcaption>
+        <div class="box"><iframe title="${entry[1]} at ${w} pixels" src="${src}" width="${w}" height="${h}"></iframe></div>
+      </figure>`).join('');
+    fit();
+  }
+
+  nav.innerHTML = SCREENS.map(([id, name]) => `<a href="#${id}" data-id="${id}">${name}</a>`).join('');
+  addEventListener('hashchange', show);
+  addEventListener('resize', fit);
+  document.querySelectorAll('input[name=theme], #notes').forEach((el) => el.addEventListener('change', show));
+  show();
+</script>
+</body>
+</html>

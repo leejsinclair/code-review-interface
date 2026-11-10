@@ -1,0 +1,83 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Wireframe: Questions and Evidence</title>
+<link rel="stylesheet" href="wf.css"><script src="wf.js" defer></script>
+</head>
+<body>
+<div data-wf="app-header"></div>
+<div data-wf="review-shell" data-tab="questions"></div>
+
+<div class="workspace no-files">
+  <main id="content" class="main" tabindex="-1">
+    <h1>Questions</h1>
+    <p class="wf-note">This is the existing full-page Ask route (#/sessions/:id/ask). Composer as in the Ask panel (labels "Your question", fieldsets "Category" and "Answer for"), collapsed here to keep the thread in view. Thread is newest first.</p>
+    <details class="card"><summary data-focus="12">Ask a question · Scope: the whole PR · Answer for: Business</summary></details>
+
+    <ol class="plain" aria-label="Questions, newest first">
+      <li class="card" data-testid="question-q3" data-state="in_progress">
+        <p><span class="badge">What</span> <span class="badge">Technical</span> <strong>What happens after the fifth failed attempt?</strong></p>
+        <p class="reason">Scope: src/webhooks/retry.ts lines 10–14 (new side) · <span class="badge" data-status="stale">◐ running</span></p>
+        <div class="live-text" data-testid="answer-raw-text" aria-live="polite">In progress, not yet checked:
+After MAX_ATTEMPTS the error is rethrown and the delivery is…</div>
+        <button type="button" data-testid="cancel-question-q3" data-focus="13">Cancel</button>
+        <p class="wf-note">Streaming text is announced politely, throttled (e.g. at most every few seconds, by sentence) so speech does not flood.</p>
+      </li>
+
+      <li class="card" data-testid="question-q2" data-state="completed">
+        <p><span class="badge">Why</span> <span class="badge">Business</span> <strong>Why are retries needed for customers?</strong></p>
+        <p class="reason">Scope: the whole PR · answered</p>
+        <h3>Documented intent</h3>
+        <ul class="plain">
+          <li class="claim" data-testid="claim"><span class="badge" data-label="evidence">◆ Evidence</span>
+            Merchants asked that a short outage at their end does not lose events.
+            <a class="ref-link" href="issue.html" data-testid="claim-ref" data-focus="14">PAY-112</a></li>
+        </ul>
+        <h3>Inferred intent</h3>
+        <ul class="plain">
+          <li class="claim" data-testid="claim"><span class="badge" data-label="evidence">◆ Evidence</span>
+            Deliveries back off exponentially between attempts.
+            <a class="ref-link opened" id="opener" href="code.html" data-testid="claim-ref" data-focus="15">src/webhooks/retry.ts 45–50 (new)</a></li>
+          <li class="claim" data-testid="claim"><span class="badge" data-label="inference">◇ Inference</span>
+            Support tickets about missing webhooks should fall. <span class="reason">(proposed as Evidence; no resolvable reference)</span></li>
+        </ul>
+        <h3>Unsupported assumptions</h3>
+        <ul><li>Merchants respond within the backoff window.</li></ul>
+        <p class="row"><button type="button" data-testid="suggested-follow-up" data-focus="16">How long can a delivery be delayed in total?</button></p>
+        <p class="reason" data-testid="answer-provenance">claude-code · 14:06 · context v3 · read-only not enforced: none</p>
+      </li>
+
+      <li class="card" data-testid="question-q1" data-state="completed">
+        <p><span class="badge">What</span> <span class="badge">Technical</span> <strong>What does this PR change?</strong></p>
+        <p data-testid="older-snapshot-marker"><span class="badge" data-status="older-head">◐ Older head</span> Answered for an earlier head commit 9a01b3c</p>
+        <p class="reason">…claims as above…</p>
+      </li>
+    </ol>
+  </main>
+
+  <aside class="panel-region" aria-labelledby="ev-h">
+    <div class="panel-head">
+      <h2 id="ev-h" tabindex="-1" data-focus="17">Evidence: src/webhooks/retry.ts</h2>
+      <button type="button" aria-label="Close Evidence panel" data-focus="18">✕</button>
+    </div>
+    <p class="row"><span class="badge">Head (new side)</span> <span class="mono reason">commit 3f9c2a1</span> <span class="reason">lines 45–50</span></p>
+    <div class="code-scroll">
+      <table class="code"><tbody>
+        <tr><td class="ln">43</td><td>export function backoff(attempt: number): number {</td></tr>
+        <tr><td class="ln">44</td><td>  // base delay doubles each attempt</td></tr>
+        <tr class="in-range"><td class="ln">45</td><td>  const base = 500;</td></tr>
+        <tr class="in-range"><td class="ln">46</td><td>  const capped = Math.min(attempt, 6);</td></tr>
+        <tr class="in-range"><td class="ln">47</td><td>  const delay = base * 2 ** capped;</td></tr>
+        <tr class="in-range"><td class="ln">48</td><td>  const jitter = Math.random() * base;</td></tr>
+        <tr class="in-range"><td class="ln">49</td><td>  log.debug('webhook.backoff', { attempt, delay, jitter, endpoint: subscription.endpointUrl });</td></tr>
+        <tr class="in-range"><td class="ln">50</td><td>  return delay + jitter;</td></tr>
+        <tr><td class="ln">51</td><td>}</td></tr>
+      </tbody></table>
+    </div>
+    <p><a href="code.html" data-focus="19">Open full page</a></p>
+    <p class="wf-note">Panel focus path: following a reference (15) opens this panel and moves focus to its heading (17). Close (18) or Escape returns focus to that same reference link (15); the thread keeps its scroll position and the composer keeps Answer for: Business. Issue and description references open in the same panel with their text. Below 900 px the reference opens the full-page route instead.</p>
+  </aside>
+</div>
+</body>
+</html>

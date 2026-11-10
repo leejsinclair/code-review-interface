@@ -1,0 +1,34 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Wireframe: Delete confirmation</title>
+<link rel="stylesheet" href="wf.css"><script src="wf.js" defer></script>
+</head>
+<body>
+<div data-wf="app-header"></div>
+<div data-wf="review-shell" data-tab="overview" data-menu="open"></div>
+<main id="content" class="page" tabindex="-1" aria-hidden="true">
+  <h1>Overview</h1>
+  <p class="wf-note">Step 1: "Session actions" (5) opens a menu with Close session and Delete session…, so neither is a primary button. Arrow keys move through the menu; Escape closes it and returns focus to the button. Step 2 (below): choosing Delete session… opens the dialog.</p>
+  <div class="card"><div class="skeleton"></div><div class="skeleton"></div><div class="skeleton"></div></div>
+</main>
+
+<div class="scrim">
+  <div class="dialog stack" role="alertdialog" aria-modal="true" aria-labelledby="dlg-h" aria-describedby="dlg-d">
+    <h2 id="dlg-h">Delete this review session?</h2>
+    <div id="dlg-d">
+      <p>This permanently deletes everything the workbench stored for <strong>#482 Retry failed webhook deliveries with backoff</strong>:</p>
+      <ul><li>3 questions and their answers</li><li>2 snapshots of the PR</li><li>the review worktree</li></ul>
+      <p>The pull request itself is not changed. You can start a new review of it later.</p>
+    </div>
+    <div class="row">
+      <button type="button" data-focus="D1">Cancel</button>
+      <span class="spacer"></span>
+      <button type="button" class="danger" data-testid="delete-session-confirm" data-focus="D2">Delete session</button>
+    </div>
+    <p class="wf-note">Focus starts on Cancel (D1) and is trapped in the dialog. Escape or Cancel closes it, deletes nothing, and returns focus to "Session actions". The confirm keeps the test id delete-session-confirm. After deleting, the reviewer lands on Home with a status message "Session for #482 deleted".</p>
+  </div>
+</div>
+</body>
+</html>

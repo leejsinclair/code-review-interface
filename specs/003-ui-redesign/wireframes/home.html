@@ -1,0 +1,85 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Wireframe: Dashboard</title>
+<link rel="stylesheet" href="wf.css"><script src="wf.js" defer></script>
+</head>
+<body>
+<div data-wf="app-header"></div>
+<main id="content" class="page" tabindex="-1">
+  <h1>Pull request dashboard <span class="wf-new">[NEW]</span></h1>
+  <p class="muted">GitHub · base folder <span class="mono">~/src</span> · 12 repositories · <a href="setup-github.html" data-focus="4">2 skipped — see Setup</a></p>
+  <p class="wf-note">Lists open PRs from every repository found under the base folder (FR-052). Skipped repositories are explained in Setup only, to keep the dashboard about pull requests.</p>
+
+  <div class="row">
+    <label for="repo-filter">Repository
+      <select id="repo-filter" data-focus="5"><option>All repositories (12)</option><option>acme/payments-api</option><option>acme/ledger</option><option>acme/web-checkout</option></select></label>
+    <label for="filter">Filter
+      <input id="filter" type="search" placeholder="Number, title, author or branch" data-focus="6"></label>
+  </div>
+  <p class="wf-note">Filters work on what is loaded (no server query). Filter and scroll position are kept for this tab, so "Back to dashboard" from a review returns here unchanged (FR-055).</p>
+
+  <section class="card" aria-labelledby="sessions-h">
+    <h2 id="sessions-h">Your review sessions</h2>
+    <table class="list">
+      <thead><tr><th>Repository</th><th>PR</th><th>Author</th><th>Last opened</th><th><span class="muted">Action</span></th></tr></thead>
+      <tbody>
+        <tr>
+          <td class="mono">acme/payments-api</td>
+          <td><span class="mono">#482</span> Retry failed webhook deliveries with backoff <span class="badge">3 questions</span></td>
+          <td>a.khan</td><td>today 14:02</td>
+          <td><a class="button primary" href="overview.html" data-focus="7">Resume review</a></td>
+        </tr>
+        <tr>
+          <td class="mono">acme/old-billing</td>
+          <td><span class="mono">#31</span> Remove v1 invoice export <span class="badge" data-status="stale">◐ repository not found</span></td>
+          <td>m.ruiz</td><td>last week</td>
+          <td><a class="button" href="states.html">Open (read only)</a></td>
+        </tr>
+      </tbody>
+    </table>
+    <p class="wf-note">A session whose repository is no longer under the base folder stays readable; Refresh and Ask are unavailable with the reason (FR-057).</p>
+  </section>
+
+  <section class="card" aria-labelledby="prs-h">
+    <h2 id="prs-h">Open pull requests <span class="muted">(23, most recently updated first)</span></h2>
+    <div class="state" data-state="failed" role="alert">
+      <p><strong>acme/web-checkout:</strong> could not load pull requests. The platform answered 503 Service Unavailable.</p>
+      <button type="button" data-focus="8">Retry acme/web-checkout</button>
+    </div>
+    <p class="wf-note">One repository failing shows its own failed state with Retry; every other repository still lists (FR-054, constitution V.4).</p>
+    <table class="list">
+      <thead><tr><th>Repository</th><th>PR</th><th>Author</th><th>Branches</th><th>Updated</th><th><span class="muted">Action</span></th></tr></thead>
+      <tbody>
+        <tr>
+          <td class="mono">acme/payments-api</td>
+          <td><span class="mono">#482</span> Retry failed webhook deliveries with backoff</td>
+          <td>a.khan</td><td class="mono">feature/webhook-retry → main</td><td>2 h ago</td>
+          <td><a class="button" href="overview.html" data-focus="9" data-testid="pr-item-acme/payments-api-482">Resume review</a></td>
+        </tr>
+        <tr aria-busy="true">
+          <td class="mono">acme/ledger</td>
+          <td><span class="mono">#482</span> Bump ledger schema to v12</td>
+          <td>m.ruiz</td><td class="mono">ledger-v12 → main</td><td>5 h ago</td>
+          <td><button type="button" aria-disabled="true" data-focus="10">◌ Starting review…</button></td>
+        </tr>
+        <tr>
+          <td class="mono">acme/payments-api</td>
+          <td><span class="mono">#479</span> Add idempotency keys to refund endpoint</td>
+          <td>j.osei</td><td class="mono">refund-idempotency → main</td><td>yesterday</td>
+          <td><button type="button" class="primary" data-focus="11">Start review</button></td>
+        </tr>
+        <tr>
+          <td class="mono">acme/deploy-scripts</td>
+          <td><span class="mono">#12</span> Pin Node version in CI image</td>
+          <td>p.ng</td><td class="mono">pin-node → main</td><td>3 days ago</td>
+          <td><button type="button" class="primary" data-focus="12">Start review</button></td>
+        </tr>
+      </tbody>
+    </table>
+    <p class="wf-note">PR numbers repeat across repositories (#482 twice), so rows and test ids are keyed by repository and number: pr-item-&lt;repository&gt;-&lt;number&gt;. Only the row being started is busy. Below 900 px rows become stacked cards, repository first. No PRs anywhere: "No open pull requests in ~/src".</p>
+  </section>
+</main>
+</body>
+</html>

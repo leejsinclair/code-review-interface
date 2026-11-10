@@ -1,0 +1,38 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Wireframe: Sign-in, Bitbucket and Jira</title>
+<link rel="stylesheet" href="wf.css"><script src="wf.js" defer></script>
+</head>
+<body>
+<div data-wf="app-header" data-conn="signin" data-repo="Bitbucket Cloud · ~/src · 14 repositories"></div>
+<main id="content" class="page" tabindex="-1">
+  <h1>Sign in</h1>
+  <p class="notice">You came from <strong>Setup</strong>. After both sign-ins you go back there to see the updated connection checklist. <span class="wf-new">[NEW: return]</span></p>
+  <p>The workbench reads pull requests and code from Bitbucket Cloud and linked issues from Jira Cloud. Access is <strong>read-only</strong>: it never comments, approves, merges or changes anything. Tokens are kept in your operating system's keychain.</p>
+
+  <form class="card stack" data-testid="signin-form-bitbucket-cloud">
+    <h2>Bitbucket Cloud</h2>
+    <p><span class="badge" data-status="missing">✕ Not signed in</span></p>
+    <div class="state" data-state="failed" role="alert" id="bb-err"><strong>Bitbucket Cloud did not accept this email and API token.</strong> Check the email is the one for your Atlassian account and the token has not been revoked.</div>
+    <label>Atlassian account email<input type="email" value="m.lee@example.com" data-focus="4"></label>
+    <label for="bb-token">API token
+      <input id="bb-token" type="password" autocomplete="off" aria-invalid="true" aria-describedby="bb-err bb-hint" data-focus="5">
+      <span id="bb-hint" class="field-hint">Create one in your Atlassian account settings, with read access to acme-pay/payments-api. App passwords are not accepted.</span></label>
+    <button type="submit" class="primary" data-focus="6">Sign in to Bitbucket Cloud</button>
+    <p class="wf-note">Failed sign-in: the error is announced (role="alert") and linked to the token field; the token field is cleared, the email is kept. Field labels and the "app passwords" hint come from the platform's descriptor.</p>
+  </form>
+
+  <form class="card stack" data-testid="signin-form-jira-cloud">
+    <h2>Jira Cloud</h2>
+    <p><span class="badge" data-status="found">✓ Signed in (m.lee@example.com)</span></p>
+    <p class="reason">Site https://acme-pay.atlassian.net</p>
+    <button type="button" data-focus="7">Sign in again</button>
+  </form>
+
+  <p><a class="button" href="setup-bitbucket.html" data-focus="8">Return to Setup</a></p>
+  <p class="wf-note">The two Atlassian sign-ins are separate on purpose: a token valid for Jira Cloud may not be valid for Bitbucket Cloud, and each platform's state is shown on its own. The app header shows "Sign-in required" until every configured platform is signed in.</p>
+</main>
+</body>
+</html>

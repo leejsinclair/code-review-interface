@@ -1,0 +1,29 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Wireframe: Description</title>
+<link rel="stylesheet" href="wf.css"><script src="wf.js" defer></script>
+</head>
+<body>
+<div data-wf="app-header"></div>
+<div data-wf="review-shell" data-tab="sources"></div>
+<main id="content" class="page" tabindex="-1">
+  <nav aria-label="Sources" class="row">
+    <a href="description.html" aria-current="page" data-focus="12"><strong>Description</strong></a> ·
+    <a href="issue.html" data-focus="13">PAY-112</a> · <a href="issue.html">#77</a> · <span class="muted">PAY-140 (missing)</span>
+  </nav>
+  <p class="wf-note">Sources groups the PR description and every linked issue. Missing issues are listed with their status so the gap stays visible.</p>
+  <h1>Description</h1>
+  <p class="row"><span class="badge">GitHub · PR #482</span> <span class="reason">fetched 14:02 for head 3f9c2a1</span></p>
+  <article class="card text-block">Retry failed webhook deliveries.
+
+Closes PAY-112. See also #77.
+
+## Changes
+- add exponential backoff
+- &lt;b&gt;cap&lt;/b&gt; attempts at 5   &lt;script&gt;alert(1)&lt;/script&gt;</article>
+  <p class="wf-note">Shown as literal text: the "##" heading marker, &lt;b&gt; and &lt;script&gt; appear as typed, never rendered as markup (FR-042). Line breaks are preserved.</p>
+</main>
+</body>
+</html>

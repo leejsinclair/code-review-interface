@@ -1,0 +1,25 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Wireframe: Issue</title>
+<link rel="stylesheet" href="wf.css"><script src="wf.js" defer></script>
+</head>
+<body>
+<div data-wf="app-header"></div>
+<div data-wf="review-shell" data-tab="sources"></div>
+<main id="content" class="page" tabindex="-1">
+  <nav aria-label="Sources" class="row">
+    <a href="description.html" data-focus="12">Description</a> ·
+    <a href="issue.html" aria-current="page" data-focus="13"><strong>#77</strong></a> · <a href="issue.html">PAY-112</a> · <span class="muted">PAY-140 (missing)</span>
+  </nav>
+  <h1>#77 Retry policy for outbound webhooks</h1>
+  <p class="row"><span class="badge">GitHub Issues · #77</span> <span class="badge" data-status="stale">◐ stale</span>
+    <span class="reason">fetched for head 9a01b3c; the PR has moved to 3f9c2a1. Refresh the session to fetch it again.</span></p>
+  <article class="card text-block">We lose events when a merchant endpoint is down for a few seconds.
+
+Acceptance: retry with backoff, give up after 5 attempts, log each attempt.</article>
+  <p class="wf-note">Issue text is plain text, like the description. Found in: description. A missing issue opened by deep link shows its missing status and reason instead of text.</p>
+</main>
+</body>
+</html>

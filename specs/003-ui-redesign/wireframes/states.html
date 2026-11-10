@@ -1,0 +1,84 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Wireframe: State gallery</title>
+<link rel="stylesheet" href="wf.css"><script src="wf.js" defer></script>
+</head>
+<body>
+<div data-wf="app-header" data-conn="provider"></div>
+<div data-wf="review-shell" data-tab="overview" data-readonly="true" data-paused="true"></div>
+<p class="wf-note">Shell shown in its worst case: live updates paused (banner, Reconnect 3a), PR merged so the session is read-only (Refresh replaced by the notice; Ask about this PR unavailable with its reason), AI provider unavailable in the app header.</p>
+
+<main id="content" class="page" tabindex="-1">
+  <h1>State gallery</h1>
+  <p class="wf-note">One shared async-region pattern: loading, empty, failed, unknown, stale. Each region shows one of these instead of a blank or an empty list.</p>
+  <div class="gallery">
+    <section><h2>Loading</h2>
+      <div class="state" aria-busy="true"><p class="muted">Loading open pull requests…</p><div class="skeleton"></div><div class="skeleton"></div></div>
+      <p class="wf-note">Skeleton pulse stops under reduced motion.</p></section>
+
+    <section><h2>Empty</h2>
+      <div class="state" data-state="empty"><p>No open pull requests in acme/payments-api</p><p class="reason">New pull requests appear here when they are opened on the platform.</p></div></section>
+
+    <section><h2>Failed (was hidden)</h2>
+      <div class="state" data-state="failed" role="alert"><p><strong>Could not load your review sessions.</strong></p><p class="reason">The server did not answer (timeout after 10 s).</p><button type="button">Retry</button></div>
+      <p class="wf-note">Same for the AI provider check and suggested questions, which today fail silently.</p></section>
+
+    <section><h2>Unknown</h2>
+      <div class="state" data-state="unknown"><p><strong>AI provider status unknown</strong></p><p class="reason">The check did not complete. Asking may fail.</p><button type="button">Check again</button></div></section>
+
+    <section><h2>Stale</h2>
+      <div class="state" data-state="stale"><p><span class="badge" data-status="stale">◐ stale</span> Issue #77 was fetched for head 9a01b3c.</p><p class="reason">The PR has new commits. Refresh the session to fetch it again.</p></div></section>
+
+    <section><h2>Live updates paused</h2>
+      <div class="banner" role="status">Live updates paused — <button type="button">Reconnect</button></div>
+      <p class="wf-note">Shown on every session page when the event stream drops. Reconnect resubscribes and reloads questions so nothing streamed meanwhile is missed.</p></section>
+
+    <section><h2>AI provider unavailable</h2>
+      <div class="state" data-state="failed"><p data-testid="provider-unavailable"><strong>AI provider unavailable:</strong> claude CLI not found on PATH.</p>
+      <p class="reason">Install it or fix PATH, then Check again. Reading the PR still works.</p><button type="button">Check again</button></div>
+      <div class="row"><button type="button" class="primary" data-testid="ask-button" aria-disabled="true" aria-describedby="why1">Ask</button>
+        <span id="why1" class="reason">Unavailable: the AI provider is not available.</span></div>
+      <div class="row"><button type="button" class="primary" aria-disabled="true" aria-describedby="why2">Ask</button>
+        <span id="why2" class="reason">Type a question first.</span></div>
+      <p class="wf-note">Disabled Ask always shows its reason (FR-013). aria-disabled keeps it focusable so the reason is reachable by keyboard.</p></section>
+
+    <section><h2>Read-only PR</h2>
+      <p class="notice" data-testid="read-only-notice">This PR is merged; the session is read-only. Refresh and Ask are unavailable. Note: merged by squash.</p>
+      <p class="reason">All reading (Overview, Files, Questions, Sources) keeps working.</p></section>
+
+    <section><h2>Answered for an older head</h2>
+      <div class="card"><p data-testid="older-snapshot-marker"><span class="badge" data-status="older-head">◐ Older head</span> Answered for an earlier head commit 9a01b3c</p>
+      <p class="reason">What does this PR change? · claims as answered then</p></div></section>
+
+    <section><h2>Filter: no matches</h2>
+      <div class="state"><p>No files match "migrat".</p><button type="button">Clear filter</button></div></section>
+
+    <section><h2>Diff: not shown</h2>
+      <div class="state"><p><span class="badge">⊘ skipped: file too large</span> fixtures/events.json is not shown or sent to the AI.</p></div>
+      <div class="state"><p>Binary file: no diff is shown.</p></div>
+      <div class="state"><p>No line changes (renamed only, from src/hooks/retry.ts).</p></div></section>
+
+    <section><h2>Code: range or commit unavailable</h2>
+      <div class="state" data-state="stale"><p>Lines 108–130 were referenced, but the file has 112 lines at this commit. Lines 108–112 are highlighted; 113–130 do not exist.</p></div>
+      <div class="state" data-state="unknown"><p>Commit 9a01b3c is no longer available in the local clone, so this reference cannot be shown.</p></div></section>
+
+    <section><h2>Session no longer available</h2>
+      <div class="state" data-state="failed" role="alert"><p><strong>This review session was closed or deleted in another tab.</strong></p><a class="button" href="home.html">Go to Home</a></div></section>
+
+    <section><h2>Discovery in progress <span class="wf-new">[NEW]</span></h2>
+      <div class="state" aria-busy="true" role="status"><p>Scanning ~/src… 1,240 folders, 9 repositories found so far.</p><button type="button">Cancel</button></div>
+      <p class="wf-note">Cancel keeps the repositories found so far. Status updates are announced politely, at most every few seconds.</p></section>
+
+    <section><h2>No repositories found <span class="wf-new">[NEW]</span></h2>
+      <div class="state" data-state="empty"><p>No GitHub repositories were found under ~/src.</p>
+      <p class="reason">3 repositories were found, all with remotes on other hosts. Choose another base folder or platform.</p><a class="button" href="setup-github.html">Open Setup</a></div></section>
+
+    <section><h2>Repository no longer found <span class="wf-new">[NEW]</span></h2>
+      <div class="notice"><p><strong>acme/old-billing is no longer under ~/src</strong>, so this session is read-only: Refresh and Ask are unavailable. Everything already gathered can still be read.</p>
+      <p class="reason">Put the clone back under the base folder and Rescan to continue.</p><a href="setup-github.html">Rescan in Setup</a></div></section>
+  </div>
+</main>
+</body>
+</html>

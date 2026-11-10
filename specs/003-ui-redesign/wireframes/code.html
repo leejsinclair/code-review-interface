@@ -1,0 +1,34 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Wireframe: Code</title>
+<link rel="stylesheet" href="wf.css"><script src="wf.js" defer></script>
+</head>
+<body>
+<div data-wf="app-header"></div>
+<div data-wf="review-shell" data-tab="questions"></div>
+<main id="content" class="page" tabindex="-1">
+  <p><a href="questions.html" data-focus="12">‹ Back to Questions</a></p>
+  <p class="wf-note">"Back to &lt;origin&gt;" uses browser history, so it returns to wherever the reviewer came from (Questions, Overview, Evidence panel) with its state. A cold deep link with no history falls back to Overview.</p>
+  <h1 class="mono">src/webhooks/retry.ts</h1>
+  <p class="row"><span class="badge">Head (new side)</span> <span class="mono reason">commit 3f9c2a1</span> <span class="reason">Showing lines 45–50</span></p>
+  <div class="code-scroll" tabindex="0" aria-label="Code, lines 45 to 50 highlighted" data-focus="13">
+    <table class="code"><tbody>
+      <tr><td class="ln">41</td><td></td></tr>
+      <tr><td class="ln">42</td><td>/** Delay before the next attempt, in milliseconds. */</td></tr>
+      <tr><td class="ln">43</td><td>export function backoff(attempt: number): number {</td></tr>
+      <tr><td class="ln">44</td><td>	// tab-indented comment stays tab-indented</td></tr>
+      <tr class="in-range"><td class="ln">45</td><td>  const base = 500;</td></tr>
+      <tr class="in-range"><td class="ln">46</td><td>  const capped = Math.min(attempt, 6);</td></tr>
+      <tr class="in-range"><td class="ln">47</td><td>  const delay = base * 2 ** capped;</td></tr>
+      <tr class="in-range"><td class="ln">48</td><td>  const jitter = Math.random() * base;</td></tr>
+      <tr class="in-range"><td class="ln">49</td><td>  log.debug('webhook.backoff', { attempt, delay, jitter, endpoint: subscription.endpointUrl, merchant: subscription.merchantId, region: subscription.region });</td></tr>
+      <tr class="in-range"><td class="ln">50</td><td>  return delay + jitter;</td></tr>
+      <tr><td class="ln">51</td><td>}</td></tr>
+    </tbody></table>
+  </div>
+  <p class="wf-note">Route gains start and end: #/sessions/:id/code?snapshot&amp;side&amp;path&amp;start=45&amp;end=50. An older link with only line=45 highlights that one line. All six lines carry the highlight and the selection bar; the first scrolls into view. Whitespace is preserved (white-space: pre). Line 49 scrolls sideways inside the code region only; the page never scrolls horizontally. The scroll region is focusable so keyboard users can scroll it. Range past end of file or a missing commit: shown as a state (State gallery).</p>
+</main>
+</body>
+</html>

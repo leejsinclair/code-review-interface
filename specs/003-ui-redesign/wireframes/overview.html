@@ -1,0 +1,80 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Wireframe: Overview</title>
+<link rel="stylesheet" href="wf.css"><script src="wf.js" defer></script>
+</head>
+<body>
+<div data-wf="app-header"></div>
+<div data-wf="review-shell" data-tab="overview"></div>
+<p class="wf-note">Review shell (header, navigation, context strip) is the same on every #/sessions/:id route. Focus order: Back to dashboard 3b · Refresh 4 · Session actions 5 · tabs 6–9 · Ask about this PR 10 · context Details 11 · page content from 12. The context strip says "Context available", never "ready", "safe" or "approved".</p>
+
+<main id="content" class="page" tabindex="-1">
+  <h1>Overview</h1>
+
+  <section class="card" aria-labelledby="summary-h">
+    <h2 id="summary-h">PR summary</h2>
+    <ul class="plain">
+      <li class="claim" data-testid="claim"><span class="badge" data-label="evidence">◆ Evidence</span>
+        Failed deliveries are retried up to 5 times with exponential backoff.
+        <a class="ref-link" href="code.html" data-testid="claim-ref" data-focus="12">src/webhooks/retry.ts 45–50 (new)</a></li>
+      <li class="claim" data-testid="claim"><span class="badge" data-label="inference">◇ Inference</span>
+        Existing subscribers will see duplicate deliveries less often.</li>
+    </ul>
+  </section>
+
+  <section class="card" id="context" aria-labelledby="context-h">
+    <h2 id="context-h">Context completeness</h2>
+    <ul class="plain stack">
+      <li data-testid="completeness-row-pr"><strong>PR</strong> <span class="badge" data-status="found">✓ found</span></li>
+      <li data-testid="completeness-row-repository"><strong>Repository</strong> <span class="badge" data-status="found">✓ found</span>
+        <details><summary data-focus="13">3 files skipped</summary>
+          <ul class="plain">
+            <li><span class="mono">assets/logo.png</span> <span class="reason">binary</span></li>
+            <li><span class="mono">fixtures/events.json</span> <span class="reason">file too large</span></li>
+            <li><span class="mono">migrations/0042.sql</span> <span class="reason">too many changed lines</span></li>
+          </ul></details></li>
+      <li data-testid="completeness-row-issue"><strong>Issues</strong>
+        <ul class="plain">
+          <li><a href="issue.html" data-focus="14">PAY-112 Webhook retries</a> <span class="badge" data-status="found">✓ found</span> <span class="reason">found in branch name</span></li>
+          <li>PAY-140 <span class="badge" data-status="missing">✕ missing</span> <span class="reason">No access to project PAY-OPS. Found in description.</span></li>
+          <li><a href="issue.html" data-focus="15">#77 Retry policy</a> <span class="badge" data-status="stale">◐ stale</span> <span class="reason">fetched for head 9a01b3c</span></li>
+        </ul></li>
+    </ul>
+    <p class="wf-note">Each badge carries data-status on the badge itself. Icon + text + colour, never colour alone.</p>
+  </section>
+
+  <section class="card" aria-labelledby="files-h">
+    <h2 id="files-h">Changed files <span class="muted">(12)</span></h2>
+    <label for="file-filter">Filter files <span class="wf-new">[NEW]</span>
+      <input id="file-filter" type="search" placeholder="Path contains…" data-focus="16"></label>
+    <table class="list">
+      <thead><tr><th>File</th><th>Change</th><th><span class="muted">Explanation</span></th></tr></thead>
+      <tbody>
+        <tr data-testid="changed-file-src/webhooks/retry.ts">
+          <td><a class="mono" href="diff.html" data-focus="17">src/webhooks/retry.ts</a></td><td>modified +48 −12</td>
+          <td><details open><summary data-focus="18">Explain this file</summary>
+            <p class="text-block">Adds a retry loop with exponential backoff around delivery…</p>
+            <span class="badge" data-label="evidence">◆ Evidence</span> <a class="ref-link" href="code.html">retry.ts 45–50</a></details></td>
+        </tr>
+        <tr><td><a class="mono" href="diff.html" data-focus="19">src/webhooks/queue.ts</a></td><td>modified +6 −2</td><td><details><summary>Explain this file</summary></details></td></tr>
+        <tr><td><span class="mono">fixtures/events.json</span></td><td>added +0 −0 <span class="badge">⊘ skipped: file too large</span></td><td></td></tr>
+      </tbody>
+    </table>
+    <p class="wf-note">Per-file summaries are the ones the summary run already produces; they are disclosed on request instead of rendered above the list. 30+ files: list is reachable without scrolling past summaries.</p>
+  </section>
+
+  <section class="card" aria-labelledby="refs-h">
+    <h2 id="refs-h">Referenced pull requests</h2>
+    <ul class="plain"><li class="mono">#455</li></ul>
+  </section>
+
+  <section class="card" aria-labelledby="focus-h" data-region="review-focus">
+    <h2 id="focus-h">Review focus</h2>
+    <p class="muted">Not available yet.</p>
+    <p class="wf-note">Reserved empty region for future lenses (FR-027). No risk, coverage, readiness or role content. Decided at approval: the heading shows with the single line "Not available yet."</p>
+  </section>
+</main>
+</body>
+</html>

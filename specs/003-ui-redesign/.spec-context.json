@@ -1,0 +1,2125 @@
+{
+  "workflow": "companion",
+  "specName": "UI Redesign",
+  "branch": "main",
+  "currentStep": "implement",
+  "status": "completed",
+  "history": [
+    {
+      "step": "specify",
+      "substep": null,
+      "kind": "start",
+      "by": "extension",
+      "at": "2026-11-08T22:36:37.924Z"
+    },
+    {
+      "step": "specify",
+      "substep": null,
+      "kind": "complete",
+      "by": "extension",
+      "at": "2026-11-08T22:39:53.168Z"
+    },
+    {
+      "step": "plan",
+      "substep": null,
+      "kind": "start",
+      "by": "extension",
+      "at": "2026-11-08T22:48:23.993Z"
+    },
+    {
+      "step": "plan",
+      "substep": "research",
+      "kind": "complete",
+      "by": "ai",
+      "at": "2026-11-09T12:38:26.762Z"
+    },
+    {
+      "step": "plan",
+      "substep": "design",
+      "kind": "complete",
+      "by": "ai",
+      "at": "2026-11-09T12:44:04.472Z"
+    },
+    {
+      "step": "plan",
+      "substep": null,
+      "kind": "complete",
+      "by": "ai",
+      "at": "2026-11-09T12:44:10.306Z"
+    },
+    {
+      "step": "tasks",
+      "substep": null,
+      "kind": "start",
+      "by": "extension",
+      "at": "2026-11-09T12:46:48.941Z"
+    },
+    {
+      "step": "tasks",
+      "substep": "generate",
+      "kind": "complete",
+      "by": "ai",
+      "at": "2026-11-09T13:00:41.673Z"
+    },
+    {
+      "step": "tasks",
+      "substep": null,
+      "kind": "complete",
+      "by": "ai",
+      "at": "2026-11-09T13:00:50.210Z"
+    },
+    {
+      "step": "implement",
+      "substep": null,
+      "kind": "start",
+      "by": "extension",
+      "at": "2026-11-09T12:46:48.952Z"
+    },
+    {
+      "step": "implement",
+      "substep": null,
+      "task": "T001",
+      "kind": "complete",
+      "by": "ai",
+      "at": "2026-11-09T13:33:21.879Z"
+    },
+    {
+      "step": "implement",
+      "substep": null,
+      "task": "T006",
+      "kind": "complete",
+      "by": "ai",
+      "at": "2026-11-09T13:34:07.106Z"
+    },
+    {
+      "step": "implement",
+      "substep": null,
+      "task": "T010",
+      "kind": "complete",
+      "by": "ai",
+      "at": "2026-11-09T13:34:07.171Z"
+    },
+    {
+      "step": "implement",
+      "substep": null,
+      "task": "T002",
+      "kind": "complete",
+      "by": "ai",
+      "at": "2026-11-09T13:34:11.172Z"
+    },
+    {
+      "step": "implement",
+      "substep": null,
+      "task": "T005",
+      "kind": "complete",
+      "by": "ai",
+      "at": "2026-11-09T13:34:43.252Z"
+    },
+    {
+      "step": "implement",
+      "substep": null,
+      "task": "T009",
+      "kind": "complete",
+      "by": "ai",
+      "at": "2026-11-09T13:34:43.317Z"
+    },
+    {
+      "step": "implement",
+      "substep": null,
+      "task": "T003",
+      "kind": "complete",
+      "by": "ai",
+      "at": "2026-11-09T13:34:56.751Z"
+    },
+    {
+      "step": "implement",
+      "substep": null,
+      "task": "T007",
+      "kind": "complete",
+      "by": "ai",
+      "at": "2026-11-09T13:34:56.817Z"
+    },
+    {
+      "step": "implement",
+      "substep": null,
+      "task": "T011",
+      "kind": "complete",
+      "by": "ai",
+      "at": "2026-11-09T13:34:56.889Z"
+    },
+    {
+      "step": "implement",
+      "substep": null,
+      "task": "T004",
+      "kind": "complete",
+      "by": "ai",
+      "at": "2026-11-09T13:38:19.030Z"
+    },
+    {
+      "step": "implement",
+      "substep": null,
+      "task": "T008",
+      "kind": "complete",
+      "by": "ai",
+      "at": "2026-11-09T13:38:19.101Z"
+    },
+    {
+      "step": "implement",
+      "substep": null,
+      "task": "T012",
+      "kind": "complete",
+      "by": "ai",
+      "at": "2026-11-09T13:38:19.164Z"
+    },
+    {
+      "step": "implement",
+      "substep": null,
+      "task": "T016",
+      "kind": "complete",
+      "by": "ai",
+      "at": "2026-11-09T13:39:22.404Z"
+    },
+    {
+      "step": "implement",
+      "substep": null,
+      "task": "T015",
+      "kind": "complete",
+      "by": "ai",
+      "at": "2026-11-09T13:39:50.271Z"
+    },
+    {
+      "step": "implement",
+      "substep": null,
+      "task": "T014",
+      "kind": "complete",
+      "by": "ai",
+      "at": "2026-11-09T13:39:52.250Z"
+    },
+    {
+      "step": "implement",
+      "substep": null,
+      "task": "T013",
+      "kind": "complete",
+      "by": "ai",
+      "at": "2026-11-09T13:40:12.552Z"
+    },
+    {
+      "step": "implement",
+      "substep": null,
+      "task": "T017",
+      "kind": "complete",
+      "by": "ai",
+      "at": "2026-11-09T13:40:12.621Z"
+    },
+    {
+      "step": "implement",
+      "substep": null,
+      "task": "T018",
+      "kind": "complete",
+      "by": "ai",
+      "at": "2026-11-09T13:41:06.886Z"
+    },
+    {
+      "step": "implement",
+      "substep": null,
+      "task": "T019",
+      "kind": "complete",
+      "by": "ai",
+      "at": "2026-11-09T13:41:06.968Z"
+    },
+    {
+      "step": "implement",
+      "substep": null,
+      "task": "T020",
+      "kind": "complete",
+      "by": "ai",
+      "at": "2026-11-09T13:41:49.252Z"
+    },
+    {
+      "step": "implement",
+      "substep": null,
+      "task": "T022",
+      "kind": "complete",
+      "by": "ai",
+      "at": "2026-11-09T13:41:49.332Z"
+    },
+    {
+      "step": "implement",
+      "substep": null,
+      "task": "T023",
+      "kind": "complete",
+      "by": "ai",
+      "at": "2026-11-09T13:42:41.268Z"
+    },
+    {
+      "step": "implement",
+      "substep": null,
+      "task": "T024",
+      "kind": "complete",
+      "by": "ai",
+      "at": "2026-11-09T13:42:41.359Z"
+    },
+    {
+      "step": "implement",
+      "substep": null,
+      "task": "T032",
+      "kind": "complete",
+      "by": "ai",
+      "at": "2026-11-09T13:43:27.087Z"
+    },
+    {
+      "step": "implement",
+      "substep": null,
+      "task": "T026",
+      "kind": "complete",
+      "by": "ai",
+      "at": "2026-11-09T13:43:53.903Z"
+    },
+    {
+      "step": "implement",
+      "substep": null,
+      "task": "T027",
+      "kind": "complete",
+      "by": "ai",
+      "at": "2026-11-09T13:43:53.993Z"
+    },
+    {
+      "step": "implement",
+      "substep": null,
+      "task": "T028",
+      "kind": "complete",
+      "by": "ai",
+      "at": "2026-11-09T13:43:54.082Z"
+    },
+    {
+      "step": "implement",
+      "substep": null,
+      "task": "T030",
+      "kind": "complete",
+      "by": "ai",
+      "at": "2026-11-09T13:45:20.566Z"
+    },
+    {
+      "step": "implement",
+      "substep": null,
+      "task": "T031",
+      "kind": "complete",
+      "by": "ai",
+      "at": "2026-11-09T13:45:20.654Z"
+    },
+    {
+      "step": "implement",
+      "substep": null,
+      "task": "T067",
+      "kind": "complete",
+      "by": "ai",
+      "at": "2026-11-09T13:46:32.158Z"
+    },
+    {
+      "step": "implement",
+      "substep": null,
+      "task": "T069",
+      "kind": "complete",
+      "by": "ai",
+      "at": "2026-11-09T13:46:32.245Z"
+    },
+    {
+      "step": "implement",
+      "substep": null,
+      "task": "T070",
+      "kind": "complete",
+      "by": "ai",
+      "at": "2026-11-09T13:46:32.326Z"
+    },
+    {
+      "step": "implement",
+      "substep": null,
+      "task": "T071",
+      "kind": "complete",
+      "by": "ai",
+      "at": "2026-11-09T13:46:32.404Z"
+    },
+    {
+      "step": "implement",
+      "substep": null,
+      "task": "T072",
+      "kind": "complete",
+      "by": "ai",
+      "at": "2026-11-09T13:46:32.481Z"
+    },
+    {
+      "step": "implement",
+      "substep": null,
+      "task": "T056",
+      "kind": "complete",
+      "by": "ai",
+      "at": "2026-11-09T13:47:52.285Z"
+    },
+    {
+      "step": "implement",
+      "substep": null,
+      "task": "T057",
+      "kind": "complete",
+      "by": "ai",
+      "at": "2026-11-09T13:47:52.372Z"
+    },
+    {
+      "step": "implement",
+      "substep": null,
+      "task": "T058",
+      "kind": "complete",
+      "by": "ai",
+      "at": "2026-11-09T13:47:52.450Z"
+    },
+    {
+      "step": "implement",
+      "substep": null,
+      "task": "T059",
+      "kind": "complete",
+      "by": "ai",
+      "at": "2026-11-09T13:47:52.537Z"
+    },
+    {
+      "step": "implement",
+      "substep": null,
+      "task": "T078",
+      "kind": "complete",
+      "by": "ai",
+      "at": "2026-11-09T13:49:34.362Z"
+    },
+    {
+      "step": "implement",
+      "substep": null,
+      "task": "T081",
+      "kind": "complete",
+      "by": "ai",
+      "at": "2026-11-09T13:49:34.450Z"
+    },
+    {
+      "step": "implement",
+      "substep": null,
+      "task": "T082",
+      "kind": "complete",
+      "by": "ai",
+      "at": "2026-11-09T13:49:34.540Z"
+    },
+    {
+      "step": "implement",
+      "substep": null,
+      "task": "T083",
+      "kind": "complete",
+      "by": "ai",
+      "at": "2026-11-09T13:49:34.621Z"
+    },
+    {
+      "step": "implement",
+      "substep": null,
+      "task": "T079",
+      "kind": "complete",
+      "by": "ai",
+      "at": "2026-11-09T13:50:04.363Z"
+    },
+    {
+      "step": "implement",
+      "substep": null,
+      "task": "T080",
+      "kind": "complete",
+      "by": "ai",
+      "at": "2026-11-09T13:50:04.455Z"
+    },
+    {
+      "step": "implement",
+      "substep": null,
+      "task": "T085",
+      "kind": "complete",
+      "by": "ai",
+      "at": "2026-11-09T13:50:56.789Z"
+    },
+    {
+      "step": "implement",
+      "substep": null,
+      "task": "T060",
+      "kind": "complete",
+      "by": "ai",
+      "at": "2026-11-09T13:54:46.486Z"
+    },
+    {
+      "step": "implement",
+      "substep": null,
+      "task": "T061",
+      "kind": "complete",
+      "by": "ai",
+      "at": "2026-11-09T13:54:46.550Z"
+    },
+    {
+      "step": "implement",
+      "substep": null,
+      "task": "T062",
+      "kind": "complete",
+      "by": "ai",
+      "at": "2026-11-09T13:54:46.613Z"
+    },
+    {
+      "step": "implement",
+      "substep": null,
+      "task": "T063",
+      "kind": "complete",
+      "by": "ai",
+      "at": "2026-11-09T13:54:46.677Z"
+    },
+    {
+      "step": "implement",
+      "substep": null,
+      "task": "T064",
+      "kind": "complete",
+      "by": "ai",
+      "at": "2026-11-09T13:54:46.741Z"
+    },
+    {
+      "step": "implement",
+      "substep": null,
+      "task": "T065",
+      "kind": "complete",
+      "by": "ai",
+      "at": "2026-11-09T13:54:46.808Z"
+    },
+    {
+      "step": "implement",
+      "substep": null,
+      "task": "T066",
+      "kind": "complete",
+      "by": "ai",
+      "at": "2026-11-09T13:54:46.877Z"
+    },
+    {
+      "step": "implement",
+      "substep": null,
+      "task": "T033",
+      "kind": "complete",
+      "by": "ai",
+      "at": "2026-11-09T13:54:54.590Z"
+    },
+    {
+      "step": "implement",
+      "substep": null,
+      "task": "T034",
+      "kind": "complete",
+      "by": "ai",
+      "at": "2026-11-09T13:54:54.656Z"
+    },
+    {
+      "step": "implement",
+      "substep": null,
+      "task": "T035",
+      "kind": "complete",
+      "by": "ai",
+      "at": "2026-11-09T13:54:54.723Z"
+    },
+    {
+      "step": "implement",
+      "substep": null,
+      "task": "T036",
+      "kind": "complete",
+      "by": "ai",
+      "at": "2026-11-09T13:54:54.793Z"
+    },
+    {
+      "step": "implement",
+      "substep": null,
+      "task": "T037",
+      "kind": "complete",
+      "by": "ai",
+      "at": "2026-11-09T13:54:54.860Z"
+    },
+    {
+      "step": "implement",
+      "substep": null,
+      "task": "T039",
+      "kind": "complete",
+      "by": "ai",
+      "at": "2026-11-09T13:54:54.927Z"
+    },
+    {
+      "step": "implement",
+      "substep": null,
+      "task": "T040",
+      "kind": "complete",
+      "by": "ai",
+      "at": "2026-11-09T13:54:54.992Z"
+    },
+    {
+      "step": "implement",
+      "substep": null,
+      "task": "T041",
+      "kind": "complete",
+      "by": "ai",
+      "at": "2026-11-09T13:54:55.055Z"
+    },
+    {
+      "step": "implement",
+      "substep": null,
+      "task": "T042",
+      "kind": "complete",
+      "by": "ai",
+      "at": "2026-11-09T13:54:55.124Z"
+    },
+    {
+      "step": "implement",
+      "substep": null,
+      "task": "T043",
+      "kind": "complete",
+      "by": "ai",
+      "at": "2026-11-09T13:54:55.188Z"
+    },
+    {
+      "step": "implement",
+      "substep": null,
+      "task": "T044",
+      "kind": "complete",
+      "by": "ai",
+      "at": "2026-11-09T13:54:55.255Z"
+    },
+    {
+      "step": "implement",
+      "substep": null,
+      "task": "T045",
+      "kind": "complete",
+      "by": "ai",
+      "at": "2026-11-09T13:54:55.319Z"
+    },
+    {
+      "step": "implement",
+      "substep": null,
+      "task": "T047",
+      "kind": "complete",
+      "by": "ai",
+      "at": "2026-11-09T13:54:55.390Z"
+    },
+    {
+      "step": "implement",
+      "substep": null,
+      "task": "T048",
+      "kind": "complete",
+      "by": "ai",
+      "at": "2026-11-09T13:54:55.456Z"
+    },
+    {
+      "step": "implement",
+      "substep": null,
+      "task": "T049",
+      "kind": "complete",
+      "by": "ai",
+      "at": "2026-11-09T13:54:55.521Z"
+    },
+    {
+      "step": "implement",
+      "substep": null,
+      "task": "T050",
+      "kind": "complete",
+      "by": "ai",
+      "at": "2026-11-09T13:54:55.584Z"
+    },
+    {
+      "step": "implement",
+      "substep": null,
+      "task": "T051",
+      "kind": "complete",
+      "by": "ai",
+      "at": "2026-11-09T13:54:55.653Z"
+    },
+    {
+      "step": "implement",
+      "substep": null,
+      "task": "T052",
+      "kind": "complete",
+      "by": "ai",
+      "at": "2026-11-09T13:54:55.719Z"
+    },
+    {
+      "step": "implement",
+      "substep": null,
+      "task": "T053",
+      "kind": "complete",
+      "by": "ai",
+      "at": "2026-11-09T13:54:55.784Z"
+    },
+    {
+      "step": "implement",
+      "substep": null,
+      "task": "T054",
+      "kind": "complete",
+      "by": "ai",
+      "at": "2026-11-09T13:54:55.850Z"
+    },
+    {
+      "step": "implement",
+      "substep": null,
+      "task": "T075",
+      "kind": "complete",
+      "by": "ai",
+      "at": "2026-11-09T13:56:43.123Z"
+    },
+    {
+      "step": "implement",
+      "substep": null,
+      "task": "T076",
+      "kind": "complete",
+      "by": "ai",
+      "at": "2026-11-09T13:56:43.211Z"
+    },
+    {
+      "step": "implement",
+      "substep": null,
+      "task": "T077",
+      "kind": "complete",
+      "by": "ai",
+      "at": "2026-11-09T13:56:43.294Z"
+    },
+    {
+      "step": "implement",
+      "substep": null,
+      "task": "T073",
+      "kind": "complete",
+      "by": "ai",
+      "at": "2026-11-09T13:57:07.640Z"
+    },
+    {
+      "step": "implement",
+      "substep": null,
+      "task": "T074",
+      "kind": "complete",
+      "by": "ai",
+      "at": "2026-11-09T13:57:07.729Z"
+    },
+    {
+      "step": "implement",
+      "substep": null,
+      "task": "T038",
+      "kind": "complete",
+      "by": "ai",
+      "at": "2026-11-09T21:29:43.266Z"
+    },
+    {
+      "step": "implement",
+      "substep": null,
+      "task": "T046",
+      "kind": "complete",
+      "by": "ai",
+      "at": "2026-11-09T21:29:43.330Z"
+    },
+    {
+      "step": "implement",
+      "substep": null,
+      "task": "T055",
+      "kind": "complete",
+      "by": "ai",
+      "at": "2026-11-09T21:29:43.396Z"
+    },
+    {
+      "step": "implement",
+      "substep": null,
+      "task": "T021",
+      "kind": "complete",
+      "by": "ai",
+      "at": "2026-11-09T22:19:00.219Z"
+    },
+    {
+      "step": "implement",
+      "substep": null,
+      "task": "T025",
+      "kind": "complete",
+      "by": "ai",
+      "at": "2026-11-09T22:19:00.306Z"
+    },
+    {
+      "step": "implement",
+      "substep": null,
+      "task": "T029",
+      "kind": "complete",
+      "by": "ai",
+      "at": "2026-11-09T22:19:00.389Z"
+    },
+    {
+      "step": "implement",
+      "substep": null,
+      "task": "T068",
+      "kind": "complete",
+      "by": "ai",
+      "at": "2026-11-09T22:19:54.572Z"
+    },
+    {
+      "step": "implement",
+      "substep": null,
+      "task": "T084",
+      "kind": "complete",
+      "by": "ai",
+      "at": "2026-11-09T22:21:17.524Z"
+    },
+    {
+      "step": "implement",
+      "substep": null,
+      "task": "T086",
+      "kind": "complete",
+      "by": "ai",
+      "at": "2026-11-09T22:21:43.622Z"
+    },
+    {
+      "step": "implement",
+      "substep": null,
+      "task": "T087",
+      "kind": "complete",
+      "by": "ai",
+      "at": "2026-11-09T22:35:24.761Z"
+    },
+    {
+      "step": "implement",
+      "substep": null,
+      "kind": "complete",
+      "by": "ai",
+      "at": "2026-11-09T22:35:24.772Z"
+    }
+  ],
+  "telemetryInstanceId": "46e18394-9cbf-4eaf-a40b-a1054a5b8f66",
+  "selectedAt": "2026-11-08T22:36:37.924Z",
+  "last_action": "all tasks done; typecheck, build, npm test 382, test:ui 39, test:gitlab 37 pass",
+  "coverage": {
+    "FR-001": {
+      "title": "The wireframe set MUST cover the screens and states listed in Story 1 at about 1440, 1000 and 400 pixels wide."
+    },
+    "FR-002": {
+      "title": "The Diff and panel wireframes MUST annotate keyboard path and focus order, including focus on panel open and close."
+    },
+    "FR-003": {
+      "title": "Stage 2 MUST NOT start until the product owner has approved the wireframes."
+    },
+    "FR-004": {
+      "title": "The wireframes MUST label every capability that did not exist before as ."
+    },
+    "FR-005": {
+      "title": "Diff rows MUST distinguish added, removed and unchanged lines by a `+`/`−` mark and a background, in both themes.",
+      "tasks": [
+        "T021",
+        "T023"
+      ]
+    },
+    "FR-006": {
+      "title": "Diff range selection MUST work by keyboard: Enter or Space sets the anchor, Shift with an arrow extends, Escape clears, and each line control shows a visible focus indicator.",
+      "tasks": [
+        "T020",
+        "T021",
+        "T022",
+        "T023"
+      ]
+    },
+    "FR-007": {
+      "title": "A selection change MUST update a visible scope bar and be announced to screen readers.",
+      "tasks": [
+        "T007",
+        "T021",
+        "T023"
+      ]
+    },
+    "FR-008": {
+      "title": "Selected diff rows MUST show a selection bar as well as a colour change.",
+      "tasks": [
+        "T011",
+        "T021",
+        "T023"
+      ]
+    },
+    "FR-009": {
+      "title": "Every claim and completeness badge MUST show its text label, an icon, and a colour meeting AA contrast in both themes.",
+      "tasks": [
+        "T011",
+        "T014",
+        "T025",
+        "T027",
+        "T056",
+        "T057"
+      ]
+    },
+    "FR-010": {
+      "title": "Following a code citation MUST highlight the full cited range, from its first to its last line.",
+      "tasks": [
+        "T004",
+        "T025",
+        "T026",
+        "T027",
+        "T028"
+      ]
+    },
+    "FR-011": {
+      "title": "The code view MUST preserve whitespace and scroll long lines inside the code region.",
+      "tasks": [
+        "T011",
+        "T025",
+        "T026"
+      ]
+    },
+    "FR-012": {
+      "title": "The Ask form MUST give the question box a visible label, group Category and Answer-for choices with group names, link errors to their fields, and announce a submit failure immediately.",
+      "tasks": [
+        "T029",
+        "T030"
+      ]
+    },
+    "FR-013": {
+      "title": "The Ask button MUST show why it is unavailable whenever it is disabled.",
+      "tasks": [
+        "T029",
+        "T030"
+      ]
+    },
+    "FR-014": {
+      "title": "Every page MUST have an app header with a skip-to-content link, the product name linking Home, repository identity, connection state, and a settings menu holding Setup and Sign-in.",
+      "tasks": [
+        "T016",
+        "T073",
+        "T075",
+        "T077"
+      ]
+    },
+    "FR-015": {
+      "title": "Every review-session page MUST show the review header, review navigation and context strip described in Story 5.",
+      "tasks": [
+        "T073",
+        "T076"
+      ]
+    },
+    "FR-016": {
+      "title": "The context strip and all other copy MUST NOT state or imply that a PR is ready, safe or approved to merge.",
+      "tasks": [
+        "T073",
+        "T076",
+        "T085"
+      ]
+    },
+    "FR-017": {
+      "title": "The question draft, Category, Answer-for choice, selected scope and per-page scroll position MUST survive navigation within the same session.",
+      "tasks": [
+        "T005",
+        "T023",
+        "T029",
+        "T030",
+        "T074",
+        "T076"
+      ]
+    },
+    "FR-018": {
+      "title": "Answer-for MUST default to Technical and keep the reviewer's choice for that session.",
+      "tasks": [
+        "T005",
+        "T029",
+        "T030",
+        "T074"
+      ]
+    },
+    "FR-019": {
+      "title": "At 1200 pixels and wider, Ask and Evidence MUST open as side panels; between 900 and 1199 pixels they MUST overlay the page; below 900 pixels they MUST open the existing full-page routes.",
+      "tasks": [
+        "T006",
+        "T060",
+        "T066"
+      ]
+    },
+    "FR-020": {
+      "title": "Opening a panel MUST move focus to its heading; closing it (button or Escape) MUST return focus to the control that opened it.",
+      "tasks": [
+        "T060",
+        "T061",
+        "T066"
+      ]
+    },
+    "FR-021": {
+      "title": "The Evidence panel MUST show the cited source with its full range highlighted and an \"Open full page\" link to the existing route.",
+      "tasks": [
+        "T060",
+        "T065"
+      ]
+    },
+    "FR-022": {
+      "title": "Overview MUST offer \"Ask about this PR\"; Files MUST offer \"Ask about selection\" when a range is selected.",
+      "tasks": [
+        "T021",
+        "T023",
+        "T060",
+        "T066",
+        "T076"
+      ]
+    },
+    "FR-023": {
+      "title": "Every existing route MUST keep working as a deep link with the same content.",
+      "tasks": [
+        "T004",
+        "T060",
+        "T077"
+      ]
+    },
+    "FR-024": {
+      "title": "At 1200 pixels and wider, the file list MUST sit in a collapsible left region; between 900 and 1199 pixels it MUST be a drawer.",
+      "tasks": [
+        "T006",
+        "T018",
+        "T021",
+        "T024"
+      ]
+    },
+    "FR-025": {
+      "title": "Overview MUST order PR summary, context completeness, changed files, then referenced PRs, with per-file summaries disclosed on request.",
+      "tasks": [
+        "T018",
+        "T056",
+        "T058",
+        "T059"
+      ]
+    },
+    "FR-026": {
+      "title": "The file list MUST offer a text filter over its files.",
+      "tasks": [
+        "T018",
+        "T056"
+      ]
+    },
+    "FR-027": {
+      "title": "Overview MUST reserve an empty \"Review focus\" region and MUST NOT show risk, coverage, readiness or role content in it.",
+      "tasks": [
+        "T056",
+        "T059"
+      ]
+    },
+    "FR-028": {
+      "title": "Every region that loads data MUST distinguish loading, empty, failed, unknown and stale, and offer Retry when failed.",
+      "tasks": [
+        "T015",
+        "T024",
+        "T028",
+        "T030",
+        "T031",
+        "T046",
+        "T058",
+        "T063",
+        "T064",
+        "T068",
+        "T083"
+      ],
+      "tests": [
+        "test/ui/states.ui.ts"
+      ]
+    },
+    "FR-029": {
+      "title": "Failures that are currently hidden (session list, AI provider check, suggested questions) MUST be shown as failed states.",
+      "tasks": [
+        "T030",
+        "T046",
+        "T068",
+        "T075"
+      ]
+    },
+    "FR-030": {
+      "title": "A dropped live-update stream MUST show the \"Live updates paused — Reconnect\" banner on session pages, and Reconnect MUST restore updates.",
+      "tasks": [
+        "T013",
+        "T067",
+        "T068",
+        "T069",
+        "T070",
+        "T076"
+      ]
+    },
+    "FR-031": {
+      "title": "Streaming answer text and scope changes MUST be announced politely to screen readers, throttled so speech does not flood.",
+      "tasks": [
+        "T007",
+        "T029",
+        "T031"
+      ]
+    },
+    "FR-032": {
+      "title": "Close and Delete MUST sit in a secondary session-actions menu.",
+      "tasks": [
+        "T071",
+        "T072",
+        "T076"
+      ]
+    },
+    "FR-033": {
+      "title": "Delete MUST open a confirmation dialog stating what is lost, with focus on Cancel, Escape cancelling, and a danger-styled confirm.",
+      "tasks": [
+        "T071",
+        "T072"
+      ]
+    },
+    "FR-034": {
+      "title": "Setup MUST show only the fields for the chosen source-control platform and chosen tracker, using the platforms registered at implementation time.",
+      "tasks": [
+        "T009",
+        "T044",
+        "T079",
+        "T083"
+      ]
+    },
+    "FR-035": {
+      "title": "Setup MUST show limits in human units inside a collapsed \"Advanced limits\" section with defaults visible.",
+      "tasks": [
+        "T078",
+        "T079",
+        "T081",
+        "T083"
+      ]
+    },
+    "FR-036": {
+      "title": "Setup MUST show each server validation error at its field and in a summary at the top.",
+      "tasks": [
+        "T033",
+        "T039",
+        "T079",
+        "T083"
+      ]
+    },
+    "FR-037": {
+      "title": "After a successful save, Setup MUST show a connection checklist with each check's status and next step.",
+      "tasks": [
+        "T079",
+        "T083"
+      ]
+    },
+    "FR-038": {
+      "title": "Sign-in MUST explain why it is needed and that access is read-only, and MUST return the reviewer to the originating page after success.",
+      "tasks": [
+        "T004",
+        "T013",
+        "T080",
+        "T082"
+      ]
+    },
+    "FR-039": {
+      "title": "Home MUST list sessions before open PRs, give each row \"Start review\" or \"Resume review\", show empty and failed states, busy only the row being started, and offer a filter over loaded items.",
+      "tasks": [
+        "T038",
+        "T046"
+      ]
+    },
+    "FR-040": {
+      "title": "Every page MUST meet WCAG 2.2 AA, with landmarks, exactly one top-level heading, labelled controls, no meaning carried by colour alone, reduced motion respected and targets at least 24 by 24 pixels.",
+      "tasks": [
+        "T011",
+        "T017",
+        "T073",
+        "T084"
+      ]
+    },
+    "FR-041": {
+      "title": "Every page MUST work in light and dark themes and at 400, 1000 and 1440 pixels wide without page-level horizontal scrolling.",
+      "tasks": [
+        "T011",
+        "T017",
+        "T084"
+      ]
+    },
+    "FR-042": {
+      "title": "All PR, issue, code and AI text MUST still be shown as plain text; the redesign MUST NOT introduce any path that renders it as markup.",
+      "tasks": [
+        "T060",
+        "T063",
+        "T064",
+        "T085"
+      ]
+    },
+    "FR-043": {
+      "title": "The interface MUST NOT offer any action that writes to the repository or to any platform.",
+      "tasks": [
+        "T085",
+        "T087"
+      ]
+    },
+    "FR-044": {
+      "title": "Evidence/Inference labels, unresolved-reference reasons, skipped-file reasons and the older-head marker MUST stay visible wherever they appear today.",
+      "tasks": [
+        "T018",
+        "T027",
+        "T031",
+        "T057",
+        "T086"
+      ]
+    },
+    "FR-045": {
+      "title": "Every existing feature listed in guide §3 \"Strengths to preserve\" MUST remain available.",
+      "tasks": [
+        "T086"
+      ]
+    },
+    "FR-046": {
+      "title": "Existing test identifiers MUST stay stable, or each change MUST be made deliberately with the affected tests updated in the same change.",
+      "tasks": [
+        "T046",
+        "T055",
+        "T085"
+      ]
+    },
+    "FR-047": {
+      "title": "New automated tests MUST cover range highlighting, keyboard selection, badge attributes, state preserved across navigation, and cancelling Delete.",
+      "tasks": [
+        "T021",
+        "T025",
+        "T056",
+        "T071",
+        "T074"
+      ]
+    },
+    "FR-048": {
+      "title": "Setup MUST take one base folder, one source-control platform (with a base address when declared) and one issue tracker, replacing the single repository and clone path.",
+      "tasks": [
+        "T008",
+        "T033",
+        "T039",
+        "T079",
+        "T083"
+      ]
+    },
+    "FR-049": {
+      "title": "The workbench MUST find every git repository under the base folder at any depth, without changing any, without following symbolic links, and without looking inside its own data folder.",
+      "tasks": [
+        "T035",
+        "T036",
+        "T045",
+        "T047"
+      ]
+    },
+    "FR-050": {
+      "title": "Each found repository MUST be matched to the chosen platform by its remotes; one with no matching remote MUST be listed as skipped with the reason.",
+      "tasks": [
+        "T034",
+        "T035",
+        "T040",
+        "T041",
+        "T042",
+        "T043",
+        "T047"
+      ]
+    },
+    "FR-051": {
+      "title": "The same platform repository in several folders MUST appear once, using the clone nearest the base folder (ties alphabetical), naming the folder used and listing the others as duplicates.",
+      "tasks": [
+        "T035",
+        "T047"
+      ]
+    },
+    "FR-052": {
+      "title": "Home MUST be a dashboard of open PRs across all matched repositories, each row with repository, number, title, author, branches, updated time and Start or Resume review, newest first.",
+      "tasks": [
+        "T008",
+        "T037",
+        "T038",
+        "T046",
+        "T049",
+        "T052"
+      ]
+    },
+    "FR-053": {
+      "title": "The dashboard MUST filter by repository and by text, over loaded items.",
+      "tasks": [
+        "T005",
+        "T038",
+        "T046"
+      ]
+    },
+    "FR-054": {
+      "title": "A repository whose PRs fail to load MUST show its own failed state with Retry while every other repository's PRs still show.",
+      "tasks": [
+        "T037",
+        "T038",
+        "T046",
+        "T049",
+        "T052"
+      ],
+      "tests": [
+        "test/ui/home.ui.ts"
+      ]
+    },
+    "FR-055": {
+      "title": "Every review page MUST show the PR's repository and offer Back to dashboard, which restores the dashboard's filters and scroll position.",
+      "tasks": [
+        "T005",
+        "T038",
+        "T046",
+        "T073",
+        "T076"
+      ]
+    },
+    "FR-056": {
+      "title": "Setup MUST show the discovery result (matched, skipped with reasons, duplicates) and Rescan; discovery MUST run on save, on Rescan and at start-up.",
+      "tasks": [
+        "T037",
+        "T048",
+        "T052",
+        "T054",
+        "T079",
+        "T083"
+      ]
+    },
+    "FR-057": {
+      "title": "A session whose repository is no longer under the base folder MUST stay readable, with Refresh and Ask unavailable and the reason shown.",
+      "tasks": [
+        "T030",
+        "T037",
+        "T049",
+        "T050",
+        "T051",
+        "T052",
+        "T053",
+        "T073",
+        "T076"
+      ]
+    },
+    "FR-058": {
+      "title": "The issue tracker settings MUST apply to every repository; a tracker reading issues from the repository itself MUST use each PR's own repository.",
+      "tasks": [
+        "T049"
+      ]
+    },
+    "SC-001": {
+      "tests": [
+        "test/ui/sweep.ui.ts"
+      ]
+    },
+    "SC-002": {
+      "tests": [
+        "test/ui/journey.ui.ts"
+      ]
+    },
+    "SC-003": {
+      "tests": [
+        "test/ui/sweep.ui.ts"
+      ]
+    }
+  },
+  "size": "oversized",
+  "classification": {
+    "projectedFiles": 35,
+    "projectedTasks": 80,
+    "scopeSignal": "larger",
+    "verdict": "oversized"
+  },
+  "expectations": [
+    "role switcher",
+    "risk/coverage/readiness/role lenses (layout space only)",
+    "any write action to repositories or platforms",
+    "repository documentation, including docs/ui-guide.md",
+    "manual theme switch"
+  ],
+  "context": [
+    "source: ui-guide.md (review of current UI, copied into the feature dir)",
+    "area: src/ui/app.tsx (hash router, main remount on hash change)",
+    "area: src/ui/screens/* and src/ui/components/*",
+    "area: src/ui/app.css (tokens, diff-line/data-label selectors already present)",
+    "constraint: data-testid values in specs/001-pr-review-workbench/contracts/ui.md stay stable",
+    "constraint: safety invariants guide §9 (read-only, text nodes only)",
+    "constraint: platforms from src/adapters/registry.ts incl. uncommitted GitLab work"
+  ],
+  "intent": "Wireframe then rebuild the workbench UI: fix P0 trust/a11y defects, add a persistent review shell with preserved state and side panels, honest async states, safer session actions, guided setup and home",
+  "assistant": "claude",
+  "verified": [
+    {
+      "what": "plan blocks check out",
+      "command": "python3 .specify/extensions/companion/scripts/check_plan.py --feature-dir specs/003-ui-redesign --strict",
+      "source": "derived",
+      "exitCode": 0,
+      "durationSeconds": 0.0,
+      "result": "[plan-check] plan.md: 3 call paths, 23 lines, 2 screens, 19 parts, 2 state blocks (9 states). Every cited file and line checks out."
+    },
+    {
+      "what": "typecheck",
+      "command": "npm run typecheck",
+      "source": "derived",
+      "exitCode": 0,
+      "durationSeconds": 2.9,
+      "result": "> pr-review-workbench@0.1.0 typecheck · > tsc --noEmit"
+    },
+    {
+      "what": "build UI",
+      "command": "npm run build:ui",
+      "source": "derived",
+      "exitCode": 0,
+      "durationSeconds": 0.1,
+      "result": "  dist/ui/index.html     546b  ·   dist/ui/launch.html    504b  · ⚡ Done in 13ms"
+    },
+    {
+      "what": "unit, contract, integration, end-to-end",
+      "command": "npm test",
+      "source": "derived",
+      "exitCode": 0,
+      "durationSeconds": 128.0,
+      "result": "ℹ skipped 0 · ℹ todo 0 · ℹ duration_ms 127904.064411"
+    },
+    {
+      "what": "browser tests",
+      "command": "npm run test:ui",
+      "source": "derived",
+      "exitCode": 0,
+      "durationSeconds": 63.0,
+      "result": "ℹ skipped 0 · ℹ todo 0 · ℹ duration_ms 62930.300232"
+    },
+    {
+      "what": "GitLab tests",
+      "command": "npm run test:gitlab",
+      "source": "derived",
+      "exitCode": 0,
+      "durationSeconds": 176.6,
+      "result": "ℹ skipped 0 · ℹ todo 0 · ℹ duration_ms 176517.313797"
+    }
+  ],
+  "planBlocks": [
+    "calls",
+    "states",
+    "screens"
+  ],
+  "decisions": [
+    {
+      "decision": "Playwright library + @axe-core/playwright as devDependencies, browser tests in test/ui/*.ui.ts under node:test via npm run test:ui",
+      "why": "FR-047, SC-001 and SC-003 need a real layout engine; one test runner; no runtime dependency (Q.1)",
+      "rejected": "jsdom (no layout) and @playwright/test (second runner)"
+    },
+    {
+      "decision": "UI logic in plain .ts modules under src/ui/state/ so node --test can import them",
+      "why": "Node strips types but does not compile JSX",
+      "rejected": "testing all logic through the browser"
+    },
+    {
+      "decision": "View state in sessionStorage, one allowlisted versioned key per session plus one for the dashboard",
+      "why": "Matches the clarification exactly: per tab, survives reload, never sent, no credentials (X.7)",
+      "rejected": "localStorage (outlives tab) and URL state (leaks drafts into history)"
+    },
+    {
+      "decision": "Remove main key={hash}; ReviewShell keyed by session id owns detail, one event stream and the live region",
+      "why": "Stops the remount that loses state and the header flicker; POST /open runs once per session",
+      "rejected": "keeping all screens mounted"
+    },
+    {
+      "decision": "Panel state lives in view state, not the URL; three bands at 1200 and 900 pixels; narrow uses existing routes",
+      "why": "Deep links stay the existing routes (FR-023)",
+      "rejected": "panel in the hash, which makes each open a navigation"
+    },
+    {
+      "decision": "Discovery walks with fs.opendir, no symlinks, reads remotes via the Repository manager, matches by a new adapter method repositoryForRemote",
+      "why": "Keeps git access in one place (IX.2) and platform path rules inside adapters (VIII.2)",
+      "rejected": "parsing .git/config by hand, or deriving the match in core"
+    },
+    {
+      "decision": "GET /api/pulls returns one PullGroup per repository with its own loaded or failed status; ?repository= retries one",
+      "why": "Per-repository failure without failing the dashboard (V.4, FR-054)",
+      "rejected": "browser fan-out of one request per repository"
+    },
+    {
+      "decision": "Session environment is built per session repository; a missing clone gives repositoryAvailable false and 409 repository_unavailable",
+      "why": "The store already keys sessions by repository; the folder is looked up at use so it can move",
+      "rejected": "storing clone paths on sessions"
+    },
+    {
+      "decision": "Old repository-shaped config loads as not configured, with no migration",
+      "why": "Guessing a base folder from a clone path could scan a home directory; the product is unreleased",
+      "rejected": "dirname(clonePath) migration"
+    },
+    {
+      "decision": "Refresh the existing plan against the current spec instead of regenerating it",
+      "why": "Plan, spec and tasks were edited together after tasks closed; check_plan passes and every verbatim constraint is already in contracts",
+      "rejected": "Full regeneration, which would make the 87-task list stale"
+    },
+    {
+      "decision": "Tightened verification inside existing test tasks (T021, T025, T038, T068, T073, T074, T087) instead of adding tasks",
+      "why": "Keeps phases and single-file ownership intact; closes untested FR-028 states, SC-005 test:gitlab, FR-006/011/014/017/024/031/054 and two edge cases",
+      "rejected": "New test tasks, which would add files and owners late"
+    },
+    {
+      "decision": "Panel host owns openAsk/openEvidence; wide opens panels beside the page, medium overlays, narrow navigates",
+      "why": "Keeps the diff and cursor in place while asking",
+      "rejected": "Always navigating to the Ask page"
+    },
+    {
+      "decision": "Diff line selection is by the line-number button only, not the whole row",
+      "why": "One keyboard tab stop and no hidden pointer-only path",
+      "rejected": "Row click handlers"
+    },
+    {
+      "decision": "DRAFT_MAX raised to 10000 to match the server question limit",
+      "why": "4000 would silently truncate a valid question",
+      "rejected": "Keeping 4000"
+    },
+    {
+      "decision": "Browser harness launches Chromium before the workbench so pages close before the server and appdata are removed",
+      "why": "Teardown raced with live streams and hung the run",
+      "rejected": "Per-test timeouts"
+    }
+  ],
+  "concerns": [
+    {
+      "note": "The installed companion extension lacks presets/_parts, so plan-blocks.py failed; block grammars were read from the VS Code extension copy and planBlocks was not recorded by the script. Reinstall the companion extension."
+    },
+    {
+      "note": "simplified: no config migration from the repository shape to workspace (R10); add one if the product ships before this lands"
+    },
+    {
+      "note": "Each file has one owner phase, so Phases 7-10 (US7, US6, US8, US9) come before the US5 shell phase that mounts their work. Browser tests T060, T068 and T071 pass only after Phase 11. Overview has no review header from T059 until T077 lands."
+    },
+    {
+      "note": "Regions empty/unknown/stale exist in AsyncRegion but only loading, failed and loaded are exercised end to end; no screen currently produces stale, and unknown only on the Code page. T068 covers loading, failed+Retry and the dropped stream.",
+      "step": "implement"
+    },
+    {
+      "note": "PanelHost layout uses inline styles instead of app.css; connection-state has an extra 'unknown' value beyond the contract's three.",
+      "step": "implement"
+    },
+    {
+      "note": "Copy review for merge-readiness implication (T086) was done by the implementing agent, not a person; repeat before release.",
+      "step": "implement"
+    },
+    {
+      "note": "Panel scroll-return test allows 50px drift because page height differs slightly while a panel is open.",
+      "step": "implement"
+    }
+  ],
+  "step_summaries": {
+    "plan": {
+      "summary": "Plan, research (R1-R18), data model and contracts for the UI redesign and base-folder dashboard; refreshed 2026-11-09 to state the FR-042/SC-008 plain-text check",
+      "key_finding": "app.css already targets the redesign selectors, but the screens never emit them; the server assumes one configured repository in environment(), which becomes per-session environmentFor(repo)"
+    },
+    "tasks": {
+      "summary": "87 tasks in 13 phases: Setup, Foundational (17 shared modules), one phase per story except US11 (in US12) and US1 (done in Stage 1); P2 shell phase joins US6/US8/US9 pieces; every file has one owner phase"
+    },
+    "implement": {
+      "summary": "PR Review Workbench UI redesign: shell, panels, diff selection, badges, states, workspace dashboard and setup; 88 tasks done"
+    }
+  },
+  "approach": "Fix the P0 diff, badge, range and Ask-form defects in src/ui first, then remove the per-hash remount so a session-keyed ReviewShell owns the session, one stream and sessionStorage view state, with Ask and Evidence as width-dependent panels over the existing routes. On the server, the config takes a base folder, a read-only discovery walk matches repositories through a new adapter method, and sessions run against their own repository with per-repository pull groups for the dashboard.",
+  "currentTask": null,
+  "task_summaries": {
+    "T001": {
+      "status": "DONE",
+      "did": "Added playwright, axe-core/playwright and test:ui script",
+      "files": [
+        "package.json"
+      ]
+    },
+    "T006": {
+      "status": "DONE",
+      "did": "Added Band type, bandFor and BAND_QUERIES with boundary unit tests",
+      "files": [
+        "src/ui/state/layout.ts",
+        "test/unit/ui-layout.test.ts"
+      ]
+    },
+    "T010": {
+      "status": "DONE",
+      "did": "Added the single static #live-region aria-live=polite div to index.html",
+      "files": [
+        "src/ui/index.html"
+      ]
+    },
+    "T002": {
+      "status": "DONE",
+      "did": "Browser helper: useBrowser, openPage, checkA11y, assertNoPageScroll; smoke-verified",
+      "files": [
+        "test/helpers/browser.ts"
+      ]
+    },
+    "T005": {
+      "status": "DONE",
+      "did": "Added sessionStorage view-state store with allowlisted validated fields and unit tests",
+      "files": [
+        "src/ui/state/view-state.ts",
+        "test/unit/ui-view-state.test.ts"
+      ]
+    },
+    "T009": {
+      "status": "DONE",
+      "did": "Added optional settingsFields to AdapterDescriptor",
+      "files": [
+        "src/contracts/shared.ts"
+      ]
+    },
+    "T003": {
+      "status": "DONE",
+      "did": "Added contracts section 0 and badge strings and glyphs to labels.ts",
+      "files": [
+        "src/ui/labels.ts"
+      ]
+    },
+    "T007": {
+      "status": "DONE",
+      "did": "Throttled announcer with 3 mock-timer unit tests passing",
+      "files": [
+        "src/ui/state/announcer.ts",
+        "test/unit/ui-announcer.test.ts"
+      ]
+    },
+    "T011": {
+      "status": "DONE",
+      "did": "Tokens, badges, diff rows, bands, fieldsets, reduced motion and target sizes in app.css; build:ui ok",
+      "files": [
+        "src/ui/app.css"
+      ]
+    },
+    "T004": {
+      "status": "DONE",
+      "did": "Route module with parseRoute, buildRoute, routeKey, askHref, scopeFromQuery, codeHref, safeReturn; 8 unit tests pass",
+      "files": [
+        "src/ui/state/routes.ts",
+        "test/unit/ui-routes.test.ts"
+      ]
+    },
+    "T008": {
+      "status": "DONE",
+      "did": "Wire types for workspace config, discovery, pull groups, session availability and repository_unavailable",
+      "files": [
+        "src/contracts/http.ts"
+      ]
+    },
+    "T012": {
+      "status": "DONE",
+      "did": "Multi-repository, shared-issue, 32-file PR, markup and Evidence-lines 45-50 fixtures registered with recorded fetch and fake AI",
+      "files": [
+        "test/fixtures/github/multi-*.json",
+        "test/fixtures/fake-claude/answer-evidence-lines-45-50.json",
+        "test/fixtures/fake-claude/fake-claude.mjs",
+        "test/helpers/recorded-fetch.ts"
+      ]
+    },
+    "T016": {
+      "status": "DONE",
+      "did": "Added DisclosureMenu: aria-expanded/aria-controls button, Escape closes and refocuses, no menu role",
+      "files": [
+        "src/ui/components/disclosure-menu.tsx"
+      ]
+    },
+    "T015": {
+      "status": "DONE",
+      "did": "AsyncRegion component covering loading, loaded, empty, failed with retry, unknown and stale states, with a unit test",
+      "files": [
+        "src/ui/components/async-region.tsx",
+        "test/unit/ui-async-region.test.ts"
+      ]
+    },
+    "T014": {
+      "status": "DONE",
+      "did": "Badge component for all contracts 4.4 kinds with glyph, text and data attributes",
+      "files": [
+        "src/ui/components/badge.tsx",
+        "test/unit/ui-badge.test.ts"
+      ]
+    },
+    "T013": {
+      "status": "DONE",
+      "did": "API client: listPullGroups, workspace calls, createSession(repository, prNumber), signin return hash, stream open/error/readyState",
+      "files": [
+        "src/ui/api.ts"
+      ]
+    },
+    "T017": {
+      "status": "DONE",
+      "did": "Styles part 2: header, skip link, review shell, panels, dialog, file list, dashboard, setup, async regions",
+      "files": [
+        "src/ui/app.css"
+      ]
+    },
+    "T018": {
+      "status": "DONE",
+      "did": "FileList component",
+      "files": [
+        "src/ui/components/file-list.tsx"
+      ]
+    },
+    "T019": {
+      "status": "DONE",
+      "did": "Review context with shell-less defaults",
+      "files": [
+        "src/ui/state/review-context.ts"
+      ]
+    },
+    "T020": {
+      "status": "DONE",
+      "did": "selection model/tests",
+      "files": [
+        "test/unit/ui-selection.test.ts"
+      ]
+    },
+    "T022": {
+      "status": "DONE",
+      "did": "selection model/tests",
+      "files": [
+        "src/ui/state/selection.ts"
+      ]
+    },
+    "T023": {
+      "status": "DONE",
+      "did": "diff rows, keyboard selection, layout/states",
+      "files": [
+        "src/ui/screens/diff.tsx",
+        "src/ui/state/layout.ts"
+      ]
+    },
+    "T024": {
+      "status": "DONE",
+      "did": "diff rows, keyboard selection, layout/states",
+      "files": [
+        "src/ui/screens/diff.tsx",
+        "src/ui/state/layout.ts"
+      ]
+    },
+    "T032": {
+      "status": "DONE",
+      "did": "makeBaseFolder sandbox helper",
+      "files": [
+        "test/helpers/git-sandbox.ts"
+      ]
+    },
+    "T026": {
+      "status": "DONE",
+      "did": "Phase 4 implementation",
+      "files": [
+        "src/ui/components/code-view.tsx"
+      ]
+    },
+    "T027": {
+      "status": "DONE",
+      "did": "Phase 4 implementation",
+      "files": [
+        "src/ui/components/claims.tsx"
+      ]
+    },
+    "T028": {
+      "status": "DONE",
+      "did": "Phase 4 implementation",
+      "files": [
+        "src/ui/screens/code.tsx"
+      ]
+    },
+    "T030": {
+      "status": "DONE",
+      "did": "Phase 5 implementation",
+      "files": [
+        "src/ui/components/ask-composer.tsx"
+      ]
+    },
+    "T031": {
+      "status": "DONE",
+      "did": "Phase 5 implementation",
+      "files": [
+        "src/ui/screens/ask.tsx"
+      ]
+    },
+    "T067": {
+      "status": "DONE",
+      "did": "Phase 9/10 piece",
+      "files": [
+        "test/unit/ui-live-stream.test.ts"
+      ]
+    },
+    "T069": {
+      "status": "DONE",
+      "did": "Phase 9/10 piece",
+      "files": [
+        "src/ui/state/live-stream.ts"
+      ]
+    },
+    "T070": {
+      "status": "DONE",
+      "did": "Phase 9/10 piece",
+      "files": [
+        "src/ui/components/live-banner.tsx"
+      ]
+    },
+    "T071": {
+      "status": "DONE",
+      "did": "Phase 9/10 piece",
+      "files": [
+        "test/ui/session-actions.ui.ts"
+      ]
+    },
+    "T072": {
+      "status": "DONE",
+      "did": "Phase 9/10 piece",
+      "files": [
+        "src/ui/components/session-actions.tsx"
+      ]
+    },
+    "T056": {
+      "status": "DONE",
+      "did": "Phase 7",
+      "files": [
+        "test/ui/overview.ui.ts"
+      ]
+    },
+    "T057": {
+      "status": "DONE",
+      "did": "Phase 7",
+      "files": [
+        "src/ui/components/completeness.tsx"
+      ]
+    },
+    "T058": {
+      "status": "DONE",
+      "did": "Phase 7",
+      "files": [
+        "src/ui/components/summaries.tsx"
+      ]
+    },
+    "T059": {
+      "status": "DONE",
+      "did": "Phase 7",
+      "files": [
+        "src/ui/screens/overview.tsx"
+      ]
+    },
+    "T078": {
+      "status": "DONE",
+      "did": "Phase 12",
+      "files": [
+        "test/unit/ui-units.test.ts"
+      ]
+    },
+    "T081": {
+      "status": "DONE",
+      "did": "Phase 12",
+      "files": [
+        "src/ui/state/units.ts"
+      ]
+    },
+    "T082": {
+      "status": "DONE",
+      "did": "Phase 12",
+      "files": [
+        "src/ui/screens/signin.tsx"
+      ]
+    },
+    "T083": {
+      "status": "DONE",
+      "did": "Phase 12",
+      "files": [
+        "src/ui/screens/setup.tsx"
+      ]
+    },
+    "T079": {
+      "status": "DONE",
+      "did": "browser test written",
+      "files": [
+        "test/ui/setup.ui.ts"
+      ]
+    },
+    "T080": {
+      "status": "DONE",
+      "did": "browser test written",
+      "files": [
+        "test/ui/signin.ui.ts"
+      ]
+    },
+    "T085": {
+      "status": "DONE",
+      "did": "Static UI checks",
+      "files": [
+        "test/unit/ui-safety.test.ts"
+      ]
+    },
+    "T060": {
+      "status": "DONE",
+      "did": "Wrote browser test for panels, focus, bands, resize, deep links, literal markup; runs after Phase 11 mounts PanelHost",
+      "files": [
+        "test/ui/panels.ui.ts"
+      ]
+    },
+    "T061": {
+      "status": "DONE",
+      "did": "Panel aside with focused h2, panel-close, Escape, focus return to opener",
+      "files": [
+        "src/ui/components/panel.tsx"
+      ]
+    },
+    "T062": {
+      "status": "DONE",
+      "did": "SourcesNav with Description and every issue incl. missing, aria-current; useSessionDetail hook",
+      "files": [
+        "src/ui/components/sources-nav.tsx"
+      ]
+    },
+    "T063": {
+      "status": "DONE",
+      "did": "Description page with h1, SourcesNav, AsyncRegion, text nodes; exported DescriptionView",
+      "files": [
+        "src/ui/screens/description.tsx"
+      ]
+    },
+    "T064": {
+      "status": "DONE",
+      "did": "Issue page with key h1, SourcesNav, AsyncRegion, text nodes; exported IssueView",
+      "files": [
+        "src/ui/screens/issue.tsx"
+      ]
+    },
+    "T065": {
+      "status": "DONE",
+      "did": "Evidence panel: CodeView full range, issue/description views, open-full-page",
+      "files": [
+        "src/ui/components/evidence-panel.tsx"
+      ]
+    },
+    "T066": {
+      "status": "DONE",
+      "did": "PanelHost: band via useBand, ReviewContext override, view-state panel, narrow replace to full-page route",
+      "files": [
+        "src/ui/components/panel-host.tsx"
+      ]
+    },
+    "T033": {
+      "status": "DONE",
+      "did": "config tests for the workspace shape",
+      "files": [
+        "test/unit/config.test.ts"
+      ]
+    },
+    "T034": {
+      "status": "DONE",
+      "did": "contract suite: repositoryForRemote inverse of cloneLocations",
+      "files": [
+        "test/contract/source-control.suite.ts"
+      ]
+    },
+    "T035": {
+      "status": "DONE",
+      "did": "discovery tests on the sandbox",
+      "files": [
+        "test/unit/discovery.test.ts"
+      ]
+    },
+    "T036": {
+      "status": "DONE",
+      "did": "discovery safety test",
+      "files": [
+        "test/integration/discovery-safety.test.ts"
+      ]
+    },
+    "T037": {
+      "status": "DONE",
+      "did": "workspace end-to-end test",
+      "files": [
+        "test/end-to-end/workspace.test.ts"
+      ]
+    },
+    "T039": {
+      "status": "DONE",
+      "did": "config workspace shape, gated tracker fields, old shape loads as not configured",
+      "files": [
+        "src/config.ts"
+      ]
+    },
+    "T040": {
+      "status": "DONE",
+      "did": "repositoryForRemote on SourceControlProvider",
+      "files": [
+        "src/contracts/source-control.ts"
+      ]
+    },
+    "T041": {
+      "status": "DONE",
+      "did": "GitHub repositoryForRemote",
+      "files": [
+        "src/adapters/github/source-control.ts"
+      ]
+    },
+    "T042": {
+      "status": "DONE",
+      "did": "Bitbucket repositoryForRemote",
+      "files": [
+        "src/adapters/bitbucket/source-control.ts"
+      ]
+    },
+    "T043": {
+      "status": "DONE",
+      "did": "GitLab repositoryForRemote",
+      "files": [
+        "src/adapters/gitlab/source-control.ts"
+      ]
+    },
+    "T044": {
+      "status": "DONE",
+      "did": "tracker descriptors declare settingsFields",
+      "files": [
+        "src/adapters/jira/issues.ts",
+        "src/adapters/gitlab/issues.ts",
+        "src/adapters/github/issues.ts"
+      ]
+    },
+    "T045": {
+      "status": "DONE",
+      "did": "readRemotes through listRemotes, 8 at once",
+      "files": [
+        "src/repo/manager.ts"
+      ]
+    },
+    "T047": {
+      "status": "DONE",
+      "did": "discovery walk",
+      "files": [
+        "src/repo/discovery.ts"
+      ]
+    },
+    "T048": {
+      "status": "DONE",
+      "did": "workspace service",
+      "files": [
+        "src/core/workspace.ts"
+      ]
+    },
+    "T049": {
+      "status": "DONE",
+      "did": "sessions per repository environment, pull groups, repository_unavailable",
+      "files": [
+        "src/core/sessions.ts"
+      ]
+    },
+    "T050": {
+      "status": "DONE",
+      "did": "interrogation uses the session repository environment",
+      "files": [
+        "src/core/interrogation.ts"
+      ]
+    },
+    "T051": {
+      "status": "DONE",
+      "did": "summary runs use the session repository environment",
+      "files": [
+        "src/core/summaries.ts"
+      ]
+    },
+    "T052": {
+      "status": "DONE",
+      "did": "context routes: workspace, groups, repository-aware start, save triggers rescan",
+      "files": [
+        "src/server/routes/context.ts"
+      ]
+    },
+    "T053": {
+      "status": "DONE",
+      "did": "interrogation routes use per-repository environment; repository_unavailable maps to 409",
+      "files": [
+        "src/server/routes/interrogation.ts"
+      ]
+    },
+    "T054": {
+      "status": "DONE",
+      "did": "start-up creates the workspace and starts discovery",
+      "files": [
+        "src/main.ts"
+      ]
+    },
+    "T075": {
+      "status": "DONE",
+      "did": "Phase 11 implementation",
+      "files": [
+        "src/ui/components/app-header.tsx"
+      ]
+    },
+    "T076": {
+      "status": "DONE",
+      "did": "Phase 11 implementation",
+      "files": [
+        "src/ui/components/review-shell.tsx"
+      ]
+    },
+    "T077": {
+      "status": "DONE",
+      "did": "Phase 11 implementation",
+      "files": [
+        "src/ui/app.tsx",
+        "src/ui/screens/overview.tsx"
+      ]
+    },
+    "T073": {
+      "status": "DONE",
+      "did": "browser test written (not yet run)",
+      "files": [
+        "test/ui/shell.ui.ts"
+      ]
+    },
+    "T074": {
+      "status": "DONE",
+      "did": "browser test written (not yet run)",
+      "files": [
+        "test/ui/journey.ui.ts"
+      ]
+    },
+    "T038": {
+      "status": "DONE",
+      "did": "Home dashboard browser test",
+      "files": [
+        "test/ui/home.ui.ts"
+      ]
+    },
+    "T046": {
+      "status": "DONE",
+      "did": "Home dashboard over pull groups with filters, restore and per-repository retry",
+      "files": [
+        "src/ui/screens/home.tsx"
+      ]
+    },
+    "T055": {
+      "status": "DONE",
+      "did": "old tests moved to the workspace config, pull groups and repository-aware sessions",
+      "files": [
+        "test/helpers/fake-ai-cli.ts",
+        "test/end-to-end/*.test.ts",
+        "test/integration/*.test.ts",
+        "test/unit/interrogation.test.ts",
+        "test/gitlab/coverage.test.ts",
+        "test/gitlab/lifecycle.test.ts",
+        "test/helpers/git-sandbox.ts"
+      ]
+    },
+    "T021": {
+      "status": "DONE",
+      "did": "diff browser test passes after fixes (header wrap, contrast, diff scroll)",
+      "files": [
+        "test/ui/diff.ui.ts"
+      ]
+    },
+    "T025": {
+      "status": "DONE",
+      "did": "references browser test passes",
+      "files": [
+        "test/ui/references.ui.ts"
+      ]
+    },
+    "T029": {
+      "status": "DONE",
+      "did": "ask browser test passes",
+      "files": [
+        "test/ui/ask.ui.ts"
+      ]
+    },
+    "T068": {
+      "status": "DONE",
+      "did": "states browser test: loading, failed with Retry, dropped stream banner and Reconnect",
+      "files": [
+        "test/ui/states.ui.ts"
+      ]
+    },
+    "T084": {
+      "status": "DONE",
+      "did": "route sweep: axe light/dark, no page scroll at 400/1000/1440, one h1/banner/main, reduced motion",
+      "files": [
+        "test/ui/sweep.ui.ts"
+      ]
+    },
+    "T086": {
+      "status": "DONE",
+      "did": "mapped 13 findings and strengths to tests, recorded copy review",
+      "files": [
+        "specs/003-ui-redesign/checklists/guide-findings.md"
+      ]
+    },
+    "T087": {
+      "status": "DONE",
+      "did": "typecheck, build:ui, npm test (382), test:ui (39), test:gitlab (37) all pass",
+      "files": [
+        "test/gitlab/coverage.test.ts"
+      ]
+    }
+  }
+}

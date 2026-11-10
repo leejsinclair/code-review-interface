@@ -1,0 +1,46 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Wireframe: Setup, tracker and checklist</title>
+<link rel="stylesheet" href="wf.css"><script src="wf.js" defer></script>
+</head>
+<body>
+<div data-wf="app-header" data-conn="signin"></div>
+<main id="content" class="page" tabindex="-1">
+  <h1>Set up the workbench</h1>
+
+  <section class="card" aria-labelledby="check-h" role="status">
+    <h2 id="check-h" tabindex="-1" data-focus="4">Saved. Connection checklist <span class="wf-new">[NEW]</span></h2>
+    <ul class="plain stack">
+      <li><span class="badge" data-status="found">✓ Base folder readable</span> <span class="reason">/home/me/src</span></li>
+      <li><span class="badge" data-status="found">✓ 12 repositories found</span> <span class="reason">on GitHub; 2 skipped</span></li>
+      <li><span class="badge" data-status="missing">✕ Not signed in to GitHub</span> <span class="reason">Next: </span><a href="signin.html" data-focus="5">Sign in to GitHub</a></li>
+      <li><span class="badge" data-status="missing">✕ Not signed in to Jira Cloud</span> <span class="reason">Next: </span><a href="signin.html" data-focus="6">Sign in to Jira Cloud</a></li>
+    </ul>
+    <p class="wf-note">Uses checks the server already makes, read-only. If a check cannot run (e.g. not signed in yet so the repository cannot be reached), it shows "? Not checked yet" with the reason, never ✓. Focus moves to this heading after a successful save.</p>
+  </section>
+
+  <form class="stack">
+    <fieldset class="stack"><legend>Source control</legend>
+      <label>Platform<select><option>GitHub</option></select></label>
+      <label>Base folder<input value="/home/me/src"></label>
+    </fieldset>
+    <fieldset class="stack"><legend>Issue tracker</legend>
+      <label>Tracker<select data-focus="7"><option>Jira Cloud</option></select></label>
+      <label>Site<input value="https://acme.atlassian.net" data-focus="8"><span class="field-hint">Your Jira Cloud address</span></label>
+      <label>Project keys<input value="PAY, PAY-OPS" data-focus="9"><span class="field-hint">Comma separated. Only issues in these projects are fetched.</span></label>
+    </fieldset>
+    <p class="wf-note">Site and Project keys appear because this tracker declares them (FR-034). One tracker serves every repository under the base folder (FR-058). Today only base address is declared by platforms; trackers will declare their own fields.</p>
+    <details class="card" open><summary data-focus="10">Advanced limits</summary>
+      <div class="stack">
+        <label>Largest file sent to the AI<span class="row"><input value="1024" inputmode="numeric" data-focus="11"> KB</span><span class="field-hint">Default 1,024 KB (1 MB). Larger files are skipped with the reason "file too large".</span></label>
+        <label>Most changed lines per file<span class="row"><input value="5000" inputmode="numeric"> lines</span><span class="field-hint">Default 5,000 lines.</span></label>
+        <label>Prompt size<span class="row"><input value="400000" inputmode="numeric"> characters</span><span class="field-hint">Default 400,000 characters. Files beyond this are skipped with "prompt limit".</span></label>
+      </div></details>
+    <p class="wf-note">Human units: KB is converted to bytes on save. Defaults always visible, even when collapsed.</p>
+    <button type="submit" class="primary" data-focus="12">Save</button>
+  </form>
+</main>
+</body>
+</html>

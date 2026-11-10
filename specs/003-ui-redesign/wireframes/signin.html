@@ -1,0 +1,31 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Wireframe: Sign-in</title>
+<link rel="stylesheet" href="wf.css"><script src="wf.js" defer></script>
+</head>
+<body>
+<div data-wf="app-header" data-conn="signin"></div>
+<main id="content" class="page" tabindex="-1">
+  <h1>Sign in</h1>
+  <p class="notice">Your sign-in for GitHub has expired, so <strong>Overview of #482</strong> could not load. After you sign in you go straight back there. <span class="wf-new">[NEW: return]</span></p>
+  <p>The workbench reads pull requests, code and linked issues from these platforms to build review context. Access is <strong>read-only</strong>: it never comments, approves, merges or changes anything. Tokens are kept in your operating system's keychain.</p>
+
+  <form class="card stack" data-testid="signin-form-github">
+    <h2>GitHub</h2>
+    <p><span class="badge" data-status="stale">◐ Sign-in expired: sign in again</span></p>
+    <label>Personal access token<input type="password" autocomplete="off" data-focus="4"><span class="field-hint">A token with read access to acme/payments-api is enough.</span></label>
+    <button type="submit" class="primary" data-focus="5">Sign in to GitHub</button>
+  </form>
+
+  <form class="card stack" data-testid="signin-form-jira-cloud">
+    <h2>Jira Cloud</h2>
+    <p><span class="badge" data-status="found">✓ Signed in (m.lee@example.com)</span></p>
+  </form>
+
+  <p><a class="button" href="overview.html" data-focus="6">Return to Overview of #482</a></p>
+  <p class="wf-note">The originating route is passed as a return parameter (e.g. #/signin?return=%23%2Fsessions%2F…). Only same-app hash routes are accepted as a return target. Opened directly from Settings, the button reads "Continue" and goes Home. Field labels come from each platform's descriptor.</p>
+</main>
+</body>
+</html>

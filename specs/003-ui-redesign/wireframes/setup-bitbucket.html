@@ -1,0 +1,51 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Wireframe: Setup, Bitbucket Cloud</title>
+<link rel="stylesheet" href="wf.css"><script src="wf.js" defer></script>
+</head>
+<body>
+<div data-wf="app-header" data-conn="signin" data-repo="Bitbucket Cloud · ~/src · 14 repositories"></div>
+<main id="content" class="page" tabindex="-1">
+  <h1>Set up the workbench</h1>
+
+  <section class="card" aria-labelledby="check-h" role="status">
+    <h2 id="check-h" tabindex="-1" data-focus="4">Saved. Connection checklist <span class="wf-new">[NEW]</span></h2>
+    <ul class="plain stack">
+      <li><span class="badge" data-status="found">✓ Base folder readable</span> <span class="reason">/home/me/src</span></li>
+      <li><span class="badge" data-status="found">✓ 14 repositories found</span> <span class="reason">on Bitbucket Cloud; 2 skipped (see Repositories found below)</span></li>
+      <li><span class="badge" data-status="missing">✕ Not signed in to Bitbucket Cloud</span> <span class="reason">Next: </span><a href="signin-bitbucket.html" data-focus="5">Sign in to Bitbucket Cloud</a></li>
+      <li><span class="badge" data-status="stale">? Repository access not checked yet</span> <span class="reason">Needs a Bitbucket Cloud sign-in first. Checked again automatically after you sign in.</span></li>
+      <li><span class="badge" data-status="missing">✕ Not signed in to Jira Cloud</span> <span class="reason">Next: </span><a href="signin-bitbucket.html" data-focus="6">Sign in to Jira Cloud</a></li>
+      <li><span class="badge" data-status="stale">? Jira projects not checked yet</span> <span class="reason">PAY and PAY-OPS are checked after you sign in to Jira Cloud.</span></li>
+    </ul>
+    <p class="wf-note">A check that cannot run yet shows "? not checked yet" with what it waits for, never ✓. Bitbucket Cloud and Jira Cloud are separate sign-ins even though both use an Atlassian account email and API token; each is stored in the OS keychain under its own platform.</p>
+  </section>
+
+  <form class="stack">
+    <fieldset class="stack"><legend>Source control</legend>
+      <label>Platform<select data-focus="7"><option>Bitbucket Cloud</option><option>GitHub</option><option>GitLab (self-managed)</option></select></label>
+      <label>Base folder <span class="wf-new">[NEW]</span><input value="/home/me/src" data-focus="8"><span class="field-hint">The folder holding your clones. Every git repository under it whose remote is on Bitbucket Cloud is reviewed.</span></label>
+    </fieldset>
+    <p class="wf-note">No base address: Bitbucket Cloud is hosted, so the platform does not declare one. Remotes are recognised by the platform's adapter (bitbucket.org/workspace/repository), never by UI or core code (VIII.2).</p>
+    <fieldset class="stack"><legend>Issue tracker</legend>
+      <label>Tracker<select data-focus="10"><option>Jira Cloud</option><option>GitHub Issues</option><option>GitLab Issues</option></select></label>
+      <label>Site<input value="https://acme-pay.atlassian.net" data-focus="11"><span class="field-hint">Your Jira Cloud address</span></label>
+      <label>Project keys<input value="PAY, PAY-OPS" data-focus="12"><span class="field-hint">Comma separated. One tracker serves every repository. Issue keys found in branch names, commits and PR descriptions are fetched only from these projects.</span></label>
+    </fieldset>
+    <details class="card"><summary data-focus="13">Advanced limits <span class="reason">— defaults: 1 MB per file · 5,000 changed lines per file · 400,000-character prompt</span></summary></details>
+    <button type="submit" class="primary" data-focus="14">Save</button>
+  </form>
+  <section class="card" aria-labelledby="found-h">
+    <div class="panel-head"><h2 id="found-h">Repositories found <span class="wf-new">[NEW]</span></h2>
+      <button type="button" data-focus="15">Rescan</button></div>
+    <p class="reason" role="status">Scanned ~/src: 14 repositories on Bitbucket Cloud, 2 skipped, 1 duplicate. Last scan today 14:00.</p>
+    <details open><summary>14 on Bitbucket Cloud</summary><ul class="plain"><li><span class="badge" data-status="found">✓</span> <span class="mono">acme-pay/payments-api</span> <span class="reason">~/src/payments-api</span></li><li><span class="badge" data-status="found">✓</span> <span class="mono">acme-pay/ledger</span> <span class="reason">~/src/ledger</span></li><li><span class="badge" data-status="found">✓</span> <span class="mono">acme-pay/auth-service</span> <span class="reason">~/src/platform/auth-service</span></li><li class="reason">… 11 more</li></ul></details>
+    <details open><summary>2 skipped</summary><ul class="plain"><li><span class="badge" data-status="missing">⊘ skipped</span> <span class="mono">~/src/oss/left-pad</span> <span class="reason">remotes are on github.com, not Bitbucket Cloud</span></li><li><span class="badge" data-status="missing">⊘ skipped</span> <span class="mono">~/src/sandbox</span> <span class="reason">no remote</span></li></ul></details>
+    <details><summary>1 duplicate</summary><ul class="plain"><li><span class="mono">~/src/old/payments-api</span> <span class="reason">also acme-pay/payments-api; using ~/src/payments-api, the clone nearest the base folder (ties: alphabetical by path)</span></li></ul></details>
+    <p class="wf-note">Discovery walks every folder under the base folder at any depth, does not follow symbolic links, skips the workbench's own data folder, and only reads remotes: it never changes a repository (FR-049 to FR-051, FR-056). Runs on save, on Rescan and at start-up. A large folder shows "Scanning… 1,240 folders" with Cancel (State gallery).</p>
+  </section>
+</main>
+</body>
+</html>
