@@ -38,21 +38,52 @@ function codeForStatus(status: number): 'unauthorized' | 'not_found' | 'unavaila
   return 'unavailable';
 }
 
+const REDIRECT_STATUSES = new Set([301, 302, 303, 307, 308]);
+const MAX_REDIRECTS = 5;
+
 export function createReadOnlyFetch(options: ReadOnlyFetchOptions): ReadOnlyFetch {
   const { platform, fetch: network } = options;
+
+  const send = async (target: string, headers: HeadersInit | undefined): Promise<Response> => {
+    const init: RequestInit = { method: 'GET', redirect: 'manual' };
+    if (headers !== undefined) init.headers = headers;
+    try {
+      return await network(target, init);
+    } catch (cause) {
+      throw new AdapterError('unavailable', platform, `${platform}: network request failed`, { cause });
+    }
+  };
 
   return async (url, init) => {
     const method = requestedMethod(url, init);
     if (method.toUpperCase() !== 'GET') throw new ReadOnlyViolationError(method);
 
     const input: unknown = url;
-    const target = input instanceof Request ? input.url : String(input);
+    let target = input instanceof Request ? input.url : String(input);
     const headers = init?.headers;
     let response: Response;
-    try {
-      response = await network(target, headers === undefined ? { method: 'GET' } : { method: 'GET', headers });
-    } catch (cause) {
-      throw new AdapterError('unavailable', platform, `${platform}: network request failed`, { cause });
+    for (let hop = 0; ; hop += 1) {
+      response = await send(target, headers);
+      if (!REDIRECT_STATUSES.has(response.status)) break;
+      await response.body?.cancel().catch(() => undefined);
+      // ADR 0002: follow only a same-origin Location, so the credential header never leaves the origin.
+      const location = response.headers.get('location');
+      if (location === null) {
+        throw new AdapterError('unavailable', platform, `${platform}: HTTP ${response.status} without a Location`);
+      }
+      let next: URL;
+      try {
+        next = new URL(location, target);
+      } catch {
+        throw new AdapterError('unavailable', platform, `${platform}: HTTP ${response.status} with an invalid Location`);
+      }
+      if (next.origin !== new URL(target).origin) {
+        throw new AdapterError('unavailable', platform, `${platform}: redirect to another origin refused`);
+      }
+      if (hop + 1 > MAX_REDIRECTS) {
+        throw new AdapterError('unavailable', platform, `${platform}: more than ${MAX_REDIRECTS} redirects`);
+      }
+      target = next.href;
     }
 
     const code = codeForStatus(response.status);

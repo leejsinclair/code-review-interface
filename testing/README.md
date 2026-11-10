@@ -9,18 +9,19 @@ and a fake AI response is not proof that a real model answers correctly.
 | Layer | Local example | What it proves |
 | --- | --- | --- |
 | Unit | `test/unit/` | Parsing, limits, claims, configuration and other rules. |
-| Adapter contracts | `test/contract/` and `test/fixtures/` | GitHub, Bitbucket Cloud, GitHub Issues and Jira responses normalise to the application contracts. |
+| Adapter contracts | `test/contract/` and `test/fixtures/` | GitHub, Bitbucket Cloud, GitHub Issues and Jira recorded responses normalise to the application contracts. |
 | Integration | `test/integration/` | Real Git repositories, worktrees, SQLite, recovery and AI child-process handling. |
 | Complete application over HTTP | `test/end-to-end/full-app.test.ts` | The real composition root, server, store and Git work together, using recorded platform responses, an in-memory keyring and a fake AI CLI. |
 | Real AI CLI | `test/live/live-cli.live.ts` | The installed Claude Code CLI respects restrictions and produces a grounded business answer. Platform responses and Git repositories still come from local examples. |
-| Local Git hosting/API | [GitLab setup](gitlab.md) | Disposable infrastructure for future GitLab adapter tests; not a currently supported workbench platform. |
+| Live platform | `test/gitlab/` with [the local GitLab](gitlab.md) | The GitLab adapters pass the same contract suites against a real GitLab, and the full review lifecycle, paging, git fetch over HTTP and token failures work there. Data is seeded per run and removed afterwards. |
 
-The platform registry currently supports `github` and `bitbucket-cloud` for
-repositories, and `github-issues` and `jira-cloud` for issues. There is no
-GitLab adapter or GitLab test command yet. Do not configure the workbench as
-GitHub against the local GitLab URL: their APIs are different.
+The platform registry supports `github`, `bitbucket-cloud` and `gitlab`
+(self-managed) for repositories, and `github-issues`, `jira-cloud` and
+`gitlab-issues` for issues. GitLab needs a repository base address.
 
-The default automated tests need neither Docker nor platform accounts. Recorded
+The default automated tests need neither Docker nor platform accounts. The
+GitLab tests run under `npm test` only when the local GitLab is up, and are
+reported as skipped otherwise. Recorded
 requests are replayed in-process, not sent to their named hosts; Git fetches use
 temporary local bare repositories. The fake AI CLI needs a POSIX environment
 (Linux or macOS). Dependency installation needs network access unless cached.
@@ -244,7 +245,7 @@ Also check keyboard navigation, narrow-screen layout, loading/error states and
 streamed updates. Keep screenshots and browser errors as evidence, but exclude
 tokens, cookies and sensitive source text.
 
-## 4. Real-provider and future GitLab checks
+## 4. Real-provider and GitLab checks
 
 Run the real-provider suite only with an installed, signed-in Claude Code CLI:
 
@@ -258,24 +259,22 @@ a local URL canary. Do not substitute production secrets for the canaries.
 Report unavailable CLI/authentication separately from an application assertion
 failure; neither is a pass.
 
-For future GitLab integration, follow [the local GitLab guide](gitlab.md):
+Run the GitLab live suite against [the local GitLab](gitlab.md):
 
 ```sh
 npm run gitlab:up
 npm run gitlab:bootstrap
-# Run the dedicated GitLab integration suite once one exists.
+npm run test:gitlab
 npm run gitlab:down
 ```
 
-When that adapter is implemented, create a unique project, issue, base commit,
-feature commit and merge request per suite. Wait for branch visibility and
-`diff_refs` with bounded polling, then run the same provider contracts and
-review lifecycle expectations. Keep fixture creation/deletion outside the
-application's read-only adapter and clean up only the suite's own projects.
-Optional Docker tests may skip when GitLab is absent; an explicitly requested
-GitLab run should fail if prerequisites are missing. Never count skipped
-coverage as verified. `gitlab:reset` deletes all instance data: reserve it for
-an explicitly disposable instance, not routine cleanup on a shared one.
+Each test file seeds its own run (`it-<suite>-<timestamp>`) through the
+test-only seeder, runs the shared provider contracts and review lifecycle
+against it, and deletes only that run's data. `test:gitlab` fails when GitLab
+is down or not bootstrapped; plain `npm test` reports the GitLab tests as
+skipped. Never count skipped coverage as verified. Leftovers from a crashed run
+are listed, not deleted: remove them with `npm run gitlab:clean`. Tests never
+run `gitlab:reset`, which deletes all instance data.
 
 ## 5. Completion and evidence
 
@@ -289,6 +288,6 @@ A testing pass means:
 - Relevant targeted suites pass, with no unexpected unrecorded requests.
 - The complete local scenario passes and the reviewer clone is unchanged.
 - Browser checks are recorded separately, or clearly marked unverified.
-- Live-provider and GitLab checks are labelled passed, failed or not run;
+- Live-provider and GitLab checks are labelled passed, failed or skipped;
   their absence is never presented as a successful full-stack run.
 - No test-owned server, child process, worktree or disposable project remains.

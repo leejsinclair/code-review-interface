@@ -1,0 +1,1281 @@
+{
+  "workflow": "companion",
+  "specName": "Gitlab Integration Tests",
+  "branch": "main",
+  "currentStep": "implement",
+  "status": "completed",
+  "history": [
+    {
+      "step": "specify",
+      "substep": null,
+      "kind": "start",
+      "by": "extension",
+      "at": "2026-11-08T00:14:26.503Z"
+    },
+    {
+      "step": "specify",
+      "substep": null,
+      "kind": "complete",
+      "by": "extension",
+      "at": "2026-11-08T00:17:16.398Z"
+    },
+    {
+      "step": "plan",
+      "substep": null,
+      "kind": "start",
+      "by": "extension",
+      "at": "2026-11-08T00:29:53.324Z"
+    },
+    {
+      "step": "plan",
+      "substep": "research",
+      "kind": "complete",
+      "by": "ai",
+      "at": "2026-11-08T00:34:28.055Z"
+    },
+    {
+      "step": "plan",
+      "substep": "design",
+      "kind": "complete",
+      "by": "ai",
+      "at": "2026-11-08T00:36:11.463Z"
+    },
+    {
+      "step": "plan",
+      "substep": null,
+      "kind": "complete",
+      "by": "ai",
+      "at": "2026-11-08T00:36:32.003Z"
+    },
+    {
+      "step": "tasks",
+      "substep": null,
+      "kind": "start",
+      "by": "extension",
+      "at": "2026-11-08T00:40:09.642Z"
+    },
+    {
+      "step": "tasks",
+      "substep": "generate",
+      "kind": "complete",
+      "by": "ai",
+      "at": "2026-11-08T00:43:26.591Z"
+    },
+    {
+      "step": "tasks",
+      "substep": null,
+      "kind": "complete",
+      "by": "ai",
+      "at": "2026-11-08T00:43:30.214Z"
+    },
+    {
+      "step": "implement",
+      "substep": null,
+      "kind": "start",
+      "by": "extension",
+      "at": "2026-11-08T00:43:45.407Z"
+    },
+    {
+      "step": "implement",
+      "substep": null,
+      "task": "T001",
+      "kind": "complete",
+      "by": "ai",
+      "at": "2026-11-08T00:44:11.991Z"
+    },
+    {
+      "step": "implement",
+      "substep": null,
+      "task": "T002",
+      "kind": "complete",
+      "by": "ai",
+      "at": "2026-11-08T00:44:12.072Z"
+    },
+    {
+      "step": "implement",
+      "substep": null,
+      "task": "T005",
+      "kind": "complete",
+      "by": "ai",
+      "at": "2026-11-08T00:44:53.796Z"
+    },
+    {
+      "step": "implement",
+      "substep": null,
+      "task": "T003",
+      "kind": "complete",
+      "by": "ai",
+      "at": "2026-11-08T00:45:56.718Z"
+    },
+    {
+      "step": "implement",
+      "substep": null,
+      "task": "T004",
+      "kind": "complete",
+      "by": "ai",
+      "at": "2026-11-08T00:45:56.799Z"
+    },
+    {
+      "step": "implement",
+      "substep": null,
+      "task": "T006",
+      "kind": "complete",
+      "by": "ai",
+      "at": "2026-11-08T00:45:56.875Z"
+    },
+    {
+      "step": "implement",
+      "substep": null,
+      "task": "T010",
+      "kind": "complete",
+      "by": "ai",
+      "at": "2026-11-08T00:46:48.798Z"
+    },
+    {
+      "step": "implement",
+      "substep": null,
+      "task": "T008",
+      "kind": "complete",
+      "by": "ai",
+      "at": "2026-11-08T00:47:09.939Z"
+    },
+    {
+      "step": "implement",
+      "substep": null,
+      "task": "T012",
+      "kind": "complete",
+      "by": "ai",
+      "at": "2026-11-08T00:47:10.009Z"
+    },
+    {
+      "step": "implement",
+      "substep": null,
+      "task": "T016",
+      "kind": "complete",
+      "by": "ai",
+      "at": "2026-11-08T00:47:10.076Z"
+    },
+    {
+      "step": "implement",
+      "substep": null,
+      "task": "T014",
+      "kind": "complete",
+      "by": "ai",
+      "at": "2026-11-08T00:47:13.873Z"
+    },
+    {
+      "step": "implement",
+      "substep": null,
+      "task": "T007",
+      "kind": "complete",
+      "by": "ai",
+      "at": "2026-11-08T00:47:52.284Z"
+    },
+    {
+      "step": "implement",
+      "substep": null,
+      "task": "T011",
+      "kind": "complete",
+      "by": "ai",
+      "at": "2026-11-08T00:47:52.352Z"
+    },
+    {
+      "step": "implement",
+      "substep": null,
+      "task": "T015",
+      "kind": "complete",
+      "by": "ai",
+      "at": "2026-11-08T00:47:52.423Z"
+    },
+    {
+      "step": "implement",
+      "substep": null,
+      "task": "T009",
+      "kind": "complete",
+      "by": "ai",
+      "at": "2026-11-08T00:48:12.951Z"
+    },
+    {
+      "step": "implement",
+      "substep": null,
+      "task": "T013",
+      "kind": "complete",
+      "by": "ai",
+      "at": "2026-11-08T00:48:13.015Z"
+    },
+    {
+      "step": "implement",
+      "substep": null,
+      "task": "T017",
+      "kind": "complete",
+      "by": "ai",
+      "at": "2026-11-08T00:48:13.080Z"
+    },
+    {
+      "step": "implement",
+      "substep": null,
+      "task": "T018",
+      "kind": "complete",
+      "by": "ai",
+      "at": "2026-11-08T00:48:15.200Z"
+    },
+    {
+      "step": "implement",
+      "substep": null,
+      "task": "T020",
+      "kind": "complete",
+      "by": "ai",
+      "at": "2026-11-08T00:49:36.591Z"
+    },
+    {
+      "step": "implement",
+      "substep": null,
+      "task": "T019",
+      "kind": "complete",
+      "by": "ai",
+      "at": "2026-11-08T01:00:16.907Z"
+    },
+    {
+      "step": "implement",
+      "substep": null,
+      "task": "T021",
+      "kind": "complete",
+      "by": "ai",
+      "at": "2026-11-08T01:02:12.938Z"
+    },
+    {
+      "step": "implement",
+      "substep": null,
+      "task": "T022",
+      "kind": "complete",
+      "by": "ai",
+      "at": "2026-11-08T01:10:10.622Z"
+    },
+    {
+      "step": "implement",
+      "substep": null,
+      "task": "T023",
+      "kind": "complete",
+      "by": "ai",
+      "at": "2026-11-08T01:10:10.691Z"
+    },
+    {
+      "step": "implement",
+      "substep": null,
+      "task": "T024",
+      "kind": "complete",
+      "by": "ai",
+      "at": "2026-11-08T01:16:27.524Z"
+    },
+    {
+      "step": "implement",
+      "substep": null,
+      "task": "T025",
+      "kind": "complete",
+      "by": "ai",
+      "at": "2026-11-08T01:16:27.591Z"
+    },
+    {
+      "step": "implement",
+      "substep": null,
+      "task": "T026",
+      "kind": "complete",
+      "by": "ai",
+      "at": "2026-11-08T01:16:27.658Z"
+    },
+    {
+      "step": "implement",
+      "substep": null,
+      "task": "T027",
+      "kind": "complete",
+      "by": "ai",
+      "at": "2026-11-08T01:16:27.724Z"
+    },
+    {
+      "step": "implement",
+      "substep": null,
+      "task": "T028",
+      "kind": "complete",
+      "by": "ai",
+      "at": "2026-11-08T01:16:27.797Z"
+    },
+    {
+      "step": "implement",
+      "substep": null,
+      "task": "T029",
+      "kind": "complete",
+      "by": "ai",
+      "at": "2026-11-08T01:26:11.167Z"
+    },
+    {
+      "step": "implement",
+      "substep": null,
+      "task": "T030",
+      "kind": "complete",
+      "by": "ai",
+      "at": "2026-11-08T01:26:40.339Z"
+    },
+    {
+      "step": "implement",
+      "substep": null,
+      "task": "T031",
+      "kind": "complete",
+      "by": "ai",
+      "at": "2026-11-08T01:34:11.327Z"
+    },
+    {
+      "step": "implement",
+      "substep": null,
+      "task": "T032",
+      "kind": "complete",
+      "by": "ai",
+      "at": "2026-11-08T01:34:11.413Z"
+    },
+    {
+      "step": "implement",
+      "substep": null,
+      "task": "T033",
+      "kind": "complete",
+      "by": "ai",
+      "at": "2026-11-08T01:34:11.493Z"
+    },
+    {
+      "step": "implement",
+      "substep": null,
+      "task": "T034",
+      "kind": "complete",
+      "by": "ai",
+      "at": "2026-11-08T01:34:11.578Z"
+    },
+    {
+      "step": "implement",
+      "substep": null,
+      "task": "T035",
+      "kind": "complete",
+      "by": "ai",
+      "at": "2026-11-08T01:35:06.242Z"
+    },
+    {
+      "step": "implement",
+      "substep": null,
+      "task": "T036",
+      "kind": "complete",
+      "by": "ai",
+      "at": "2026-11-08T01:36:12.462Z"
+    },
+    {
+      "step": "implement",
+      "substep": null,
+      "task": "T037",
+      "kind": "complete",
+      "by": "ai",
+      "at": "2026-11-08T01:36:53.097Z"
+    },
+    {
+      "step": "implement",
+      "substep": null,
+      "task": "T038",
+      "kind": "complete",
+      "by": "ai",
+      "at": "2026-11-08T01:36:53.194Z"
+    },
+    {
+      "step": "implement",
+      "substep": null,
+      "task": "T039",
+      "kind": "complete",
+      "by": "ai",
+      "at": "2026-11-08T02:14:48.172Z"
+    },
+    {
+      "step": "implement",
+      "substep": null,
+      "kind": "complete",
+      "by": "ai",
+      "at": "2026-11-08T02:14:48.187Z"
+    }
+  ],
+  "telemetryInstanceId": "79b3e107-90bb-4d1a-8777-bcd56489d5ee",
+  "selectedAt": "2026-11-08T00:14:26.503Z",
+  "last_action": "39/39 tasks done; typecheck clean; npm test green with GitLab up and down; test:gitlab 34/34",
+  "coverage": {
+    "FR-001": {
+      "title": "Offer self-hosted GitLab as a source-control platform behind the existing contract",
+      "tasks": [
+        "T023",
+        "T025",
+        "T027",
+        "T028"
+      ],
+      "tests": [
+        "test/gitlab/contract.test.ts"
+      ]
+    },
+    "FR-002": {
+      "title": "Confirm sign-in with one read-only call and report the account",
+      "tasks": [
+        "T023",
+        "T025"
+      ]
+    },
+    "FR-003": {
+      "title": "List open merge requests and get one with full metadata",
+      "tasks": [
+        "T023",
+        "T025"
+      ]
+    },
+    "FR-004": {
+      "title": "List MR commits oldest first with full ids and UTC times",
+      "tasks": [
+        "T023",
+        "T025"
+      ]
+    },
+    "FR-005": {
+      "title": "List changed files with status, previous path, line counts, binary flag",
+      "tasks": [
+        "T023",
+        "T025"
+      ]
+    },
+    "FR-006": {
+      "title": "Return the MR unified diff",
+      "tasks": [
+        "T023",
+        "T025"
+      ]
+    },
+    "FR-007": {
+      "title": "Head location is the base project MR ref, target is the target branch",
+      "tasks": [
+        "T023",
+        "T025"
+      ]
+    },
+    "FR-008": {
+      "title": "Clone locations match the reviewer remote incl. port, sub-path, nested groups",
+      "tasks": [
+        "T023",
+        "T024",
+        "T025"
+      ]
+    },
+    "FR-009": {
+      "title": "Follow paging to the end and report truncation at the page cap",
+      "tasks": [
+        "T024",
+        "T031"
+      ],
+      "tests": [
+        "test/gitlab/coverage.test.ts::T031"
+      ]
+    },
+    "FR-010": {
+      "title": "Map missing to not found, refused to unauthorized, server failure to unavailable",
+      "tasks": [
+        "T023",
+        "T024",
+        "T025"
+      ]
+    },
+    "FR-011": {
+      "title": "Offer GitLab Issues as an issue tracker",
+      "tasks": [
+        "T023",
+        "T026",
+        "T027"
+      ]
+    },
+    "FR-012": {
+      "title": "Find #123 and group/project#123 references incl. nested groups",
+      "tasks": [
+        "T022",
+        "T026"
+      ],
+      "tests": [
+        "test/unit/gitlab-references.test.ts"
+      ]
+    },
+    "FR-013": {
+      "title": "Recognise !123 references as merge requests, never look up as issues",
+      "tasks": [
+        "T010",
+        "T022",
+        "T026"
+      ],
+      "tests": [
+        "test/unit/gitlab-references.test.ts",
+        "test/gitlab/contract.test.ts"
+      ]
+    },
+    "FR-014": {
+      "title": "Return found issue title, plain-text description and web link",
+      "tasks": [
+        "T023",
+        "T026"
+      ]
+    },
+    "FR-015": {
+      "title": "Missing, confidential or forbidden issue is unresolved with a reason",
+      "tasks": [
+        "T018",
+        "T023",
+        "T026"
+      ],
+      "tests": [
+        "test/gitlab/contract.test.ts"
+      ]
+    },
+    "FR-016": {
+      "title": "Neutral base-address settings for source control and tracker",
+      "tasks": [
+        "T003",
+        "T007",
+        "T009",
+        "T027",
+        "T028"
+      ],
+      "tests": [
+        "test/unit/config.test.ts",
+        "test/gitlab/lifecycle.test.ts"
+      ]
+    },
+    "FR-017": {
+      "title": "Base addresses use https, http only on loopback",
+      "tasks": [
+        "T003",
+        "T007"
+      ],
+      "tests": [
+        "test/unit/config.test.ts"
+      ]
+    },
+    "FR-018": {
+      "title": "Refuse base addresses with user, password, query or fragment",
+      "tasks": [
+        "T003",
+        "T007"
+      ],
+      "tests": [
+        "test/unit/config.test.ts"
+      ]
+    },
+    "FR-019": {
+      "title": "Setup screen offers a repository base-address field with validation reason",
+      "tasks": [
+        "T029",
+        "T030"
+      ]
+    },
+    "FR-020": {
+      "title": "Platform-name check forbids gitlab outside adapters, tests, fixtures",
+      "tasks": [
+        "T005",
+        "T030"
+      ],
+      "tests": [
+        "test/unit/platform-names.test.ts"
+      ]
+    },
+    "FR-021": {
+      "title": "All product GitLab requests go through the read-only layer; no writes",
+      "tasks": [
+        "T014",
+        "T023",
+        "T029"
+      ]
+    },
+    "FR-022": {
+      "title": "GitLab token only via credential store, never in config, logs, store, API, fixtures",
+      "tasks": [
+        "T029",
+        "T035",
+        "T036"
+      ],
+      "tests": [
+        "test/gitlab/lifecycle.test.ts",
+        "test/gitlab/recording.test.ts"
+      ]
+    },
+    "FR-023": {
+      "title": "Neutral test-only seeder operations",
+      "tasks": [
+        "T013",
+        "T019"
+      ]
+    },
+    "FR-024": {
+      "title": "GitLab seeder lives under test/ and never uses the read-only layer or adapters",
+      "tasks": [
+        "T019"
+      ]
+    },
+    "FR-025": {
+      "title": "Tests use only neutral seeder operations",
+      "tasks": [
+        "T013",
+        "T023"
+      ]
+    },
+    "FR-026": {
+      "title": "Seeder polls background processing with ~30s bound, no fixed sleeps",
+      "tasks": [
+        "T019"
+      ]
+    },
+    "FR-027": {
+      "title": "Seeder refuses non-loopback addresses",
+      "tasks": [
+        "T006",
+        "T019"
+      ],
+      "tests": [
+        "test/unit/seeder-safety.test.ts"
+      ]
+    },
+    "FR-028": {
+      "title": "Seeder names it-<suite>-<timestamp> and deletes only its own run, two-step removal",
+      "tasks": [
+        "T006",
+        "T012",
+        "T019"
+      ],
+      "tests": [
+        "test/unit/seeder-safety.test.ts"
+      ]
+    },
+    "FR-029": {
+      "title": "Per-run non-admin reviewer user and token used by adapters, deleted with the run",
+      "tasks": [
+        "T019",
+        "T023"
+      ]
+    },
+    "FR-030": {
+      "title": "Provide the test:gitlab command",
+      "tasks": [
+        "T001"
+      ]
+    },
+    "FR-031": {
+      "title": "Run shared contract suites live with seeded expectations",
+      "tasks": [
+        "T017",
+        "T018",
+        "T023"
+      ],
+      "tests": [
+        "test/gitlab/contract.test.ts",
+        "test/contract/source-control.contract.test.ts",
+        "test/contract/issue-tracker.contract.test.ts"
+      ]
+    },
+    "FR-032": {
+      "title": "Run the full review lifecycle against GitLab",
+      "tasks": [
+        "T020",
+        "T029"
+      ],
+      "tests": [
+        "test/gitlab/lifecycle.test.ts"
+      ]
+    },
+    "FR-033": {
+      "title": "Cover paging, git fetch over HTTP, invalid/revoked tokens, renamed project",
+      "tasks": [
+        "T015",
+        "T031",
+        "T032",
+        "T033",
+        "T034"
+      ],
+      "tests": [
+        "test/gitlab/coverage.test.ts"
+      ]
+    },
+    "FR-034": {
+      "title": "Every repository operation checks the reviewer clone fingerprint",
+      "tasks": [
+        "T029",
+        "T032"
+      ],
+      "tests": [
+        "test/gitlab/lifecycle.test.ts",
+        "test/gitlab/coverage.test.ts::T032"
+      ]
+    },
+    "FR-035": {
+      "title": "Skip under npm test with a message naming gitlab:up and gitlab:bootstrap",
+      "tasks": [
+        "T016"
+      ]
+    },
+    "FR-036": {
+      "title": "Fail under test:gitlab when GitLab is unreachable or not bootstrapped",
+      "tasks": [
+        "T002",
+        "T016"
+      ]
+    },
+    "FR-037": {
+      "title": "Skipped GitLab tests reported as skipped, never passed",
+      "tasks": [
+        "T016"
+      ]
+    },
+    "FR-038": {
+      "title": "Read GITLAB_URL and GITLAB_TOKEN with documented defaults",
+      "tasks": [
+        "T016"
+      ]
+    },
+    "FR-039": {
+      "title": "Tests never run gitlab:reset",
+      "tasks": [
+        "T039"
+      ]
+    },
+    "FR-040": {
+      "title": "testing docs describe GitLab and the live suite",
+      "tasks": [
+        "T037",
+        "T038"
+      ]
+    },
+    "FR-041": {
+      "title": "Recording mode saves real responses as replayable fixtures",
+      "tasks": [
+        "T035",
+        "T036"
+      ],
+      "tests": [
+        "test/gitlab/recording.test.ts"
+      ]
+    },
+    "FR-042": {
+      "title": "Recorded fixtures contain no tokens, auth headers or cookies",
+      "tasks": [
+        "T035",
+        "T036"
+      ],
+      "tests": [
+        "test/gitlab/recording.test.ts"
+      ]
+    },
+    "FR-043": {
+      "title": "Read-only layer follows same-origin redirects only",
+      "tasks": [
+        "T004",
+        "T011",
+        "T034"
+      ],
+      "tests": [
+        "test/unit/read-only-http.test.ts",
+        "test/gitlab/coverage.test.ts::T034"
+      ]
+    },
+    "FR-044": {
+      "title": "Cross-origin redirect refused as unavailable without sending the credential",
+      "tasks": [
+        "T004",
+        "T011"
+      ],
+      "tests": [
+        "test/unit/read-only-http.test.ts"
+      ]
+    },
+    "FR-045": {
+      "title": "Each run lists earlier runs leftovers without deleting them",
+      "tasks": [
+        "T006",
+        "T012",
+        "T019",
+        "T023"
+      ]
+    },
+    "FR-046": {
+      "title": "Manual gitlab:clean deletes only it-* items on loopback",
+      "tasks": [
+        "T001",
+        "T021"
+      ]
+    }
+  },
+  "size": "oversized",
+  "classification": {
+    "projectedFiles": 25,
+    "projectedTasks": 45,
+    "scopeSignal": "larger",
+    "verdict": "oversized"
+  },
+  "expectations": [
+    "browser/UI automation",
+    "GitLab.com or any hosted/shared instance",
+    "GitHub or Bitbucket sandbox seeders",
+    "refreshing Bitbucket/Jira fixtures from real responses",
+    "any product write to any platform"
+  ],
+  "context": [
+    "area: src/adapters (new gitlab source-control and issues adapters, registry)",
+    "area: src/config.ts (neutral self-hosted base address, loopback-only http)",
+    "area: test/contract (shared suites parameterised by seeded data)",
+    "area: test/helpers (fake-ai-cli workbench harness, git-sandbox fingerprint, recorded-fetch)",
+    "area: gitlab/ and testing/gitlab.md (local GitLab CE 19.5.3 instance)",
+    "constraint: VIII.2 no platform names outside adapters/tests/fixtures",
+    "constraint: VIII.3 product read-only; only test/ seeder writes (XI.4)",
+    "constraint: IX/XI.3 reviewer clone fingerprint unchanged per repo operation",
+    "constraint: constitution VIII.1/XI.2/XI.4 already amended for local GitLab"
+  ],
+  "intent": "Add self-hosted GitLab and GitLab Issues adapters and a seeder-driven live test suite against the local GitLab",
+  "decisions": [
+    {
+      "decision": "Pass SourceControlSettings {repository, baseUrl} through the registry factory",
+      "why": "source-control adapters received no settings, so a self-hosted address had no route; the SourceControlProvider interface itself stays unchanged (FR-001)",
+      "rejected": "encoding the host into the repository id"
+    },
+    {
+      "decision": "One validateBaseUrl/isLoopbackHost in src/config.ts for both baseUrl and the existing tracker site",
+      "why": "one tested rule; exact localhost match refuses localhost.example.com",
+      "rejected": "hostname prefix matching"
+    },
+    {
+      "decision": "Platform ids gitlab and gitlab-issues with bearer auth",
+      "why": "GitLab accepts Authorization: Bearer PAT, so credentials.ts is unchanged",
+      "rejected": "gitlab-self-managed id or a PRIVATE-TOKEN scheme"
+    },
+    {
+      "decision": "Read-only layer uses redirect manual and follows same-origin 3xx up to 5 hops",
+      "why": "ADR 0002: the credential must never reach another origin",
+      "rejected": "refusing every redirect"
+    },
+    {
+      "decision": "Live git fetch gets the token from a test-only credential store in a temp HOME",
+      "why": "the product already relies on the reviewer git credentials and gitEnv passes HOME; no token enters product code, clone config or URLs",
+      "rejected": "injecting the stored token into git fetch from the product"
+    },
+    {
+      "decision": "Per-run reviewer is a Reporter member; the no-access issue lives in a separate private project",
+      "why": "Reporters can see confidential issues, so a confidential issue would not prove no access",
+      "rejected": "confidential issue in a project the reviewer belongs to"
+    },
+    {
+      "decision": "Live files are test/gitlab/*.test.ts gated by a /api/v4/version probe; test:gitlab adds PRWB_GITLAB_REQUIRED via node --env-file",
+      "why": "npm test picks them up and skips; --env-file is cross-platform without a shell (P.4)",
+      "rejected": "adding them to test:live, which never skips"
+    },
+    {
+      "decision": "Contract suites become exported runners fed by a per-target data record, including the no-access reason",
+      "why": "live expectations are only known after seeding; a data value avoids per-platform branches (SC-001)",
+      "rejected": "keeping module constants and special-casing GitLab"
+    },
+    {
+      "decision": "Adapter accepts an optional pageSize used only by live paging tests",
+      "why": "proves paging and truncation with a few MRs instead of hundreds",
+      "rejected": "seeding more than 100 merge requests"
+    },
+    {
+      "decision": "Each run lives in prwb-it/<run>, a subgroup of a shared never-deleted prwb-it group",
+      "why": "GitLab 19 permanently removes only subgroups; a deleted top-level group keeps the run name for 30 days, breaking SC-004",
+      "rejected": "one top-level group per run"
+    },
+    {
+      "decision": "The seeder pushes the first commit instead of initialize_with_readme",
+      "why": "with parallel project creation the README commit times out in Gitaly and GitLab leaves the repo empty without an error",
+      "rejected": "polling for the README branch"
+    },
+    {
+      "decision": "Cleanup removal waits allow 180s; seeding waits stay at 30s",
+      "why": "GitLab removes users and, under load, groups in background jobs that take about two minutes",
+      "rejected": "a 30s bound everywhere"
+    },
+    {
+      "decision": "US2 AS5 asserts the reopened note, not an open session",
+      "why": "001 VO-076 keeps a closed-then-reopened session read-only with reopened on platform; this feature does not change product behaviour",
+      "rejected": "changing session state handling for reopen"
+    },
+    {
+      "decision": "Fixture contract targets call adapter factories directly, not the registry",
+      "why": "keeps registry.ts and context.ts owned by US1 alone",
+      "rejected": "registry signature change in Foundational"
+    },
+    {
+      "decision": "Recording test replays a full set of adapter calls rather than the whole runSourceControlContract",
+      "why": "the shared runner needs fork, deleted and unauthorized scenarios a single recording does not hold; same-results replay proves the format",
+      "rejected": "recording every contract scenario"
+    }
+  ],
+  "step_summaries": {
+    "plan": {
+      "summary": "Planned GitLab adapters, neutral baseUrl config, same-origin redirects, and a test-only seeder with skip-or-fail live suites",
+      "key_finding": "Source-control adapters receive no settings and git fetch injects no credential, so the registry factory gains settings and live fetch relies on a test-only git credential store"
+    },
+    "tasks": {
+      "summary": "39 tasks: Setup(2), Foundational(19, tests-first, 3 waves), US1 MVP(7), US2(2), US3(4), US4(2, optional), Polish(3)"
+    },
+    "implement": {
+      "summary": "GitLab and GitLab Issues adapters, same-origin redirects, base-address rule, test-only seeder, 4 live suites (34 tests) passing 10x in a row"
+    }
+  },
+  "approach": "Add gitlab and gitlab-issues adapters behind the existing registry and read-only layer, with a neutral baseUrl validated by one https-or-loopback rule and same-origin-only redirects. A test-only PlatformSeeder (GitLab implementation) seeds per-run data and a non-admin reviewer, and the existing contract suites become data-driven runners that run live under test/gitlab, skipping under npm test and failing under test:gitlab.",
+  "currentTask": null,
+  "task_summaries": {
+    "T001": {
+      "status": "DONE",
+      "did": "Added test:gitlab and gitlab:clean scripts",
+      "files": [
+        "package.json"
+      ]
+    },
+    "T002": {
+      "status": "DONE",
+      "did": "Added required.env setting PRWB_GITLAB_REQUIRED=1",
+      "files": [
+        "test/gitlab/required.env"
+      ]
+    },
+    "T005": {
+      "status": "DONE",
+      "did": "Added 'gitlab' to the platform-name FORBIDDEN list with planted-tree cases (content, path, adapters skip)",
+      "files": [
+        "test/unit/platform-names.test.ts"
+      ]
+    },
+    "T003": {
+      "status": "DONE",
+      "did": "7 address-rule tests (red until T007/T009)",
+      "files": [
+        "test/unit/config.test.ts"
+      ]
+    },
+    "T004": {
+      "status": "DONE",
+      "did": "14 redirect tests, 9 red until T011",
+      "files": [
+        "test/unit/read-only-http.test.ts"
+      ]
+    },
+    "T006": {
+      "status": "DONE",
+      "did": "21 seeder-safety tests (red until T012/T019)",
+      "files": [
+        "test/unit/seeder-safety.test.ts"
+      ]
+    },
+    "T010": {
+      "status": "DONE",
+      "did": "Extended IssueRefForm with '!123' and 'owner/repo!123'",
+      "files": [
+        "src/contracts/issue-tracker.ts"
+      ]
+    },
+    "T008": {
+      "status": "DONE",
+      "did": "Added optional needsBaseUrl to AdapterDescriptor",
+      "files": [
+        "src/contracts/shared.ts"
+      ]
+    },
+    "T012": {
+      "status": "DONE",
+      "did": "Run naming it-<suite>-<UTC yyyymmddhhmmssSSS>, ownedBy prefix test and filterLeftovers; seeder-safety run-name cases pass",
+      "files": [
+        "test/seeder/run-name.ts"
+      ]
+    },
+    "T016": {
+      "status": "DONE",
+      "did": "Live gate: GITLAB_URL/GITLAB_TOKEN defaults, 5s /api/v4/version probe, skip naming gitlab:up and gitlab:bootstrap, one failing test when PRWB_GITLAB_REQUIRED=1",
+      "files": [
+        "test/gitlab/env.ts"
+      ]
+    },
+    "T014": {
+      "status": "DONE",
+      "did": "Added loggedFetch wrapping real fetch, logging method/URL/host with GET-only and host assertions",
+      "files": [
+        "test/helpers/logged-fetch.ts",
+        "test/helpers/logged-fetch.test.ts"
+      ]
+    },
+    "T007": {
+      "status": "DONE",
+      "did": "Added validateBaseUrl/isLoopbackHost, optional RepositoryConfig.baseUrl and RegisteredPlatforms.needsBaseUrl; one address rule for baseUrl and issueTracker.site",
+      "files": [
+        "src/config.ts"
+      ]
+    },
+    "T011": {
+      "status": "DONE",
+      "did": "Read-only layer sends GET with redirect manual and follows same-origin 301/302/303/307/308 up to 5 hops; cross-origin, missing Location or 6th hop throw unavailable",
+      "files": [
+        "src/adapters/read-only-http.ts"
+      ]
+    },
+    "T015": {
+      "status": "DONE",
+      "did": "Added liveClone(httpUrl, token): HTTP clone with temp HOME using credential.helper=store; token never in clone config or remote URL",
+      "files": [
+        "test/helpers/git-sandbox.ts"
+      ]
+    },
+    "T009": {
+      "status": "DONE",
+      "did": "Added optional baseUrl to Config.repository (ConfigBody inherits it); typecheck clean, config/completeness tests pass",
+      "files": [
+        "src/contracts/http.ts"
+      ]
+    },
+    "T013": {
+      "status": "DONE",
+      "did": "Added neutral PlatformSeeder interface with FileChange, SeededRun, SeededRepo, SeededPull, SeededIssue per contracts §7; typecheck clean",
+      "files": [
+        "test/seeder/platform-seeder.ts"
+      ]
+    },
+    "T017": {
+      "status": "DONE",
+      "did": "Extracted runSourceControlContract(target) with scenario-based adapter factory and data expectations; fixture targets for github and bitbucket-cloud call adapter factories directly; 21/21 pass as before",
+      "files": [
+        "test/contract/source-control.suite.ts",
+        "test/contract/source-control.contract.test.ts"
+      ]
+    },
+    "T018": {
+      "status": "DONE",
+      "did": "Extracted runIssueTrackerContract(target) with target-named no-access reason and PR-reference text; github-issues and jira-cloud fixture targets, 17/17 pass as before",
+      "files": [
+        "test/contract/issue-tracker.suite.ts",
+        "test/contract/issue-tracker.contract.test.ts"
+      ]
+    },
+    "T020": {
+      "status": "DONE",
+      "did": "startWorkbench live mode: given config, credentials, clone and fetch; no fixtures; startSession(prNumber)",
+      "files": [
+        "test/helpers/fake-ai-cli.ts"
+      ]
+    },
+    "T019": {
+      "status": "DONE",
+      "did": "GitlabSeeder + GitlabAdmin: runs under shared prwb-it group (subgroups permanently removable), all ops smoke-tested live, zero leftovers",
+      "files": [
+        "test/seeder/gitlab-seeder.ts"
+      ]
+    },
+    "T021": {
+      "status": "DONE",
+      "did": "gitlab:clean removes it-* projects, groups and users; verified live on a crashed run; refuses non-loopback",
+      "files": [
+        "test/gitlab/clean.ts"
+      ]
+    },
+    "T022": {
+      "status": "DONE",
+      "did": "Wrote GitLab reference-parsing unit tests (#, !, qualified, nested, no match in URLs/entities/words); red until issues.ts lands",
+      "files": [
+        "test/unit/gitlab-references.test.ts"
+      ]
+    },
+    "T023": {
+      "status": "DONE",
+      "did": "Wrote live contract file: seeds review/fork/deleted MRs, issues, hidden issue, revoked token; runs both shared suites plus binary-flag and GET-only cases; cleanup asserts no run items remain. Seeding+cleanup verified live; 18 cases red until adapters land",
+      "files": [
+        "test/gitlab/contract.test.ts"
+      ]
+    },
+    "T024": {
+      "status": "DONE",
+      "did": "GitLab API helpers: string-joined <base>/api/v4 (keeps sub-path), project path as one encoded segment, paged GET via Link rel=next with pageSize (default 100) and 10-page cap -> truncated, next link outside base refused; status mapping via read-only layer",
+      "files": [
+        "src/adapters/gitlab/api.ts"
+      ]
+    },
+    "T025": {
+      "status": "DONE",
+      "did": "GitLab source-control adapter: /user sign-in, MR list/get with state map, commits reversed with UTC authored times, /diffs status/old_path/counted lines, binary = 'Binary files .* differ' (only signal 19.5 sends, confirmed live), raw_diffs, merge-request head ref on base project, clone URLs from http/ssh_url_to_repo; live suite green",
+      "files": [
+        "src/adapters/gitlab/source-control.ts"
+      ]
+    },
+    "T026": {
+      "status": "DONE",
+      "did": "GitLab Issues tracker: R5 QUALIFIED/SHORT patterns, path#N / path!N keys, ! refs resolve as pull-request with no request, issue GET -> title/description as written/web_url, 404 not found, 401/403 forbidden, else tracker unreachable; unit + live suite green",
+      "files": [
+        "src/adapters/gitlab/issues.ts"
+      ]
+    },
+    "T027": {
+      "status": "DONE",
+      "did": "Registry: SourceControlSettings, create(deps, settings), createSourceControl/verifySignIn take settings; GitHub/Bitbucket ignore it; gitlab and gitlab-issues registered; registeredPlatforms() returns needsBaseUrl",
+      "files": [
+        "src/adapters/registry.ts"
+      ]
+    },
+    "T028": {
+      "status": "DONE",
+      "did": "context.ts passes { repository, baseUrl } into createSourceControl in environment() and into verifySignIn in verify",
+      "files": [
+        "src/server/routes/context.ts"
+      ]
+    },
+    "T029": {
+      "status": "DONE",
+      "did": "Live lifecycle: open, range question, new head, close/merge/delete, reopen note, restart, clone fingerprint, GET-only, token absent; 9/9 live",
+      "files": [
+        "test/gitlab/lifecycle.test.ts"
+      ]
+    },
+    "T030": {
+      "status": "DONE",
+      "did": "Setup screen shows Repository base address (setup-base-url) when the descriptor needs it; sent as repository.baseUrl; refusals in setup-error",
+      "files": [
+        "src/ui/screens/setup.tsx"
+      ]
+    },
+    "T031": {
+      "status": "DONE",
+      "did": "Paging live: 11 MRs over 6 pages and 5 files over 3 pages each once; pageSize 1 truncated",
+      "files": [
+        "test/gitlab/coverage.test.ts"
+      ]
+    },
+    "T032": {
+      "status": "DONE",
+      "did": "Live HTTP fetch via repository manager with stored credential; only refs/prwb or remotes change; fingerprint unchanged",
+      "files": [
+        "test/gitlab/coverage.test.ts"
+      ]
+    },
+    "T033": {
+      "status": "DONE",
+      "did": "Never-existed token 422 signed-out; revoked token marks gitlab expired",
+      "files": [
+        "test/gitlab/coverage.test.ts"
+      ]
+    },
+    "T034": {
+      "status": "DONE",
+      "did": "Renamed project read at old path returns the MR; seeding moved to before hook so failures still clean up",
+      "files": [
+        "test/gitlab/coverage.test.ts",
+        "test/seeder/gitlab-seeder.ts"
+      ]
+    },
+    "T035": {
+      "status": "DONE",
+      "did": "Recording test: record live adapter calls, scan for credentials, replay offline to identical results; off writes nothing (red until T036)",
+      "files": [
+        "test/gitlab/recording.test.ts"
+      ]
+    },
+    "T036": {
+      "status": "DONE",
+      "did": "recordingFetch: numbered fixture per request, header allowlist (no cookies or auth), secrets redacted; on via dir or PRWB_RECORD_FIXTURES",
+      "files": [
+        "test/helpers/recorded-fetch.ts"
+      ]
+    },
+    "T037": {
+      "status": "DONE",
+      "did": "gitlab.md: supported platform, test:gitlab, skip vs fail, run naming and gitlab:clean, recording, trying the workbench on GitLab, new background races",
+      "files": [
+        "testing/gitlab.md"
+      ]
+    },
+    "T038": {
+      "status": "DONE",
+      "did": "README: GitLab supported, live layer row, test:gitlab and gitlab:clean in section 4",
+      "files": [
+        "testing/README.md"
+      ]
+    },
+    "T039": {
+      "status": "DONE",
+      "did": "SC-001..SC-008 validated: typecheck, npm test up/down, test:gitlab fail-fast, full live 34/34 in ~2 min, ten consecutive clean runs; SC-009 not timed",
+      "files": [
+        "-"
+      ]
+    }
+  },
+  "verified": [
+    {
+      "what": "typecheck",
+      "command": "npm run typecheck",
+      "source": "derived",
+      "exitCode": 0,
+      "durationSeconds": 2.3,
+      "result": "> pr-review-workbench@0.1.0 typecheck · > tsc --noEmit"
+    },
+    {
+      "what": "full suite with GitLab up (includes live files)",
+      "command": "npm test",
+      "source": "derived",
+      "exitCode": 0,
+      "durationSeconds": 100.8,
+      "result": "ℹ skipped 0 · ℹ todo 0 · ℹ duration_ms 100696.267152"
+    },
+    {
+      "what": "full suite with GitLab unreachable: GitLab files skipped",
+      "command": "env GITLAB_URL=http://localhost:1 npm test",
+      "source": "derived",
+      "exitCode": 0,
+      "durationSeconds": 11.1,
+      "result": "ℹ skipped 4 · ℹ todo 0 · ℹ duration_ms 10938.147432"
+    },
+    {
+      "what": "test:gitlab fails fast when GitLab is unreachable (expected non-zero)",
+      "command": "sh -c '! env GITLAB_URL=http://localhost:1 npm run --silent test:gitlab'",
+      "source": "derived",
+      "exitCode": 0,
+      "durationSeconds": 0.4,
+      "result": "      at Test.run (node:internal/test_runner/test:1062:25) ·       at Test.start (node:internal/test_runner/test:959:17) ·       at startSubtestAfterBootstrap (node:internal/test_runner/harness:332:17)"
+    },
+    {
+      "what": "no test runs gitlab:reset (FR-039)",
+      "command": "sh -c '! grep -rn gitlab:reset test/'",
+      "source": "derived",
+      "exitCode": 0,
+      "durationSeconds": 0.0,
+      "result": "no output"
+    },
+    {
+      "what": "SC-008 ten consecutive test:gitlab runs with no reset",
+      "command": "loop of npm run test:gitlab x10",
+      "result": "10/10 exit 0, 34/34 each, 84-121s each, zero it-* projects/groups/users after every run"
+    },
+    {
+      "what": "SC-003 not-bootstrapped case",
+      "command": "GITLAB_TOKEN=<wrong> npm run test:gitlab",
+      "result": "fails in ~1s naming 401 not bootstrapped; npm test skips with the start-up message"
+    },
+    {
+      "what": "SC-009 configure local GitLab via testing/gitlab.md in under 2 minutes",
+      "command": "manual",
+      "result": "not timed: documented steps written, the live lifecycle test configures the same way, but no human walkthrough was run"
+    },
+    {
+      "what": "FR-019 setup screen base-address field",
+      "command": "npm run build:ui + read-through",
+      "result": "builds and type-checks; not exercised in a browser (no UI test harness; browser automation is out of scope)"
+    }
+  ],
+  "concerns": [
+    {
+      "note": "Spec US2 AS5 says a reopened MR shows as open again; the product keeps it read-only with the note reopened on platform (001 VO-076). Spec and product disagree; the test asserts product behaviour.",
+      "step": "implement"
+    },
+    {
+      "note": "GitLab cleanup is slow (user removal ~2 min in a background job), so each live file spends ~1-2 min in cleanup; full suite is ~2 min in parallel, inside SC-007.",
+      "step": "implement"
+    },
+    {
+      "note": "Debris from early seeder smoke runs (two top-level it-smoke-* groups) was removed with gitlab-rails runner on the local container, because the API cannot remove a scheduled top-level group early.",
+      "step": "implement"
+    },
+    {
+      "note": "lifecycle and coverage tests were written after the US1 adapters existed, so they were never seen red against missing code.",
+      "step": "implement"
+    }
+  ]
+}

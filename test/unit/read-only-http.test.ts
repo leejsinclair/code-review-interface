@@ -141,3 +141,147 @@ test('VO-039 after a mix of reads and refused writes the recorded log holds only
   assert.ok(rec.requests.every((r) => r.method === 'GET'), 'only GET requests were sent');
   rec.assertAllRecorded();
 });
+
+// FR-043, FR-044 (ADR 0002): the layer sends GET with `redirect: 'manual'` and follows a 301, 302, 303,
+// 307 or 308 only when `Location` (resolved against the current URL) keeps the scheme, host and port.
+// It repeats the GET with the same headers for at most 5 hops. A cross-origin `Location`, a missing
+// `Location` or a 6th hop rejects with AdapterError `unavailable` before any request leaves the origin,
+// so the credential header never reaches another host.
+
+const CREDENTIAL = { authorization: 'Bearer redirect-secret', accept: 'application/json' };
+
+type NetworkCall = { url: string; redirect: RequestRedirect | undefined; headers: Record<string, string> };
+
+function redirectEntry(from: string, status: number, location: string | null): FixtureEntry {
+  return {
+    request: { url: from },
+    response: { status, headers: location === null ? {} : { location }, body: '' },
+  };
+}
+
+async function redirectSetup(redirectEntries: FixtureEntry[]): Promise<{
+  rec: RecordedFetch;
+  calls: NetworkCall[];
+  ro: ReturnType<ReadOnlyHttp['createReadOnlyFetch']>;
+  AdapterError: Shared['AdapterError'];
+}> {
+  const mod = (await import('../../src/adapters/read-only-http.ts')) as ReadOnlyHttp;
+  const { AdapterError } = (await import('../../src/contracts/shared.ts')) as Shared;
+  const rec = recordedFetch([], { entries: redirectEntries });
+  const calls: NetworkCall[] = [];
+  const network = (input: string | URL | Request, init?: RequestInit): Promise<Response> => {
+    const headers: Record<string, string> = {};
+    new Headers(init?.headers).forEach((value, name) => { headers[name] = value; });
+    calls.push({ url: input instanceof Request ? input.url : String(input), redirect: init?.redirect, headers });
+    return rec.fetch(input, init);
+  };
+  const ro = mod.createReadOnlyFetch({ platform: PLATFORM, fetch: network });
+  return { rec, calls, ro, AdapterError };
+}
+
+function assertUnavailable(AdapterError: Shared['AdapterError']): (err: unknown) => boolean {
+  return (err: unknown) => {
+    assert.ok(err instanceof AdapterError, 'rejects with AdapterError');
+    assert.equal((err as { code: string }).code, 'unavailable');
+    assert.equal((err as { platform: string }).platform, PLATFORM);
+    return true;
+  };
+}
+
+for (const status of [301, 302, 303, 307, 308]) {
+  test(`FR-043 a same-origin ${status} is followed with the same headers`, async () => {
+    const { rec, calls, ro } = await redirectSetup([
+      redirectEntry(`${BASE}/projects/old%2Fpath`, status, `${BASE}/projects/new%2Fpath`),
+      { request: { url: `${BASE}/projects/new%2Fpath` }, response: { status: 200, body: { id: 7 } } },
+    ]);
+    const res = await ro(`${BASE}/projects/old%2Fpath`, { headers: CREDENTIAL });
+    assert.equal(res.status, 200);
+    assert.deepEqual(await res.json(), { id: 7 });
+    assert.deepEqual(calls.map((c) => c.url), [`${BASE}/projects/old%2Fpath`, `${BASE}/projects/new%2Fpath`]);
+    for (const call of calls) {
+      assert.equal(call.redirect, 'manual', 'the network never follows redirects on its own');
+      assert.equal(call.headers['authorization'], CREDENTIAL.authorization);
+      assert.equal(call.headers['accept'], CREDENTIAL.accept);
+    }
+    assert.ok(rec.requests.every((r) => r.method === 'GET'), 'every hop is a GET');
+    rec.assertAllRecorded();
+  });
+}
+
+test('FR-043 a relative Location resolves against the current URL and is followed', async () => {
+  const { rec, calls, ro } = await redirectSetup([
+    redirectEntry(`${BASE}/api/v4/projects/1`, 301, '/api/v4/projects/2'),
+    redirectEntry(`${BASE}/api/v4/projects/2`, 302, 'three'),
+    { request: { url: `${BASE}/api/v4/projects/three` }, response: { status: 200, body: { id: 3 } } },
+  ]);
+  const res = await ro(`${BASE}/api/v4/projects/1`, { headers: CREDENTIAL });
+  assert.deepEqual(await res.json(), { id: 3 });
+  assert.deepEqual(calls.map((c) => c.url), [
+    `${BASE}/api/v4/projects/1`,
+    `${BASE}/api/v4/projects/2`,
+    `${BASE}/api/v4/projects/three`,
+  ]);
+  rec.assertAllRecorded();
+});
+
+test('FR-043 five same-origin hops are followed', async () => {
+  const chain = [0, 1, 2, 3, 4].map((n) => redirectEntry(`${BASE}/hop/${n}`, 302, `${BASE}/hop/${n + 1}`));
+  const { calls, ro } = await redirectSetup([
+    ...chain,
+    { request: { url: `${BASE}/hop/5` }, response: { status: 200, body: { done: true } } },
+  ]);
+  const res = await ro(`${BASE}/hop/0`, { headers: CREDENTIAL });
+  assert.deepEqual(await res.json(), { done: true });
+  assert.equal(calls.length, 6, 'the first request plus five followed hops');
+});
+
+test('FR-044 a 6th hop is refused as unavailable and never sent', async () => {
+  const chain = [0, 1, 2, 3, 4, 5].map((n) => redirectEntry(`${BASE}/hop/${n}`, 302, `${BASE}/hop/${n + 1}`));
+  const { calls, ro, AdapterError } = await redirectSetup([
+    ...chain,
+    { request: { url: `${BASE}/hop/6` }, response: { status: 200, body: { done: true } } },
+  ]);
+  await assert.rejects(async () => ro(`${BASE}/hop/0`, { headers: CREDENTIAL }), assertUnavailable(AdapterError));
+  assert.equal(calls.length, 6, 'the first request plus five followed hops, no sixth');
+  assert.ok(!calls.some((c) => c.url === `${BASE}/hop/6`), 'the 6th hop target was never requested');
+});
+
+test('FR-044 a redirect with no Location is refused as unavailable', async () => {
+  const { calls, ro, AdapterError } = await redirectSetup([redirectEntry(`${BASE}/moved`, 301, null)]);
+  await assert.rejects(async () => ro(`${BASE}/moved`, { headers: CREDENTIAL }), assertUnavailable(AdapterError));
+  assert.equal(calls.length, 1);
+});
+
+for (const [label, target] of [
+  ['another host', 'https://evil.example.test/steal'],
+  ['another scheme', 'http://api.example.test/repos/o/r'],
+  ['another port', 'https://api.example.test:8443/repos/o/r'],
+  ['a protocol-relative host', '//evil.example.test/steal'],
+] as const) {
+  test(`FR-044 a cross-origin redirect to ${label} is refused and the credential never leaves`, async () => {
+    const resolved = new URL(target, BASE).href;
+    const { rec, calls, ro, AdapterError } = await redirectSetup([
+      redirectEntry(`${BASE}/repos/o/r`, 302, target),
+      // A recording exists for the target, so a refusal cannot be explained by a missing recording.
+      { request: { url: resolved }, response: { status: 200, body: { leaked: true } } },
+    ]);
+    await assert.rejects(async () => ro(`${BASE}/repos/o/r`, { headers: CREDENTIAL }), assertUnavailable(AdapterError));
+    assert.equal(calls.length, 1, 'only the original request was sent');
+    const origin = new URL(BASE).origin;
+    assert.ok(rec.requests.every((r) => new URL(r.url).origin === origin), 'no request reached another origin');
+    assert.ok(
+      !calls.some((c) => new URL(c.url).origin !== origin && c.headers['authorization'] !== undefined),
+      'the credential was never sent to another origin',
+    );
+  });
+}
+
+test('FR-044 a cross-origin hop after a same-origin hop is refused before it is sent', async () => {
+  const { calls, ro, AdapterError } = await redirectSetup([
+    redirectEntry(`${BASE}/a`, 301, `${BASE}/b`),
+    redirectEntry(`${BASE}/b`, 307, 'https://other.example.test/c'),
+    { request: { url: 'https://other.example.test/c' }, response: { status: 200, body: { leaked: true } } },
+  ]);
+  await assert.rejects(async () => ro(`${BASE}/a`, { headers: CREDENTIAL }), assertUnavailable(AdapterError));
+  assert.deepEqual(calls.map((c) => c.url), [`${BASE}/a`, `${BASE}/b`]);
+});

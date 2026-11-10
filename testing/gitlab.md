@@ -1,13 +1,13 @@
 # GitLab for testing
 
-A local, disposable GitLab CE instance (Docker) that integration tests can run
+A local, disposable GitLab CE instance (Docker) that integration tests run
 against: real Git hosting, real REST API, no network access or accounts needed.
 The Docker setup lives in [`gitlab/`](../gitlab/README.md).
 
-For the application's current runnable examples and the distinction between
-fixture-backed tests and future GitLab integration, see the
-[testing approach](README.md). GitLab is not yet a registered application
-platform.
+Self-managed GitLab is a supported workbench platform: `gitlab` for repositories
+and `gitlab-issues` for issues. This instance is where its live tests run, and
+where you can try the workbench on GitLab. For the other test layers, see the
+[testing approach](README.md).
 
 ## Settings
 
@@ -48,7 +48,76 @@ GitLab keeps its state between `down` and `up`. The token and anything the
 tests created are still there next time. Run `reset` and then the line above
 whenever you want a guaranteed clean instance, for example before a CI run.
 
+## Running the live suite
+
+```sh
+npm run gitlab:up && npm run gitlab:bootstrap   # once
+npm run test:gitlab
+```
+
+`test:gitlab` runs `test/gitlab/*.test.ts`: both shared contract suites against
+the GitLab adapters, the full review lifecycle, paging, a git fetch over HTTP,
+invalid and revoked tokens, a renamed project, and recording mode. It takes a
+few minutes. Each file's cleanup waits up to 3 minutes, because GitLab removes
+a deleted user in a background job.
+
+| GitLab state | `npm test` | `npm run test:gitlab` |
+| --- | --- | --- |
+| Up and bootstrapped | Runs the GitLab tests too | Runs them |
+| Down, or not bootstrapped (`401`) | Reports them **skipped**, naming `npm run gitlab:up` and `npm run gitlab:bootstrap` | Fails with one test naming the cause |
+
+The tests read `GITLAB_URL` and `GITLAB_TOKEN` (defaults below) and refuse any
+address that is not loopback. The root token is used only to seed data. The
+adapters under test use a per-run, non-administrator user with a read-only
+token. Tests never run `gitlab:reset`.
+
+### What a run creates and removes
+
+Each test file names everything after its run, `it-<suite>-<timestamp>`: a user
+of that name, a group `prwb-it/<run>`, and projects `prwb-it/<run>/<run>-<label>`.
+The shared `prwb-it` parent group is created once and kept: GitLab can
+permanently remove only subgroups, and a deleted top-level group would linger
+under the run's name for 30 days. When the file ends, passed or failed, it
+deletes only its own run's items and checks none remain.
+
+A crashed run can leave items behind. Later runs list them and never delete
+them, because a parallel run's items also start with `it-`. Remove them on
+purpose with:
+
+```sh
+npm run gitlab:clean   # deletes every it-* project, group and user; refuses non-loopback addresses
+```
+
+### Recording real responses as fixtures
+
+Set `PRWB_RECORD_FIXTURES` to a directory and wrap the network in
+`recordingFetch` (`test/helpers/recorded-fetch.ts`). Each request and response
+is saved in the shape `recordedFetch` replays, with only the content-type and
+paging headers kept and every given secret replaced by `[redacted]`. Unset,
+nothing is written. `test/gitlab/recording.test.ts` shows the round trip.
+
+## Trying the workbench on this GitLab
+
+1. Create a project with a merge request (see the example below), and a
+   personal access token for your user with scopes `read_api` and
+   `read_repository`. The workbench needs nothing more, and never writes.
+2. Clone the project over HTTP with your own git credentials. The workbench
+   fetches with them and stores only its own refs (`refs/prwb/*`).
+3. In Setup choose **GitLab (self-managed)**, enter the project path (for
+   example `root/it-demo`), the clone path, and the **Repository base address**
+   `http://localhost:8929`. For issues choose **GitLab Issues** with the same
+   address as the site.
+4. Sign in to both with the token, then open the merge request.
+
+A base address must use https, except that http is allowed on `localhost`,
+`127.x.x.x` or `[::1]`. It may carry a sub-path (`https://host/gitlab`), but no
+user name, password, query or fragment.
+
 ## Writing tests against it
+
+Live tests set up data through the neutral `PlatformSeeder`
+(`test/seeder/platform-seeder.ts`); `GitlabSeeder` implements it and already
+waits for the background work below. The notes here are for anything new.
 
 **Read the URL and token from the environment** and fall back to the defaults,
 so the same tests can also point at another instance:
@@ -112,7 +181,14 @@ gets odd results:
   Poll `GET /projects/:id/merge_requests/:iid` until `diff_refs` is set before
   reading diffs or posting comments on specific lines.
 
-Poll briefly (every 0.5–1 s, giving up after about 30 s) rather than using fixed sleeps.
+- **Even after the branch shows up**, creating the merge request can briefly
+  answer `400 source_branch does not exist`. Retry that refusal.
+- **Right after a group's projects are deleted**, deleting the group can answer
+  `500`. Retry it.
+- **Deleting a user** blocks it at once, but removes it in a background job
+  that takes about two minutes.
+
+Poll briefly (every 0.25–1 s, giving up after about 30 s) rather than using fixed sleeps.
 
 ### Deleting a project
 
@@ -129,7 +205,8 @@ curl -X DELETE -H "PRIVATE-TOKEN: $T" -G "$API/projects/$ID" \
 ```
 
 The second call fails with ``full_path` is incorrect`` if you pass the original
-path. If cleanup gets messy, run `npm run gitlab:reset`.
+path. Groups work the same way, but only subgroups can be removed permanently.
+If cleanup gets messy, run `npm run gitlab:clean`.
 
 ## Overrides
 
