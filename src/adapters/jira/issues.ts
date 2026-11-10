@@ -19,6 +19,7 @@ export const JIRA_CLOUD_DESCRIPTOR: AdapterDescriptor = {
     { name: 'account', label: 'Atlassian account email', secret: false },
     { name: 'secret', label: 'API token', secret: true },
   ],
+  settingsFields: ['site', 'projectKeys'],
 };
 
 export type JiraCloudSettings = { site: string; projectKeys: readonly string[] };

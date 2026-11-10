@@ -26,6 +26,7 @@ export type ErrorCode =
   | 'signin_rejected'
   | 'read_only'
   | 'workspace_unavailable'
+  | 'repository_unavailable'
   | 'provider_unavailable'
   | 'not_cancellable'
   | 'platform_error';
@@ -44,6 +45,7 @@ export const ERROR_STATUS: Readonly<Record<ErrorCode, number>> = {
   signin_rejected: 422,
   read_only: 409,
   workspace_unavailable: 409,
+  repository_unavailable: 409,
   provider_unavailable: 503,
   not_cancellable: 409,
   platform_error: 502,
@@ -108,8 +110,8 @@ export type ConfigLimits = { maxFileBytes: number; maxChangedLines: number; maxP
 
 /** Never holds a credential (FR-039). Unknown fields are refused with `unknown_field`. */
 export type Config = {
-  /** `id`: the platform's path form, e.g. "owner/repo" or "workspace/repo". */
-  repository: { platform: PlatformId; id: string; clonePath: string };
+  /** The folder holding the clones, and the source-control platform they belong to. */
+  workspace: { baseFolder: string; platform: PlatformId; baseUrl?: string };
   /** `site` and `projectKeys` apply to project-key trackers. */
   issueTracker: { platform: PlatformId; site?: string; projectKeys?: string[] };
   /** Defaults 1048576, 5000, 400000. */
@@ -120,7 +122,7 @@ export type Config = {
 
 /** Body of `PUT /api/config`: `limits` (and each of its keys) and `logRetentionDays` take defaults. */
 export type ConfigBody = {
-  repository: Config['repository'];
+  workspace: Config['workspace'];
   issueTracker: Config['issueTracker'];
   limits?: Partial<ConfigLimits>;
   logRetentionDays?: number;
@@ -156,7 +158,22 @@ export type AuthBody = { token: string };
 
 // ---------------------------------------------------------------- 5. Pull requests and sessions
 
+export type DiscoveryState = 'idle' | 'scanning' | 'complete' | 'cancelled' | 'failed';
+
+export type Workspace = {
+  baseFolder: string;
+  platform: PlatformId;
+  baseUrl?: string;
+  /** `reason` when the state is 'failed'. */
+  discovery: { state: DiscoveryState; foldersScanned: number; reason?: string };
+  /** One per platform repository id; `folder` is absolute. */
+  matched: { repository: string; folder: string; duplicateFolders: string[] }[];
+  skipped: { folder: string; reason: 'no-remote' | 'no-matching-remote' | 'remotes-unreadable'; detail?: string }[];
+};
+
 export type PullSummary = {
+  /** The platform repository id this pull request belongs to. */
+  repository: string;
   number: number;
   title: string;
   author: string;
@@ -166,6 +183,15 @@ export type PullSummary = {
   updatedAt: string;
   /** Present when a session exists. */
   sessionId?: string;
+};
+
+export type PullGroup = {
+  repository: string;
+  status: 'loaded' | 'failed';
+  /** When 'failed'. */
+  reason?: string;
+  /** Empty when 'failed'. */
+  pulls: PullSummary[];
 };
 
 export type SessionSummary = {
@@ -181,6 +207,9 @@ export type SessionSummary = {
   latestHeadCommit: string;
   createdAt: string;
   lastOpenedAt: string;
+  /** False when no clone is found under the base folder (FR-057). */
+  repositoryAvailable: boolean;
+  repositoryReason?: string;
 };
 
 export type IssueOrigin = 'branch' | 'title' | 'description';
@@ -237,7 +266,7 @@ export type SessionDetail = SessionSummary & {
 };
 
 /** Body of `POST /api/sessions`. */
-export type CreateSessionBody = { prNumber: number };
+export type CreateSessionBody = { repository: string; prNumber: number };
 
 /** Body of `DELETE /api/sessions/:sessionId`. */
 export type DeleteSessionBody = { confirm: true };

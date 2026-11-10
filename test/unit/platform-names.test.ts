@@ -17,7 +17,7 @@ import { fileURLToPath } from 'node:url';
 const REPO_ROOT = join(dirname(fileURLToPath(import.meta.url)), '..', '..');
 
 /** Names that may appear only under `src/adapters/`. Matched case-insensitively, anywhere in a word. */
-const FORBIDDEN = ['github', 'bitbucket', 'jira', 'atlassian', 'claude'] as const;
+const FORBIDDEN = ['github', 'bitbucket', 'jira', 'atlassian', 'claude', 'gitlab'] as const;
 
 interface Finding {
   /** Path relative to the scanned `src/`, `/`-separated. */
@@ -73,11 +73,13 @@ test('VO-036 the platform-name check fails on a name planted in core code, in an
     'src/ui/labels.ts': '// Ask CLAUDE about it\n',
     'src/store/db.ts': 'export const x = "JiraKey";\n',
     'src/server/routes.ts': 'const site = "x.atlassian.net"; const b = "BitBucket";\n',
+    'src/core/hosts.ts': 'const mr = "GitLab merge request";\n',
   });
   const findings = await findPlatformNames(root);
   assert.deepEqual(
     findings.map((f) => `${f.file}:${f.line}:${f.name}`).sort(),
     [
+      'core/hosts.ts:1:gitlab',
       'core/sessions.ts:2:github',
       'server/routes.ts:1:atlassian',
       'server/routes.ts:1:bitbucket',
@@ -91,11 +93,12 @@ test('VO-036 the platform-name check fails on a name in a file or directory path
   const root = await plantTree(t, {
     'src/core/github-helpers.ts': 'export const neutral = 1;\n',
     'src/ui/Jira/view.tsx': 'export const neutral = 2;\n',
+    'src/store/gitlab-cache.ts': 'export const neutral = 3;\n',
   });
   const findings = await findPlatformNames(root);
   assert.deepEqual(
     findings.map((f) => `${f.file}:${f.line}:${f.name}`).sort(),
-    ['core/github-helpers.ts:0:github', 'ui/Jira/view.tsx:0:jira'],
+    ['core/github-helpers.ts:0:github', 'store/gitlab-cache.ts:0:gitlab', 'ui/Jira/view.tsx:0:jira'],
   );
 });
 
@@ -104,6 +107,7 @@ test('VO-036 the platform-name check skips src/adapters/ and passes on a neutral
     'src/adapters/github/source-control.ts': 'export const id = "github";\n',
     'src/adapters/registry.ts': 'import "./bitbucket/source-control.ts"; // jira, atlassian, claude\n',
     'src/adapters/claude-code-cli/adapter.ts': 'export const id = "claude-code-cli";\n',
+    'src/adapters/gitlab/source-control.ts': 'export const id = "gitlab";\n',
     'src/core/sessions.ts': 'export type PlatformId = string;\n',
     'src/ui/app.css': 'body { color: black; }\n',
   });

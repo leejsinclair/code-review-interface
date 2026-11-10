@@ -130,6 +130,11 @@ export function createBitbucketCloudSourceControl(deps: AdapterDeps): SourceCont
 
     cloneLocations: (repo) => [`bitbucket.org/${repo.id.toLowerCase()}`],
 
+    repositoryForRemote(remote) {
+      const match = /^bitbucket\.org\/([^/]+\/[^/]+)$/.exec(remote);
+      return match === null ? null : (match[1] ?? null);
+    },
+
     async listOpenPullRequests(repo) {
       const raw = await getPages(`${API}/repositories/${repoPath(repo.id)}/pullrequests?state=OPEN&pagelen=50`);
       // simplified: list entries keep the platform's abbreviated head (one lookup per PR otherwise);

@@ -9,6 +9,7 @@
 //     "scenario": "structured" | "unstructured" | "slow" | "error-on-start" | "not-signed-in",
 //     "help": "full" | "no-restricted" | "no-strict-mcp" | "no-add-dir",
 //     "answer":  { ...answer JSON... },      // structured output for an answer run
+//     "answerFixture": "<name>",             // like "answer", read from <name>.json beside this script
 //     "summary": { ...summary JSON... },     // structured output for a summary run
 //     "text": "raw text for the unstructured scenario",
 //     "chunks": 3,                            // text deltas per run
@@ -147,7 +148,11 @@ async function main() {
 
   emit({ type: 'system', subtype: 'init', cwd: process.cwd(), tools: ['Read', 'Grep', 'Glob'] });
 
-  const output = cfg[kind] ?? (kind === 'summary'
+  let fixtureAnswer;
+  if (kind === 'answer' && typeof cfg.answerFixture === 'string') {
+    fixtureAnswer = JSON.parse(readFileSync(new URL(`./${cfg.answerFixture}.json`, import.meta.url), 'utf8'));
+  }
+  const output = fixtureAnswer ?? cfg[kind] ?? (kind === 'summary'
     ? { prSummary: [], files: [], functionalImpact: [], technicalImpact: [] }
     : { claims: [], unsupportedAssumptions: [], suggestedFollowUps: [] });
   const text = scenario === 'unstructured' ? (cfg.text ?? 'This is not structured output.') : JSON.stringify(output);

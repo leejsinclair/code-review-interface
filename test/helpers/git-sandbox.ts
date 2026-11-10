@@ -13,7 +13,7 @@
 
 import { execFile } from "node:child_process";
 import { createHash } from "node:crypto";
-import { chmod, mkdir, mkdtemp, readFile, rename, rm, writeFile } from "node:fs/promises";
+import { appendFile, chmod, mkdir, mkdtemp, readFile, rename, rm, symlink, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { dirname, join } from "node:path";
 import { promisify } from "node:util";
@@ -389,4 +389,262 @@ export async function fingerprint(repo: string, runner: GitRunner = defaultRunne
   }
 
   return { branch, head, indexHash, status, stash, refs, fetchHead, workingFilesHash: files.digest("hex") };
+}
+
+/** A reviewer's clone of a live HTTP repository, with git credentials kept outside it (R11). */
+export interface LiveClone {
+  /** Temp directory holding `home/` and `clone/`. */
+  root: string;
+  /** The reviewer's working clone. */
+  clone: string;
+  /** Temp `HOME` whose `.gitconfig` uses `credential.helper=store` and whose `.git-credentials` holds the token. */
+  home: string;
+  /** Environment to run git (or the product) with: `HOME` points at `home`, no system config. */
+  env: NodeJS.ProcessEnv;
+  /** Runs git in `cwd` with `env` and returns trimmed stdout. */
+  git(cwd: string, ...args: string[]): Promise<string>;
+  fingerprint(): Promise<CloneFingerprint>;
+  cleanup(): Promise<void>;
+  [Symbol.asyncDispose](): Promise<void>;
+}
+
+/**
+ * Clones `httpUrl` over HTTP into a temp directory, the way a reviewer with stored git credentials
+ * would (R11, FR-033). The token lives only in the temp `HOME`'s `.git-credentials`; it never enters
+ * the clone's config or its remote URL. `httpUrl` must not carry user info.
+ */
+export async function liveClone(httpUrl: string, token: string): Promise<LiveClone> {
+  const url = new URL(httpUrl);
+  if (url.protocol !== "http:" && url.protocol !== "https:") throw new Error(`liveClone needs an http(s) URL, got ${url.protocol}`);
+  if (url.username !== "" || url.password !== "") throw new Error("liveClone: the clone URL must not carry credentials");
+
+  const root = await mkdtemp(join(tmpdir(), "prwb-live-"));
+  const home = join(root, "home");
+  const clone = join(root, "clone");
+  await mkdir(home, { recursive: true });
+
+  await writeFile(
+    join(home, ".gitconfig"),
+    [
+      "[credential]",
+      "\thelper = store",
+      "[user]",
+      "\tname = Live Reviewer",
+      "\temail = reviewer@live.invalid",
+      "[init]",
+      "\tdefaultBranch = main",
+      "[gc]",
+      "\tauto = 0",
+      "[maintenance]",
+      "\tauto = false",
+      "",
+    ].join("\n"),
+  );
+  const credential = new URL(`${url.protocol}//${url.host}`);
+  credential.username = "oauth2";
+  credential.password = token;
+  await writeFile(join(home, ".git-credentials"), `${credential.href.replace(/\/$/, "")}\n`, { mode: 0o600 });
+
+  const env: NodeJS.ProcessEnv = {
+    PATH: process.env.PATH,
+    HOME: home,
+    GIT_CONFIG_NOSYSTEM: "1",
+    GIT_TERMINAL_PROMPT: "0",
+    LANG: "C",
+    LC_ALL: "C",
+  };
+
+  async function gitRaw(cwd: string, args: string[], extraEnv: NodeJS.ProcessEnv = {}): Promise<string> {
+    try {
+      const { stdout } = await run("git", args, { cwd, env: { ...env, ...extraEnv }, maxBuffer: 64 * 1024 * 1024 });
+      return stdout;
+    } catch (error) {
+      const e = error as { stderr?: string; message: string };
+      const detail = (e.stderr?.trim() || e.message).split(token).join("[redacted]");
+      throw new Error(`git ${args.join(" ")} (in ${cwd}) failed: ${detail}`);
+    }
+  }
+  const git = async (cwd: string, ...args: string[]): Promise<string> => (await gitRaw(cwd, args)).trim();
+
+  try {
+    await git(root, "clone", "-q", url.href, clone);
+    const config = await readFile(join(clone, ".git", "config"), "utf8");
+    if (config.includes(token)) throw new Error("liveClone: the token reached the clone's config");
+  } catch (error) {
+    await rm(root, { recursive: true, force: true });
+    throw error;
+  }
+
+  const dispose = async (): Promise<void> => {
+    await rm(root, { recursive: true, force: true });
+  };
+  return {
+    root,
+    clone,
+    home,
+    env,
+    git,
+    fingerprint: () => fingerprint(clone, gitRaw),
+    cleanup: dispose,
+    [Symbol.asyncDispose]: dispose,
+  };
+}
+
+// ---------------------------------------------------------------------------------------------
+// Base folder (feature 003, T032): a folder of clones for workspace discovery tests.
+
+/** Named folders of a {@link BaseFolder}, absolute. */
+export interface BaseFolderPaths {
+  /** Depth 1: `Acme/Widgets` (HTTPS remote). */
+  widgets: string;
+  /** Depth 2: `acme/gizmos` (scp-style remote). */
+  gizmos: string;
+  /** Depth 3: `acme/gadgets`. */
+  gadgets: string;
+  /** Inside `widgets`: `acme/inner`. */
+  inner: string;
+  /** Same repository as `widgets`, three levels deeper. */
+  widgetsCopy: string;
+  /** Two folders for `acme/twins` at the same depth; `twinA` sorts first in code-point order. */
+  twinA: string;
+  twinB: string;
+  /** A clone on another host. */
+  otherHost: string;
+  /** A clone with no remote. */
+  noRemote: string;
+  /** A fork clone: `origin` is `me/widgets-fork`, `upstream` is `acme/forked`. */
+  fork: string;
+  /** A folder whose `.git` is a file (separate git directory): `acme/gitfile`. */
+  gitFile: string;
+  /** A folder with an unreadable `.git`. */
+  broken: string;
+  /** A symbolic link, inside the base folder, to a repository outside it (`acme/linked`). */
+  link: string;
+  /** The repository the link points at. */
+  linkTarget: string;
+  /** A repository in the app-data folder inside the base folder (`acme/appdata`). */
+  appDataRepo: string;
+}
+
+export interface BaseFolder {
+  /** Temp directory holding the base folder and what sits outside it. */
+  root: string;
+  /** The base folder. */
+  base: string;
+  /** An application-data folder inside the base folder. */
+  appData: string;
+  folders: BaseFolderPaths;
+  /** Platform repository ids a GitHub-style discovery matches, lower-case. */
+  expectedMatched: string[];
+  /** Every real repository folder (links excluded), for before and after fingerprints. */
+  repositories: string[];
+  git(cwd: string, ...args: string[]): Promise<string>;
+  cleanup(): Promise<void>;
+  [Symbol.asyncDispose](): Promise<void>;
+}
+
+/**
+ * Builds a base folder holding clones at depths 1 to 3, a repository inside another's folder, a clone
+ * on another host, one with no remote, a fork naming two repositories, the same repository in two
+ * folders, a symbolic link to a repository, and the application-data folder with a repository in it.
+ * Remotes point at github.com addresses that are never contacted; nothing here touches the network.
+ */
+export async function makeBaseFolder(): Promise<BaseFolder> {
+  const root = await mkdtemp(join(tmpdir(), "prwb-base-"));
+  const base = join(root, "base");
+  const appData = join(base, "app-data");
+  const globalConfig = join(root, "gitconfig");
+  await mkdir(base, { recursive: true });
+  await writeFile(
+    globalConfig,
+    ["[user]", "\tname = Base Author", "\temail = author@base.invalid", "[init]", "\tdefaultBranch = main", "[commit]", "\tgpgsign = false", "[gc]", "\tauto = 0", ""].join("\n"),
+  );
+  const env: NodeJS.ProcessEnv = {
+    PATH: process.env.PATH,
+    HOME: root,
+    GIT_CONFIG_NOSYSTEM: "1",
+    GIT_CONFIG_GLOBAL: globalConfig,
+    GIT_TERMINAL_PROMPT: "0",
+    LANG: "C",
+    LC_ALL: "C",
+  };
+  const git = async (cwd: string, ...args: string[]): Promise<string> => {
+    try {
+      const { stdout } = await run("git", args, { cwd, env, maxBuffer: 64 * 1024 * 1024 });
+      return stdout.trim();
+    } catch (error) {
+      const e = error as { stderr?: string; message: string };
+      throw new Error(`git ${args.join(" ")} (in ${cwd}) failed: ${e.stderr?.trim() || e.message}`);
+    }
+  };
+
+  const repositories: string[] = [];
+  /** A repository with one commit and the given remotes (name to URL). */
+  async function repo(path: string, remotes: Record<string, string>, gitDir?: string): Promise<string> {
+    await mkdir(path, { recursive: true });
+    if (gitDir !== undefined) await mkdir(dirname(gitDir), { recursive: true });
+    await git(path, "init", "-q", ...(gitDir === undefined ? [] : ["--separate-git-dir", gitDir]));
+    for (const [name, url] of Object.entries(remotes)) await git(path, "remote", "add", name, url);
+    await writeFile(join(path, "README.md"), `# ${path}\n`);
+    await git(path, "add", "README.md");
+    await git(path, "commit", "-q", "-m", "initial");
+    repositories.push(path);
+    return path;
+  }
+
+  const widgets = await repo(join(base, "widgets"), { origin: "https://github.com/Acme/Widgets.git" });
+  const gizmos = await repo(join(base, "team", "gizmos"), { origin: "git@github.com:acme/gizmos.git" });
+  const gadgets = await repo(join(base, "team", "deep", "gadgets"), { origin: "https://github.com/acme/gadgets" });
+  const inner = await repo(join(widgets, "vendor", "inner"), { origin: "https://github.com/acme/inner.git" });
+  // The nested clone must not show up as an untracked directory of its parent (fingerprints read untracked files).
+  await appendFile(join(widgets, ".git", "info", "exclude"), "vendor/\n");
+  const widgetsCopy = await repo(join(base, "copies", "old", "widgets-copy"), { origin: "https://github.com/acme/widgets.git" });
+  const twinA = await repo(join(base, "twins", "a"), { origin: "https://github.com/acme/twins.git" });
+  const twinB = await repo(join(base, "twins", "b"), { origin: "https://github.com/acme/twins.git" });
+  const otherHost = await repo(join(base, "elsewhere"), { origin: "https://gitlab.example.com/acme/other.git" });
+  const noRemote = await repo(join(base, "no-remote"), {});
+  const fork = await repo(join(base, "fork"), {
+    origin: "https://github.com/me/widgets-fork.git",
+    upstream: "https://github.com/acme/forked.git",
+  });
+  const gitFile = await repo(join(base, "gitfile"), { origin: "https://github.com/acme/gitfile.git" }, join(root, "git-dirs", "gitfile"));
+  const broken = join(base, "broken");
+  await mkdir(join(broken, ".git"), { recursive: true });
+  const linkTarget = await repo(join(root, "outside", "linked"), { origin: "https://github.com/acme/linked.git" });
+  const link = join(base, "link-to-linked");
+  await symlink(linkTarget, link, "dir");
+  const appDataRepo = await repo(join(appData, "clones", "appdata"), { origin: "https://github.com/acme/appdata.git" });
+  // Outside repositories (the link target) are not under the base folder, so they are not scanned or listed.
+  repositories.splice(repositories.indexOf(linkTarget), 1);
+  repositories.splice(repositories.indexOf(appDataRepo), 1);
+
+  const dispose = async (): Promise<void> => {
+    await rm(root, { recursive: true, force: true });
+  };
+  return {
+    root,
+    base,
+    appData,
+    folders: { widgets, gizmos, gadgets, inner, widgetsCopy, twinA, twinB, otherHost, noRemote, fork, gitFile, broken, link, linkTarget, appDataRepo },
+    expectedMatched: ["acme/forked", "acme/gadgets", "acme/gitfile", "acme/gizmos", "acme/inner", "acme/twins", "acme/widgets", "me/widgets-fork"],
+    repositories,
+    git,
+    cleanup: dispose,
+    [Symbol.asyncDispose]: dispose,
+  };
+}
+
+/**
+ * A clone that discovery matches to a repository but whose head cannot be fetched: `origin` names the
+ * repository, and the address a fetch would use is rewritten to `nowhere`, a folder that does not
+ * exist, so the fetch fails at once and no network is touched. Used where a test needs a matched clone
+ * whose snapshot has no local head (its diff then comes from the platform).
+ */
+export async function makeUnfetchableClone(folder: string, remoteUrl: string, fetchUrl: string, nowhere: string): Promise<void> {
+  await mkdir(folder, { recursive: true });
+  const env = { PATH: process.env.PATH, HOME: dirname(folder), GIT_CONFIG_NOSYSTEM: "1", GIT_TERMINAL_PROMPT: "0" };
+  const git = (...args: string[]) => run("git", args, { cwd: folder, env });
+  await git("init", "-q");
+  await git("remote", "add", "origin", remoteUrl);
+  await git("config", `url.file://${nowhere}.insteadOf`, fetchUrl);
 }

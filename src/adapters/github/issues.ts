@@ -15,6 +15,7 @@ export const GITHUB_ISSUES_DESCRIPTOR: AdapterDescriptor = {
   id: GITHUB_ISSUES_ID,
   displayName: 'GitHub Issues',
   signInFields: [{ name: 'secret', label: 'Personal access token', secret: true }],
+  settingsFields: [],
 };
 
 export type GithubIssuesSettings = { repository: string };

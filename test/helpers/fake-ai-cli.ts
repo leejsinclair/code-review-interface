@@ -3,12 +3,15 @@
 // recorded. `node --test` runs each file in its own process, so changing `process.env.PATH` here is
 // safe across files; the helper restores it when the test ends.
 
-import { constants } from 'node:fs';
+import { execFile } from 'node:child_process';
+import { constants, existsSync } from 'node:fs';
 import { access, chmod, mkdir, mkdtemp, readFile, rm, writeFile } from 'node:fs/promises';
 import type { IncomingMessage } from 'node:http';
 import { tmpdir } from 'node:os';
-import { delimiter, join } from 'node:path';
+import { delimiter, dirname, join } from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
+import { promisify } from 'node:util';
+import type { CredentialInput } from '../../src/credentials.ts';
 import { registerSecret } from '../../src/log.ts';
 import type { ReviewStore } from '../../src/store/review-store.ts';
 import { useTempAppData, type TempAppData } from './app-data.ts';
@@ -16,6 +19,8 @@ import { createFakeKeyring } from './fake-keyring.ts';
 import { createGitSandbox, type FileChanges, type GitSandbox } from './git-sandbox.ts';
 import { loadFixtures, recordedFetch, type FixtureEntry, type RecordedFetch } from './recorded-fetch.ts';
 import { startTestServer, type TestClient } from './server.ts';
+
+const run = promisify(execFile);
 
 export const CLI_NAME = 'claude';
 const FAKE_SCRIPT = fileURLToPath(new URL('../fixtures/fake-claude/fake-claude.mjs', import.meta.url));
@@ -180,8 +185,12 @@ export function defaultPrFiles(): FileChanges {
 }
 
 export type WorkbenchOptions = {
-  /** `missing`: no clone at the configured path. Default `sandbox`. */
-  clone?: 'sandbox' | 'missing';
+  /**
+   * `missing`: the base folder holds the repository's clone, but its head cannot be fetched, so the
+   * session's repository row is missing with a reason and its diff comes from the platform.
+   * `none`: the base folder holds no clone at all, so the repository is not found. Default `sandbox`.
+   */
+  clone?: 'sandbox' | 'missing' | 'none';
   prFiles?: FileChanges;
   /** The fake CLI's configuration; `null` means no CLI is installed, `real` uses the installed CLI. */
   fake?: FakeConfig | null | 'real';
@@ -193,10 +202,33 @@ export type WorkbenchOptions = {
   /** Put the reviewer's clone on another branch with stash, staged, unstaged and untracked changes. */
   dirty?: boolean;
   /**
+   * Further clones under the base folder, by repository id (default none). Each is a repository whose
+   * `origin` is the repository's https address; fetching from it fails at once, so a session there
+   * has no local head (its diff comes from the platform).
+   */
+  extraClones?: string[];
+  /** Wait for the start-up scan of the base folder to end before returning (default true). */
+  awaitDiscovery?: boolean;
+  /**
    * Boot through `src/main.ts` instead of wiring the routes here. Needs the fake CLI: a fake browser
    * opener goes in its bin directory and appends each URL it is asked to open to `opened.log` there.
    */
   composed?: boolean;
+  /**
+   * Live mode (FR-032): the real platform instead of fixtures. No sandbox, fixtures or GitHub/Jira
+   * defaults; the given configuration, credentials and clone are used as they are, and every
+   * platform request goes through `fetch` (a `loggedFetch` around real fetch).
+   */
+  live?: LiveWorkbench;
+};
+
+export type LiveWorkbench = {
+  repository: { platform: string; id: string; baseUrl?: string };
+  issueTracker: { platform: string; site?: string; projectKeys?: string[] };
+  credentials: Record<string, CredentialInput>;
+  /** The reviewer's clone. Its parent folder is the base folder; when it does not exist the base folder is empty. */
+  clonePath: string;
+  fetch: typeof fetch;
 };
 
 export type SessionEvent = { event: string; data: unknown };
@@ -208,8 +240,12 @@ export interface Workbench {
   sandbox: GitSandbox | null;
   fake: FakeAiCli | null;
   recorded: RecordedFetch;
-  /** Starts (or opens) the session for PR 1 and returns its SessionDetail. */
-  startSession(): Promise<Record<string, any>>; // eslint-disable-line @typescript-eslint/no-explicit-any
+  /** Starts (or opens) the session for a PR (default 1 of acme/widgets) and returns its SessionDetail. */
+  startSession(prNumber?: number, repository?: string): Promise<Record<string, any>>;
+  /** The base folder discovery scans. */
+  baseFolder: string;
+  /** Waits until discovery is no longer scanning and returns the workspace. */
+  discovered(): Promise<Record<string, any>>; // eslint-disable-line @typescript-eslint/no-explicit-any
   /** Pushes a commit to PR 1, so the platform reports a new head. */
   pushHead(files: FileChanges): Promise<string>;
   /** Stops the server and starts a new one on the same store, after start-up recovery. */
@@ -256,6 +292,9 @@ export async function startWorkbench(t: AfterHook, options: WorkbenchOptions = {
   const { createAiProvider, registeredAiProviders } = await import('../../src/adapters/ai-registry.ts');
   const { ensureAppData } = await import('../../src/appdata.ts');
   const { loadConfig, saveConfig } = await import('../../src/config.ts');
+  const { configPlatforms } = await import('../../src/server/routes/context.ts');
+  const { adapterDeps, createSourceControl } = await import('../../src/adapters/registry.ts');
+  const { createWorkspace } = await import('../../src/core/workspace.ts');
   const { createCredentials } = await import('../../src/credentials.ts');
   const { createGit } = await import('../../src/repo/git.ts');
   const { createRepositoryManager } = await import('../../src/repo/manager.ts');
@@ -272,22 +311,43 @@ export async function startWorkbench(t: AfterHook, options: WorkbenchOptions = {
   const fake = options.fake === null || options.fake === 'real' ? null : await useFakeAiCli(t, options.fake ?? {});
   if (options.fake === null) await useNoAiCli(t);
 
+  const live = options.live;
   let sandbox: GitSandbox | null = null;
-  let clonePath = join(appData.root, 'no-clone-here');
-  if (options.clone !== 'missing') {
+  let clonePath = live?.clonePath ?? join(appData.root, 'no-clone-here');
+  // The base folder discovery scans: the sandbox's folder (holding the clone), or an empty one.
+  let baseFolder = join(appData.root, 'base');
+  await mkdir(baseFolder, { recursive: true });
+  if (live !== undefined && existsSync(live.clonePath)) baseFolder = dirname(live.clonePath);
+  if (live === undefined && options.clone === 'missing') {
+    clonePath = join(baseFolder, 'widgets');
+    await mkdir(clonePath, { recursive: true });
+    const git = (...args: string[]) => run('git', args, { cwd: clonePath });
+    await git('init', '-q');
+    await git('remote', 'add', 'origin', 'https://github.com/Acme/Widgets');
+    await git('config', `url.file://${join(appData.root, 'nowhere')}.insteadOf`, 'https://github.com/acme/widgets.git');
+  }
+  if (live === undefined && options.clone !== 'missing' && options.clone !== 'none') {
     const s = await createGitSandbox();
     sandbox = s;
     t.after(() => s.cleanup());
     clonePath = s.clone;
+    baseFolder = s.root;
     await s.openPr({ number: 1, branch: 'feature/ABC-12-reset', files: options.prFiles ?? defaultPrFiles() });
     await s.git(s.clone, 'remote', 'set-url', 'origin', 'https://github.com/Acme/Widgets');
     await s.git(s.clone, 'config', `url.${s.platform}.insteadOf`, 'https://github.com/acme/widgets.git');
     if (options.dirty) await s.dirtyClone();
+    for (const id of options.extraClones ?? []) {
+      const folder = join(s.root, 'more', id.replace('/', '-'));
+      await mkdir(folder, { recursive: true });
+      await s.git(folder, 'init', '-q');
+      await s.git(folder, 'remote', 'add', 'origin', `https://github.com/${id}`);
+      await s.git(folder, 'config', `url.file://${join(s.root, 'nowhere')}.insteadOf`, `https://github.com/${id}.git`);
+    }
   }
 
   const entries: FixtureEntry[] = [];
   const pr1 = `${PULLS_URL}/1`;
-  for (const e of [...loadFixtures('github'), ...loadFixtures('jira')]) {
+  for (const e of live === undefined ? [...loadFixtures('github'), ...loadFixtures('jira')] : []) {
     if (options.drop?.(e.request.url)) continue;
     if (options.prStates !== undefined && e.request.url === pr1 && e.request.headers === undefined) {
       const body = (e.response as { body: Record<string, unknown> }).body;
@@ -301,29 +361,54 @@ export async function startWorkbench(t: AfterHook, options: WorkbenchOptions = {
   }
   entries.push(...(options.extra ?? []));
   const recorded = recordedFetch([], { entries });
-  const network = async (input: string | URL | Request, init?: RequestInit): Promise<Response> => {
+  const fixtureNetwork = async (input: string | URL | Request, init?: RequestInit): Promise<Response> => {
     const response = await recorded.fetch(input, init);
     let text = await response.text();
     if (sandbox !== null) text = text.split(FIXTURE_HEAD_1).join(sandbox.pr(1).head);
     return new Response(text, { status: response.status, statusText: response.statusText, headers: response.headers });
   };
+  const network = live?.fetch ?? fixtureNetwork;
 
   const keyring = createFakeKeyring();
   const credentials = createCredentials({ keyring, registerSecret });
-  await credentials.save('github', { secret: 'test-github-token', scheme: 'bearer' });
-  await credentials.save('jira-cloud', { account: 'alice@acme.example', secret: 'test-jira-token', scheme: 'basic' });
-  await saveConfig(
-    appData.dir,
-    { repository: { platform: 'github', id: 'acme/widgets', clonePath }, issueTracker: { platform: 'jira-cloud', site: JIRA_SITE, projectKeys: ['ABC'] } },
-    registeredPlatforms(),
-  );
+  if (live === undefined) {
+    await credentials.save('github', { secret: 'test-github-token', scheme: 'bearer' });
+    await credentials.save('jira-cloud', { account: 'alice@acme.example', secret: 'test-jira-token', scheme: 'basic' });
+    await saveConfig(
+      appData.dir,
+      { workspace: { baseFolder, platform: 'github' }, issueTracker: { platform: 'jira-cloud', site: JIRA_SITE, projectKeys: ['ABC'] } },
+      configPlatforms(),
+    );
+  } else {
+    for (const [platform, credential] of Object.entries(live.credentials)) await credentials.save(platform, credential);
+    const { platform, baseUrl } = live.repository;
+    await saveConfig(appData.dir, { workspace: { baseFolder, platform, ...(baseUrl === undefined ? {} : { baseUrl }) }, issueTracker: live.issueTracker }, configPlatforms());
+  }
 
   const git = createGit({ hooksPath: paths.emptyHooks });
   const manager = createRepositoryManager({ git, workspacesDir: paths.workspaces });
-  const environment = async () => {
-    const config = await loadConfig(appData.dir, registeredPlatforms());
+  const platforms = configPlatforms();
+  const workspace = createWorkspace({
+    manager,
+    appDataDir: appData.dir,
+    matcherFor: ({ platform, baseUrl }) => {
+      const repository = { platform, id: '' };
+      const sourceControl = createSourceControl(platform, adapterDeps(platform, network, (request) => request), {
+        repository,
+        ...(baseUrl === undefined ? {} : { baseUrl }),
+      });
+      return (remote) => sourceControl.repositoryForRemote(remote);
+    },
+  });
+  const environmentFor = async (repo: { platform: string; id: string }) => {
+    const config = await loadConfig(appData.dir, platforms);
     if (config === null) throw new Error('not configured');
-    return { clonePath: config.repository.clonePath, limits: config.limits };
+    const availability = workspace.availability({ platform: repo.platform, id: repo.id });
+    return {
+      clonePath: workspace.cloneFor(repo.id),
+      limits: config.limits,
+      ...(availability.available ? {} : { unavailableReason: availability.reason }),
+    };
   };
 
   let db = openDatabase(paths.db);
@@ -335,11 +420,12 @@ export async function startWorkbench(t: AfterHook, options: WorkbenchOptions = {
     const events = createEventHub({ heartbeatMs: 0 });
     const lanes = createLanes();
     const provider = createAiProvider('claude-code-cli', { providerHome: paths.providerHome });
-    const core = { store, lanes, provider, events, git, workspacePath: manager.workspacePath, environment };
+    const core = { store, lanes, provider, events, git, workspacePath: manager.workspacePath, environmentFor };
     const interrogation = createInterrogation(core);
     const summaries = createSummaries(core);
     const contextRoutes = createContextRoutes({
       appDataDir: appData.dir,
+      workspace,
       store,
       credentials,
       network,
@@ -350,7 +436,9 @@ export async function startWorkbench(t: AfterHook, options: WorkbenchOptions = {
       onClose: (sessionId: string) => lanes.close(sessionId),
       afterRunning: (sessionId: string) => lanes.settledRunning(sessionId),
     });
-    const routes = createInterrogationRoutes({ store, git, provider, interrogation, summaries, environment });
+    const routes = createInterrogationRoutes({ store, git, provider, interrogation, summaries, environmentFor });
+    // As src/main.ts does: discovery starts at boot from the saved config.
+    workspace.configure((await loadConfig(appData.dir, platforms))?.workspace ?? null);
     const client = await startTestServer({ routes: [contextRoutes, routes], serverOptions: { events } });
     return { store, client };
   };
@@ -382,8 +470,16 @@ export async function startWorkbench(t: AfterHook, options: WorkbenchOptions = {
     sandbox,
     fake,
     recorded,
-    async startSession() {
-      const res = await bench.client.post('/api/sessions', { prNumber: 1 });
+    baseFolder,
+    async discovered() {
+      return waitFor(async () => {
+        const res = await bench.client.get('/api/workspace');
+        const body = res.json as Record<string, any>; // eslint-disable-line @typescript-eslint/no-explicit-any
+        return res.status === 200 && body.discovery.state !== 'scanning' ? body : undefined;
+      }, 'the scan of the base folder to end');
+    },
+    async startSession(prNumber = 1, repository = 'acme/widgets') {
+      const res = await bench.client.post('/api/sessions', { repository, prNumber });
       if (res.status !== 201 && res.status !== 200) throw new Error(`session start failed: ${res.status} ${res.text}`);
       return res.json as Record<string, any>; // eslint-disable-line @typescript-eslint/no-explicit-any
     },
@@ -398,6 +494,7 @@ export async function startWorkbench(t: AfterHook, options: WorkbenchOptions = {
       current = await (options.composed ? composedBoot() : boot());
       bench.client = current.client;
       bench.store = current.store;
+      if (options.awaitDiscovery !== false) await bench.discovered();
     },
     async subscribe(sessionId) {
       const res = await bench.client.open('GET', `/api/sessions/${sessionId}/events`);
@@ -407,5 +504,7 @@ export async function startWorkbench(t: AfterHook, options: WorkbenchOptions = {
       return { events, close: () => res.destroy() };
     },
   };
+  t.after(() => workspace.cancel());
+  if (options.awaitDiscovery !== false) await bench.discovered();
   return bench;
 }

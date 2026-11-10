@@ -47,6 +47,13 @@ export interface SourceControlProvider {
   verifySignIn(): Promise<SignInCheck>;
   /** Normalised host/path forms matched against the clone's remotes. */
   cloneLocations(repo: RepoRef): string[];
+  /**
+   * The platform repository id for a remote already passed through `normaliseRemote` (`host/path`, no
+   * scheme, user, port or `.git`, case-folded), or null when the remote is not on this platform (for a
+   * self-hosted platform: not on its configured base address host). Pure, no network call. The inverse
+   * of `cloneLocations` (feature 003 contracts 6.1).
+   */
+  repositoryForRemote(normalisedRemote: string): string | null;
   /** FR-001. */
   listOpenPullRequests(repo: RepoRef): Promise<PullRequestInfo[]>;
   /** FR-002, FR-052. A deleted PR rejects with AdapterError code `not_found`. */

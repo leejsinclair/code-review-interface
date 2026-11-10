@@ -1,29 +1,23 @@
-// VO-037 (FR-025), VO-023 and VO-024 (FR-003), VO-025 (FR-004), VO-064 (FR-004, EC-07): one IssueTracker
-// suite, run against every tracker adapter over its recorded fixtures, plus the rules particular to
-// each tracker's reference forms.
+// VO-037 (FR-025), VO-023 and VO-024 (FR-003), VO-025 (FR-004), VO-064 (FR-004, EC-07): the shared
+// IssueTracker suite (`runIssueTrackerContract`, issue-tracker.suite.ts) run against every tracker
+// adapter over its recorded fixtures, plus the rules particular to each tracker's reference forms.
 //
-// API required from src/adapters/registry.ts (T076):
-//
-//   export type TrackerSettings = { repository: RepoRef; site?: string; projectKeys?: readonly string[] };
-//   export function adapterDeps(platform: PlatformId, network: NetworkFetch, authorize: Authorize): AdapterDeps;
-//   export function createIssueTracker(platform: PlatformId, deps: AdapterDeps, settings: TrackerSettings): IssueTracker;
-//
-// A tracker reads its credential only through `authorize`: when `authorize` adds no Authorization
-// header, no credential is stored for it.
+// Fixture targets build each adapter with its factory directly, over the read-only fetch and
+// `recordedFetch`. A tracker reads its credential only through `authorize`: when `authorize` adds no
+// Authorization header, no credential is stored for it.
 //
 // Acceptance (FR-003): a candidate is a reference when it does not need confirmation, or when its
 // lookup resolves (RawIssueReference.needsConfirmation).
 
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
+import { createReadOnlyFetch, type NetworkFetch } from '../../src/adapters/read-only-http.ts';
+import { createGithubIssuesTracker } from '../../src/adapters/github/issues.ts';
+import { createJiraCloudTracker } from '../../src/adapters/jira/issues.ts';
 import type { IssueTracker, RawIssueReference } from '../../src/contracts/issue-tracker.ts';
 import type { Authorize } from '../../src/contracts/shared.ts';
 import { recordedFetch, type FixtureEntry, type RecordedFetch } from '../helpers/recorded-fetch.ts';
-
-type RegistryModule = typeof import('../../src/adapters/registry.ts');
-const loadRegistry = (): Promise<RegistryModule> => import('../../src/adapters/registry.ts');
-
-const REPOSITORY = { platform: 'github', id: 'acme/widgets' };
+import { runIssueTrackerContract, type IssueTrackerTarget } from './issue-tracker.suite.ts';
 
 const withCredential: Authorize = (request) => {
   const headers = new Headers(request.headers);
@@ -31,19 +25,6 @@ const withCredential: Authorize = (request) => {
   return new Request(request, { headers });
 };
 const noCredential: Authorize = (request) => request;
-
-type Tracker = {
-  id: string;
-  fixtures: string;
-  host: string;
-  settings: { site?: string; projectKeys?: string[] };
-  account: string;
-  /** Text holding one issue written two ways, and the key both normalise to. */
-  sameIssue: { text: string; key: string; forms: string[] };
-  issue: { key: string; title: string; descriptionText: string };
-  wrongKey: string;
-  noAccessKey: string;
-};
 
 const ADF_TEXT = [
   'Customers cannot reset a password a second time.',
@@ -55,23 +36,50 @@ const ADF_TEXT = [
   '<script>alert(1)</script> is just text.',
 ].join('\n\n');
 
-const TRACKERS: Tracker[] = [
-  {
-    id: 'jira-cloud',
-    fixtures: 'jira',
+type FixtureTarget = IssueTrackerTarget & {
+  fixtures: string;
+  build(fetch: NetworkFetch, authorize: Authorize): IssueTracker;
+};
+
+function fixtureTarget(t: Omit<FixtureTarget, 'network' | 'create'>): FixtureTarget {
+  return {
+    ...t,
+    network: () => {
+      const recorded = recordedFetch(t.fixtures);
+      return { fetch: recorded.fetch, requests: recorded.requests, check: () => recorded.assertAllRecorded() };
+    },
+    create: (fetch) => t.build(fetch, withCredential),
+  };
+}
+
+const JIRA = fixtureTarget({
+  platform: 'jira-cloud',
+  fixtures: 'jira',
+  build: (fetch, authorize) =>
+    createJiraCloudTracker(
+      { fetch: createReadOnlyFetch({ platform: 'jira-cloud', fetch }), authorize },
+      { site: 'https://acme.atlassian.net', projectKeys: ['ABC'] },
+    ),
+  expected: {
     host: 'acme.atlassian.net',
-    settings: { site: 'https://acme.atlassian.net', projectKeys: ['ABC'] },
     account: 'Alice Developer',
     sameIssue: { text: 'feature/abc-12-reset fixes ABC-12', key: 'ABC-12', forms: ['abc-12', 'ABC-12'] },
     issue: { key: 'ABC-12', title: 'Customers cannot reset a password twice', descriptionText: ADF_TEXT },
     wrongKey: 'ABC-999',
-    noAccessKey: 'ABC-77',
+    noAccess: { key: 'ABC-77', reason: 'forbidden' },
   },
-  {
-    id: 'github-issues',
-    fixtures: 'github',
+});
+
+const ISSUES = fixtureTarget({
+  platform: 'github-issues',
+  fixtures: 'github',
+  build: (fetch, authorize) =>
+    createGithubIssuesTracker(
+      { fetch: createReadOnlyFetch({ platform: 'github-issues', fetch }), authorize },
+      { repository: 'acme/widgets' },
+    ),
+  expected: {
     host: 'api.github.com',
-    settings: {},
     account: 'alice-dev',
     sameIssue: { text: 'Closes #45, see also Acme/Widgets#45', key: 'acme/widgets#45', forms: ['#45', 'Acme/Widgets#45'] },
     issue: {
@@ -80,18 +88,27 @@ const TRACKERS: Tracker[] = [
       descriptionText: '**Steps**\n\n1. Request a reset\n2. Request another reset\n\n<b>Expected</b>: both work.',
     },
     wrongKey: 'acme/widgets#999',
-    noAccessKey: 'acme/secret#7',
+    noAccess: { key: 'acme/secret#7', reason: 'forbidden' },
+    pullRequestRef: {
+      text: 'Builds on #123 and fixes acme/widgets#45.',
+      pull: { key: 'acme/widgets#123', form: '#123' },
+      issue: { key: 'acme/widgets#45', form: 'owner/repo#123', title: 'Customers cannot reset a password twice' },
+    },
   },
-];
+});
+
+// ---------------------------------------------------------------- the shared suite (VO-037, VO-064, VO-024)
+
+for (const target of [JIRA, ISSUES]) runIssueTrackerContract(target);
+
+// ---------------------------------------------------------------- fixture-only helpers
 
 async function tracker(
-  t: Tracker,
-  options: { authorize?: Authorize; entries?: FixtureEntry[]; platforms?: string[] } = {},
+  t: FixtureTarget,
+  options: { authorize?: Authorize; entries?: FixtureEntry[] } = {},
 ): Promise<{ tracker: IssueTracker; recorded: RecordedFetch }> {
-  const { adapterDeps, createIssueTracker } = await loadRegistry();
-  const recorded = recordedFetch(options.platforms ?? [t.fixtures], { entries: options.entries ?? [] });
-  const deps = adapterDeps(t.id, recorded.fetch, options.authorize ?? withCredential);
-  return { tracker: createIssueTracker(t.id, deps, { repository: REPOSITORY, ...t.settings }), recorded };
+  const recorded = recordedFetch([t.fixtures], { entries: options.entries ?? [] });
+  return { tracker: t.build(recorded.fetch, options.authorize ?? withCredential), recorded };
 }
 
 function only(refs: RawIssueReference[], key: string): RawIssueReference {
@@ -100,68 +117,15 @@ function only(refs: RawIssueReference[], key: string): RawIssueReference {
   return found;
 }
 
-function onlyGets(t: Tracker, recorded: RecordedFetch): void {
+function onlyGets(t: FixtureTarget, recorded: RecordedFetch): void {
   recorded.assertAllRecorded();
   for (const request of recorded.requests) {
     assert.equal(request.method, 'GET');
-    assert.equal(request.host, t.host);
+    assert.equal(request.host, t.expected.host);
   }
 }
 
-// ---------------------------------------------------------------- the shared suite (VO-037)
-
-for (const t of TRACKERS) {
-  test(`VO-037 ${t.id}: extractReferences normalises every written form to one key on this tracker`, async () => {
-    const { tracker: tr, recorded } = await tracker(t);
-    assert.equal(tr.id, t.id);
-    const refs = tr.extractReferences(t.sameIssue.text);
-    assert.ok(refs.length >= 2, 'each place it is written is found');
-    for (const ref of refs) {
-      assert.equal(ref.platform, t.id);
-      assert.equal(ref.key, t.sameIssue.key);
-    }
-    assert.deepEqual(refs.map((r) => r.text).sort(), [...t.sameIssue.forms].sort(), 'the written text is kept');
-    assert.equal(recorded.requests.length, 0, 'extraction makes no request');
-  });
-
-  test(`VO-037 ${t.id}: lookup of an issue returns its title and plain-text description with one GET`, async () => {
-    const { tracker: tr, recorded } = await tracker(t);
-    const result = await tr.lookup(only(tr.extractReferences(t.sameIssue.text), t.issue.key));
-    assert.equal(result.status, 'resolved');
-    assert.ok(result.status === 'resolved' && result.kind === 'issue');
-    assert.equal(result.title, t.issue.title);
-    assert.equal(result.descriptionText, t.issue.descriptionText);
-    assert.equal(recorded.requests.length, 1, 'one GET per key');
-    onlyGets(t, recorded);
-  });
-
-  test(`VO-037 ${t.id}: lookup of a missing issue resolves unresolved with a reason and does not throw`, async () => {
-    const { tracker: tr, recorded } = await tracker(t);
-    const result = await tr.lookup(only(tr.extractReferences(`see ${t.wrongKey}`), t.wrongKey));
-    assert.deepEqual(result, { status: 'unresolved', reason: 'not found' });
-    onlyGets(t, recorded);
-  });
-
-  test(`VO-037 ${t.id}: verifySignIn checks the credential with one read-only GET`, async () => {
-    const { tracker: tr, recorded } = await tracker(t);
-    assert.deepEqual(await tr.verifySignIn(), { ok: true, account: t.account });
-    assert.equal(recorded.requests.length, 1);
-    onlyGets(t, recorded);
-  });
-
-  test(`VO-064 ${t.id}: a wrong key and a key without access are each unresolved with their reason`, async () => {
-    const { tracker: tr, recorded } = await tracker(t);
-    const wrong = await tr.lookup(only(tr.extractReferences(t.wrongKey), t.wrongKey));
-    const forbidden = await tr.lookup(only(tr.extractReferences(t.noAccessKey), t.noAccessKey));
-    assert.deepEqual(wrong, { status: 'unresolved', reason: 'not found' });
-    assert.deepEqual(forbidden, { status: 'unresolved', reason: 'forbidden' });
-    onlyGets(t, recorded);
-  });
-}
-
 // ---------------------------------------------------------------- project-key tracker (VO-023, VO-025)
-
-const JIRA = TRACKERS[0] as Tracker;
 
 test('VO-023 jira-cloud: a configured key is accepted, an unconfigured key only when lookup confirms it', async () => {
   const { tracker: tr, recorded } = await tracker(JIRA);
@@ -181,14 +145,12 @@ test('VO-023 jira-cloud: a configured key is accepted, an unconfigured key only 
   onlyGets(JIRA, recorded);
 });
 
-test('VO-023 jira-cloud: with no project keys configured every key needs confirmation', async () => {
-  const { adapterDeps, createIssueTracker } = await loadRegistry();
+test('VO-023 jira-cloud: with no project keys configured every key needs confirmation', () => {
   const recorded = recordedFetch('jira');
-  const tr = createIssueTracker('jira-cloud', adapterDeps('jira-cloud', recorded.fetch, withCredential), {
-    repository: REPOSITORY,
-    site: 'https://acme.atlassian.net',
-    projectKeys: [],
-  });
+  const tr = createJiraCloudTracker(
+    { fetch: createReadOnlyFetch({ platform: 'jira-cloud', fetch: recorded.fetch }), authorize: withCredential },
+    { site: 'https://acme.atlassian.net', projectKeys: [] },
+  );
   assert.equal(only(tr.extractReferences('ABC-12'), 'ABC-12').needsConfirmation, true);
 });
 
@@ -220,23 +182,7 @@ test('VO-064 jira-cloud: a tracker failure is unresolved with its reason, not dr
 });
 
 // ---------------------------------------------------------------- number-form tracker (VO-024)
-
-const ISSUES = TRACKERS[1] as Tracker;
-
-test('VO-024 github-issues: #123 that is a pull request is a PR reference, owner/repo#45 an issue', async () => {
-  const { tracker: tr, recorded } = await tracker(ISSUES);
-  const refs = tr.extractReferences('Builds on #123 and fixes acme/widgets#45.');
-  const pull = only(refs, 'acme/widgets#123');
-  const issue = only(refs, 'acme/widgets#45');
-  assert.equal(pull.form, '#123');
-  assert.equal(issue.form, 'owner/repo#123');
-  assert.ok(!pull.needsConfirmation && !issue.needsConfirmation, 'number forms are always references');
-  assert.deepEqual(await tr.lookup(pull), { status: 'resolved', kind: 'pull-request' });
-  const looked = await tr.lookup(issue);
-  assert.ok(looked.status === 'resolved' && looked.kind === 'issue');
-  assert.equal(looked.title, 'Customers cannot reset a password twice');
-  onlyGets(ISSUES, recorded);
-});
+// The pull-request-reference case runs in the shared suite from ISSUES.expected.pullRequestRef.
 
 test('VO-024 github-issues: a heading anchor or a word with # is not a reference', async () => {
   const { tracker: tr } = await tracker(ISSUES);

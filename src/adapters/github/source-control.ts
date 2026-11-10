@@ -139,6 +139,11 @@ export function createGithubSourceControl(deps: AdapterDeps): SourceControlProvi
 
     cloneLocations: (repo) => [`github.com/${repo.id.toLowerCase()}`],
 
+    repositoryForRemote(remote) {
+      const match = /^github\.com\/([^/]+\/[^/]+)$/.exec(remote);
+      return match === null ? null : (match[1] ?? null);
+    },
+
     async listOpenPullRequests(repo) {
       const raw = await getPages(`${API}/repos/${repoPath(repo)}/pulls?state=open&per_page=100`);
       return raw.map(toPullRequest);

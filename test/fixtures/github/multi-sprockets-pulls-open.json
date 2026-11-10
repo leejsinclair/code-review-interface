@@ -1,0 +1,145 @@
+{
+  "request": {
+    "method": "GET",
+    "url": "https://api.github.com/repos/acme/sprockets/pulls?state=open&per_page=100"
+  },
+  "response": {
+    "status": 200,
+    "headers": {
+      "content-type": "application/json; charset=utf-8",
+      "x-github-media-type": "github.v3; format=json"
+    },
+    "body": [
+      {
+        "url": "https://api.github.com/repos/acme/sprockets/pulls/30",
+        "id": 2100000001,
+        "node_id": "PR_kwDOAcme0001",
+        "html_url": "https://github.com/acme/sprockets/pull/30",
+        "diff_url": "https://github.com/acme/sprockets/pull/30",
+        "patch_url": "https://github.com/acme/sprockets/pull/30",
+        "issue_url": "https://api.github.com/repos/acme/sprockets/issues/30",
+        "number": 30,
+        "state": "open",
+        "locked": false,
+        "title": "Sprocket sizing",
+        "user": {
+          "login": "ed",
+          "id": 41001,
+          "node_id": "MDQ6VXNlcj41001",
+          "avatar_url": "https://avatars.githubusercontent.com/u/41001?v=4",
+          "url": "https://api.github.com/users/alice-dev",
+          "html_url": "https://github.com/alice-dev",
+          "type": "User",
+          "site_admin": false
+        },
+        "body": "Plain description.",
+        "created_at": "2026-11-02T10:00:00Z",
+        "updated_at": "2026-11-03T09:05:12Z",
+        "closed_at": null,
+        "merged_at": null,
+        "merge_commit_sha": null,
+        "assignee": null,
+        "assignees": [],
+        "requested_reviewers": [],
+        "labels": [],
+        "milestone": null,
+        "draft": false,
+        "commits_url": "https://api.github.com/repos/acme/sprockets/pulls/1/30",
+        "head": {
+          "label": "acme:feature/pr-30",
+          "ref": "feature/pr-30",
+          "sha": "a3f9c2e17b4d58e6f0a1c3b5d7e9f2a4c6b8d0e1",
+          "user": {
+            "login": "acme",
+            "id": 701100,
+            "node_id": "MDQ6VXNlcj701100",
+            "avatar_url": "https://avatars.githubusercontent.com/u/701100?v=4",
+            "url": "https://api.github.com/users/acme",
+            "html_url": "https://github.com/acme",
+            "type": "User",
+            "site_admin": false
+          },
+          "repo": {
+            "id": 700100,
+            "node_id": "R_kgDO700100",
+            "name": "widgets",
+            "full_name": "acme/sprockets",
+            "private": false,
+            "owner": {
+              "login": "acme",
+              "id": 701100,
+              "node_id": "MDQ6VXNlcj701100",
+              "avatar_url": "https://avatars.githubusercontent.com/u/701100?v=4",
+              "url": "https://api.github.com/users/acme",
+              "html_url": "https://github.com/acme",
+              "type": "User",
+              "site_admin": false
+            },
+            "html_url": "https://github.com/acme/sprockets",
+            "fork": false,
+            "url": "https://api.github.com/repos/acme/sprockets",
+            "git_url": "git://github.com/acme/sprockets.git",
+            "ssh_url": "git@github.com:acme/sprockets.git",
+            "clone_url": "https://github.com/acme/sprockets.git",
+            "default_branch": "main",
+            "visibility": "public"
+          }
+        },
+        "base": {
+          "label": "acme:main",
+          "ref": "main",
+          "sha": "e4d2c1b0a9f8e7d6c5b4a3f2e1d0c9b8a7f6e5d4",
+          "user": {
+            "login": "acme",
+            "id": 701100,
+            "node_id": "MDQ6VXNlcj701100",
+            "avatar_url": "https://avatars.githubusercontent.com/u/701100?v=4",
+            "url": "https://api.github.com/users/acme",
+            "html_url": "https://github.com/acme",
+            "type": "User",
+            "site_admin": false
+          },
+          "repo": {
+            "id": 700100,
+            "node_id": "R_kgDO700100",
+            "name": "widgets",
+            "full_name": "acme/sprockets",
+            "private": false,
+            "owner": {
+              "login": "acme",
+              "id": 701100,
+              "node_id": "MDQ6VXNlcj701100",
+              "avatar_url": "https://avatars.githubusercontent.com/u/701100?v=4",
+              "url": "https://api.github.com/users/acme",
+              "html_url": "https://github.com/acme",
+              "type": "User",
+              "site_admin": false
+            },
+            "html_url": "https://github.com/acme/sprockets",
+            "fork": false,
+            "url": "https://api.github.com/repos/acme/sprockets",
+            "git_url": "git://github.com/acme/sprockets.git",
+            "ssh_url": "git@github.com:acme/sprockets.git",
+            "clone_url": "https://github.com/acme/sprockets.git",
+            "default_branch": "main",
+            "visibility": "public"
+          }
+        },
+        "author_association": "MEMBER",
+        "auto_merge": null,
+        "active_lock_reason": null,
+        "merged": false,
+        "mergeable": true,
+        "mergeable_state": "clean",
+        "merged_by": null,
+        "comments": 0,
+        "review_comments": 0,
+        "maintainer_can_modify": false,
+        "commits": 2,
+        "additions": 6,
+        "deletions": 4,
+        "changed_files": 3
+      }
+    ]
+  }
+}

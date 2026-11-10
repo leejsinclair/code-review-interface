@@ -57,6 +57,7 @@ function fakePlatform(sandbox: GitSandbox) {
       return { ok: true, account: 'reviewer' };
     },
     cloneLocations: () => ['code.example.test/acme/widgets'],
+    repositoryForRemote: (remote: string) => (remote === 'code.example.test/acme/widgets' ? 'acme/widgets' : null),
     async listOpenPullRequests() {
       calls.push('list');
       return [...prs.values()].filter((p) => p.state === 'open').map(strip);
@@ -162,7 +163,7 @@ async function harness(t: { after(fn: () => unknown): void }, options: HarnessOp
   const sessions = createSessions({
     store,
     manager,
-    environment: () => ({
+    environmentFor: () => ({
       sourceControl: platform.sc,
       tracker: options.tracker ?? noIssues,
       repository: { platform: SOURCE, id: 'acme/widgets' },
@@ -226,12 +227,12 @@ async function twoSessions(t: { after(fn: () => unknown): void }) {
   await h.sandbox.openPr({ number: 2, branch: 'docs/readme', files: { 'README.md': '# widgets\n\nMore.\n' } });
   h.platform.publish(1, { description: 'Fixes ABC-12.' });
   h.platform.publish(2, { description: 'Fixes ABC-13.' });
-  const doomed = (await h.sessions.start(1)).detail;
+  const doomed = (await h.sessions.start({ platform: SOURCE, id: 'acme/widgets' }, 1)).detail;
   // A second snapshot, so the delete covers more than one.
   await h.sandbox.pushCommit(1, { 'src/util.js': UTIL_V3 });
   h.platform.publish(1);
   const refreshed = await h.sessions.refresh(doomed.sessionId);
-  const kept = (await h.sessions.start(2)).detail;
+  const kept = (await h.sessions.start({ platform: SOURCE, id: 'acme/widgets' }, 2)).detail;
   h.store.appendQuestion(question(doomed.sessionId, refreshed.snapshots[1]?.snapshotId ?? '', '00000000-0000-4000-8000-0000000000d1'));
   h.store.appendQuestion(question(kept.sessionId, kept.snapshots[0]?.snapshotId ?? '', '00000000-0000-4000-8000-0000000000d2'));
   return { h, doomed: refreshed, kept };

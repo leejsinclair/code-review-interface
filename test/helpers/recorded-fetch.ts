@@ -20,8 +20,14 @@
 // - When several entries share a method and URL (in one file or across files, read in file-name order),
 //   they are served in order and the last one repeats; this models "re-fetch succeeds, then fails".
 // - Fixtures are recorded with tokens stripped; the replayer never adds or needs credentials.
+//
+// Recording (T036, FR-041, FR-042): `recordingFetch(network, { dir, secrets })` passes requests to the
+// real network and saves each request and response here in the shape above, one numbered file per
+// request. It keeps only response headers the replay needs, so no cookie or credential header is
+// written, and replaces every secret in URLs, headers and bodies with `[redacted]`. It is on when
+// `dir` is given or `PRWB_RECORD_FIXTURES` names a directory; otherwise it returns `network` as is.
 
-import { readdirSync, readFileSync } from 'node:fs';
+import { mkdirSync, readdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
@@ -195,3 +201,60 @@ export function recordedFetch(platforms: string | string[], options: RecordedFet
     },
   };
 }
+
+/** Response headers worth replaying: the media type and GitLab's paging headers. Nothing else is kept. */
+const RECORDED_HEADERS = ['content-type', 'link', 'x-next-page', 'x-page', 'x-per-page', 'x-prev-page', 'x-total', 'x-total-pages'];
+
+type Network = (input: string | URL | Request, init?: RequestInit) => Promise<Response>;
+
+export function recordingFetch<N extends Network>(network: N, options: { dir?: string; secrets: readonly string[] }): N | Network {
+  const dir = options.dir ?? process.env.PRWB_RECORD_FIXTURES;
+  if (dir === undefined || dir === '') return network;
+  mkdirSync(dir, { recursive: true });
+  const secrets = options.secrets.filter((secret) => secret !== '');
+  const scrub = (text: string): string => secrets.reduce((out, secret) => out.split(secret).join('[redacted]'), text);
+  let count = 0;
+
+  return async (input, init) => {
+    const request = new Request(input, init);
+    const response = await network(request);
+    const text = await response.text();
+    const headers: Record<string, string> = {};
+    for (const name of RECORDED_HEADERS) {
+      const value = response.headers.get(name);
+      if (value !== null) headers[name] = scrub(value);
+    }
+    const scrubbed = scrub(text);
+    let body: unknown = scrubbed;
+    if ((headers['content-type'] ?? '').includes('json') && scrubbed !== '') body = JSON.parse(scrubbed);
+    const accept = request.headers.get('accept');
+    const entry: FixtureEntry = {
+      request: { method: request.method, url: scrub(request.url), ...(accept !== null && accept !== '*/*' ? { headers: { accept } } : {}) },
+      response: { status: response.status, headers, body },
+    };
+    const path = new URL(request.url).pathname.replace(/[^a-zA-Z0-9]+/g, '-').replace(/^-|-$/g, '').slice(-80);
+    count += 1;
+    writeFileSync(join(dir, `${String(count).padStart(4, '0')}-${request.method.toLowerCase()}-${path}.json`), `${JSON.stringify(entry, null, 2)}\n`);
+    return new Response(text, { status: response.status, statusText: response.statusText, headers: response.headers });
+  };
+}
+
+/**
+ * Names in the multi-repository fixtures (`test/fixtures/github/multi-*.json`, spec 003). The files are
+ * picked up with the rest of the folder; these constants say what they contain.
+ */
+export const MULTI_REPOSITORY = {
+  /** Repositories whose open pull requests list normally. */
+  repositories: ['acme/gadgets', 'acme/gizmos', 'acme/sprockets'],
+  /** A repository whose pull request list answers 500. */
+  failing: 'acme/broken',
+  /** An issue number that exists in both repositories with different content. */
+  sharedIssue: { number: 77, repositories: ['acme/gadgets', 'acme/gizmos'] },
+  /** A pull request with 32 changed files. */
+  manyFilesPull: { repository: 'acme/gadgets', number: 40, files: 32 },
+  /** A pull request and an issue whose text holds HTML and markdown. */
+  markupPull: { repository: 'acme/gadgets', number: 41 },
+  markupIssue: { repository: 'acme/gadgets', number: 78 },
+  /** The fake-AI `answerFixture` whose Evidence claim cites lines 45-50. */
+  answerFixture: 'answer-evidence-lines-45-50',
+} as const;

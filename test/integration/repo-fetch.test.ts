@@ -57,6 +57,7 @@ function fakePlatform(sandbox: GitSandbox) {
       return { ok: true, account: 'reviewer' };
     },
     cloneLocations: () => ['code.example.test/acme/widgets'],
+    repositoryForRemote: (remote: string) => (remote === 'code.example.test/acme/widgets' ? 'acme/widgets' : null),
     async listOpenPullRequests() {
       calls.push('list');
       return [...prs.values()].filter((p) => p.state === 'open').map(strip);
@@ -162,7 +163,7 @@ async function harness(t: { after(fn: () => unknown): void }, options: HarnessOp
   const sessions = createSessions({
     store,
     manager,
-    environment: () => ({
+    environmentFor: () => ({
       sourceControl: platform.sc,
       tracker: options.tracker ?? noIssues,
       repository: { platform: SOURCE, id: 'acme/widgets' },
@@ -210,7 +211,7 @@ test('VO-048 a fetch writes only refs/prwb/<session>/<snapshot>/{head,target} an
   const before = await h.sandbox.fingerprint();
   assert.notEqual(before.fetchHead, null, 'the reviewer has a FETCH_HEAD');
 
-  const { detail } = await h.sessions.start(1);
+  const { detail } = await h.sessions.start({ platform: SOURCE, id: 'acme/widgets' }, 1);
   const snapshotId = detail.snapshots[0]?.snapshotId ?? '';
   assert.deepEqual((await h.prwbRefs()).sort(), [
     `refs/prwb/${detail.sessionId}/${snapshotId}/head ${pr.head}`,
@@ -234,7 +235,7 @@ test('VO-048 a commit no longer on the remote gives the repository row missing w
   await h.sandbox.git(h.sandbox.platform, 'update-ref', '-d', 'refs/heads/feature/sub');
   await h.sandbox.prune(h.sandbox.platform);
 
-  const { detail } = await h.sessions.start(1);
+  const { detail } = await h.sessions.start({ platform: SOURCE, id: 'acme/widgets' }, 1);
   const repository = detail.completeness.find((row) => row.source === 'repository');
   assert.equal(repository?.status, 'missing');
   assert.match(repository?.reason ?? '', /^fetch failed/);
@@ -252,7 +253,7 @@ test('VO-049 a fork PR is fetched from the fork repository into the app-owned na
   h.platform.publish(3);
   const before = await h.sandbox.fingerprint();
 
-  const { detail } = await h.sessions.start(3);
+  const { detail } = await h.sessions.start({ platform: SOURCE, id: 'acme/widgets' }, 3);
   assert.equal(detail.completeness.find((row) => row.source === 'repository')?.status, 'found');
   const snapshotId = detail.snapshots[0]?.snapshotId ?? '';
   assert.ok((await h.prwbRefs()).includes(`refs/prwb/${detail.sessionId}/${snapshotId}/head ${pr.head}`));
@@ -267,7 +268,7 @@ test('VO-049 a fork PR is fetched from the base repository PR ref where the plat
   // The sandbox root is removed after the test, fork included, so it is not restored.
   await h.sandbox.makeForkUnreachable();
 
-  const { detail } = await h.sessions.start(3);
+  const { detail } = await h.sessions.start({ platform: SOURCE, id: 'acme/widgets' }, 3);
   assert.equal(detail.completeness.find((row) => row.source === 'repository')?.status, 'found');
   const snapshotId = detail.snapshots[0]?.snapshotId ?? '';
   assert.ok((await h.prwbRefs()).includes(`refs/prwb/${detail.sessionId}/${snapshotId}/head ${pr.head}`));
@@ -281,7 +282,7 @@ test('VO-049 an unreachable fork gives the repository row missing with the reaso
   // The sandbox root is removed after the test, fork included, so it is not restored.
   await h.sandbox.makeForkUnreachable();
 
-  const { detail } = await h.sessions.start(3);
+  const { detail } = await h.sessions.start({ platform: SOURCE, id: 'acme/widgets' }, 3);
   const repository = detail.completeness.find((row) => row.source === 'repository');
   assert.equal(repository?.status, 'missing');
   assert.match(repository?.reason ?? '', /^fetch failed/);
@@ -295,7 +296,7 @@ test('VO-050 the workspace is a detached worktree at the snapshot head under <ap
   const pr = await h.sandbox.openPr({ number: 1, branch: 'feature/sub', files: { 'src/util.js': UTIL_V2 } });
   h.platform.publish(1);
 
-  const { detail } = await h.sessions.start(1);
+  const { detail } = await h.sessions.start({ platform: SOURCE, id: 'acme/widgets' }, 1);
   assert.equal(detail.workspaceReady, true);
   const snapshotId = detail.snapshots[0]?.snapshotId ?? '';
   const path = h.manager.workspacePath(detail.sessionId, snapshotId);
@@ -317,7 +318,7 @@ test('VO-051 a local diff records source local and its merge-base', async (t) =>
   h.platform.publish(1);
   const mergeBase = await h.sandbox.git(h.sandbox.platform, 'merge-base', 'refs/heads/main', pr.head);
 
-  const { detail } = await h.sessions.start(1);
+  const { detail } = await h.sessions.start({ platform: SOURCE, id: 'acme/widgets' }, 1);
   const snapshot = h.sessions.snapshot(detail.sessionId, detail.snapshots[0]?.snapshotId ?? '');
   assert.equal(snapshot.diffSource, 'local');
   assert.equal(snapshot.baseCommit, mergeBase);
@@ -333,7 +334,7 @@ test('VO-051 with no clone the snapshot records source platform and no base comm
   h.platform.publish(1);
   h.platform.setDiff(1, PLATFORM_DIFF);
 
-  const { detail } = await h.sessions.start(1);
+  const { detail } = await h.sessions.start({ platform: SOURCE, id: 'acme/widgets' }, 1);
   const snapshot = h.sessions.snapshot(detail.sessionId, detail.snapshots[0]?.snapshotId ?? '');
   assert.equal(snapshot.diffSource, 'platform');
   assert.equal(snapshot.baseCommit, undefined);

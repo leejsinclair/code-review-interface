@@ -1,0 +1,11 @@
+{
+  "claims": [
+    {
+      "text": "The retry loop gives up after the fifth attempt.",
+      "label": "evidence",
+      "refs": [{ "kind": "code", "path": "src/gadgets/module-00.js", "side": "head", "startLine": 45, "endLine": 50 }]
+    }
+  ],
+  "unsupportedAssumptions": [],
+  "suggestedFollowUps": []
+}

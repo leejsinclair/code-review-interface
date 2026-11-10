@@ -80,7 +80,7 @@ async function runFullSession(): Promise<void> {
   fingerprintBefore = await bench.sandbox!.fingerprint();
 
   await call('GET', '/api/pulls');
-  const detail = (await call('POST', '/api/sessions', { prNumber: 1 })).json as Json;
+  const detail = (await call('POST', '/api/sessions', { repository: 'acme/widgets', prNumber: 1 })).json as Json;
   sessionId = detail.sessionId as string;
   snapshotId = (detail.snapshots as Json[]).at(-1)!.snapshotId as string;
   await waitFor(async () => ((await call('GET', `/api/sessions/${sessionId}/snapshots/${snapshotId}/summaries`)).json as Json[])[0]?.state === 'completed', 'the summaries');

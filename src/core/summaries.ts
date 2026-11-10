@@ -17,8 +17,10 @@ import {
   checkContext,
   fetchedIssues,
   generate,
+  NO_CLONE_REASON_FOR_AI,
   restrictionIds,
   restrictionLetters,
+  sessionRepository,
   type AiDeps,
   type RunControl,
 } from './interrogation.ts';
@@ -119,7 +121,14 @@ export function createSummaries(deps: AiDeps): Summaries {
         finish(summaryRun, { outcome: 'cancelled', cancelReason: control.cancelReason, sections: [] });
         return;
       }
-      const env = await deps.environment();
+      const repository = sessionRepository(deps.store, sessionId);
+      if (repository === null) throw new Error('the session is gone');
+      const found = await deps.environmentFor(repository);
+      if (found.clonePath === null) {
+        finish(summaryRun, { outcome: 'failed', failureReason: found.unavailableReason ?? NO_CLONE_REASON_FOR_AI, sections: [] });
+        return;
+      }
+      const env = { ...found, clonePath: found.clonePath };
       const snapshot = store.readSnapshot(summaryRun.snapshotId);
       if (snapshot === null) throw new Error('the snapshot is gone');
       const caps = await provider.capabilities();

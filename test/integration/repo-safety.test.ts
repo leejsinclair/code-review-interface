@@ -58,6 +58,7 @@ function fakePlatform(sandbox: GitSandbox) {
       return { ok: true, account: 'reviewer' };
     },
     cloneLocations: () => ['code.example.test/acme/widgets'],
+    repositoryForRemote: (remote: string) => (remote === 'code.example.test/acme/widgets' ? 'acme/widgets' : null),
     async listOpenPullRequests() {
       calls.push('list');
       return [...prs.values()].filter((p) => p.state === 'open').map(strip);
@@ -163,7 +164,7 @@ async function harness(t: { after(fn: () => unknown): void }, options: HarnessOp
   const sessions = createSessions({
     store,
     manager,
-    environment: () => ({
+    environmentFor: () => ({
       sourceControl: platform.sc,
       tracker: options.tracker ?? noIssues,
       repository: { platform: SOURCE, id: 'acme/widgets' },
@@ -218,7 +219,7 @@ test('VO-005 start, refresh and close leave the branch, HEAD, index, working fil
   assert.equal(before.branch, dirty.branch);
   assert.notEqual(before.stash, '', 'the clone has a stash');
 
-  const { detail } = await h.sessions.start(1);
+  const { detail } = await h.sessions.start({ platform: SOURCE, id: 'acme/widgets' }, 1);
   assert.equal(detail.workspaceReady, true, 'the session really fetched and made a workspace');
   assert.deepEqual(await h.sandbox.fingerprint(), before, 'unchanged after start');
 
@@ -241,7 +242,7 @@ test('VO-009 with the PR branch checked out, the session opens in a detached wor
   assert.equal(before.branch, 'feature/sub');
   assert.ok(before.refs.includes(`refs/heads/feature/sub ${pr.head}`));
 
-  const { detail } = await h.sessions.start(1);
+  const { detail } = await h.sessions.start({ platform: SOURCE, id: 'acme/widgets' }, 1);
   assert.equal(detail.workspaceReady, true);
   const snapshotId = detail.snapshots[0]?.snapshotId ?? '';
   const porcelain = await h.sandbox.git(h.sandbox.clone, 'worktree', 'list', '--porcelain');
@@ -267,7 +268,7 @@ test('VO-068 a post-checkout hook in a tracked hooks directory the clone points 
   const before = await h.sandbox.fingerprint();
   const filesBefore = await filesOutsideGit(h.sandbox.root, h.paths.workspaces);
 
-  const { detail } = await h.sessions.start(1);
+  const { detail } = await h.sessions.start({ platform: SOURCE, id: 'acme/widgets' }, 1);
   assert.equal(detail.workspaceReady, true);
   const workspace = h.manager.workspacePath(detail.sessionId, detail.snapshots[0]?.snapshotId ?? '');
   assert.ok(existsSync(join(workspace, '.githooks/post-checkout')), 'the PR hook is in the workspace');
@@ -281,7 +282,7 @@ test('VO-072 deleting a session leaves the branch, HEAD, index, working files an
   await h.sandbox.openPr({ number: 1, branch: 'feature/sub', files: { 'src/util.js': UTIL_V2 } });
   h.platform.publish(1);
   await h.sandbox.dirtyClone();
-  const { detail } = await h.sessions.start(1);
+  const { detail } = await h.sessions.start({ platform: SOURCE, id: 'acme/widgets' }, 1);
   const before = await h.sandbox.fingerprint();
 
   await h.sessions.delete(detail.sessionId, { confirm: true });
@@ -295,7 +296,7 @@ test('VO-072 the start-up sweep of a leftover worktree leaves the branch, HEAD, 
   await h.sandbox.openPr({ number: 1, branch: 'feature/sub', files: { 'src/util.js': UTIL_V2 } });
   h.platform.publish(1);
   await h.sandbox.dirtyClone();
-  const { detail } = await h.sessions.start(1);
+  const { detail } = await h.sessions.start({ platform: SOURCE, id: 'acme/widgets' }, 1);
   const leftover = h.manager.workspacePath(detail.sessionId, detail.snapshots[0]?.snapshotId ?? '');
   const before = await h.sandbox.fingerprint();
 

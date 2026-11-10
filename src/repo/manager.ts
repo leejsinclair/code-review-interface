@@ -14,6 +14,7 @@ import { diffFingerprint, parseUnifiedDiff, type DiffFile } from './unified-diff
 
 export const NO_CLONE_REASON = 'no clone at the configured path';
 export const NO_MATCHING_REMOTE_REASON = 'no remote of the clone points at the configured repository';
+const MAX_REMOTE_READS = 8;
 export const HEAD_MISMATCH_REASON = 'fetched head does not match the PR';
 
 export type CloneMatch = { ok: true; remoteUrl: string } | { ok: false; reason: string };
@@ -40,6 +41,12 @@ export type LocalDiff = { baseCommit: string; files: LocalDiffFile[]; fingerprin
 export interface RepositoryManager {
   readonly workspacesDir: string;
   matchClone(clonePath: string, cloneLocations: readonly string[]): Promise<CloneMatch>;
+  /**
+   * The remote URLs of the clone in `folder`, as `git remote -v` shows them (fetch URLs first, each URL
+   * once). Runs the `listRemotes` command and nothing else; at most 8 reads run at once (R11). Rejects
+   * when git cannot read the folder.
+   */
+  readRemotes(folder: string): Promise<string[]>;
   fetchSnapshot(input: FetchInput): Promise<FetchOutcome>;
   localDiff(clonePath: string, targetCommit: string, headCommit: string): Promise<LocalDiff>;
   /** Paths changed between two commits present in the clone. */
@@ -123,6 +130,29 @@ export function createRepositoryManager(options: { git: Git; workspacesDir: stri
   const run = async (command: string, params: Record<string, string>, cwd: string): Promise<string> =>
     text((await git.run(command, params, { cwd })).stdout);
 
+  const remoteLines = (output: string): RegExpExecArray[] =>
+    output
+      .split('\n')
+      .map((line) => /^\S+\t(.+?)\s+\((fetch|push)\)$/.exec(line))
+      .filter((m): m is RegExpExecArray => m !== null)
+      .sort((a, b) => (a[2] === b[2] ? 0 : a[2] === 'fetch' ? -1 : 1));
+
+  // At most MAX_REMOTE_READS `listRemotes` runs at once, however many folders discovery has queued.
+  let reading = 0;
+  const waiting: Array<() => void> = [];
+  const readRemotes = async (folder: string): Promise<string[]> => {
+    if (reading < MAX_REMOTE_READS) reading += 1;
+    else await new Promise<void>((resolve) => waiting.push(resolve)); // the finishing read hands its slot over
+    try {
+      const urls = remoteLines(await run('listRemotes', {}, folder)).map((m) => m[1] ?? '');
+      return [...new Set(urls)];
+    } finally {
+      const next = waiting.shift();
+      if (next === undefined) reading -= 1;
+      else next();
+    }
+  };
+
   const matchClone = async (clonePath: string, cloneLocations: readonly string[]): Promise<CloneMatch> => {
     let topLevel: string;
     try {
@@ -132,11 +162,7 @@ export function createRepositoryManager(options: { git: Git; workspacesDir: stri
     }
     if (!(await sameDirectory(topLevel, clonePath))) return { ok: false, reason: NO_CLONE_REASON };
     const wanted = new Set(cloneLocations.map(normaliseRemote));
-    const remotes = (await run('listRemotes', {}, clonePath))
-      .split('\n')
-      .map((line) => /^\S+\t(.+?)\s+\((fetch|push)\)$/.exec(line))
-      .filter((m): m is RegExpExecArray => m !== null)
-      .sort((a, b) => (a[2] === b[2] ? 0 : a[2] === 'fetch' ? -1 : 1));
+    const remotes = remoteLines(await run('listRemotes', {}, clonePath));
     for (const m of remotes) {
       const url = m[1] ?? '';
       if (wanted.has(normaliseRemote(url))) return { ok: true, remoteUrl: url };
@@ -157,6 +183,7 @@ export function createRepositoryManager(options: { git: Git; workspacesDir: stri
   return {
     workspacesDir,
     matchClone,
+    readRemotes,
 
     async fetchSnapshot(input) {
       const match = await matchClone(input.clonePath, input.cloneLocations);

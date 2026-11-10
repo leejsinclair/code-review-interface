@@ -1,0 +1,45 @@
+{
+  "request": {
+    "method": "GET",
+    "url": "https://api.github.com/repos/acme/gadgets/issues/77"
+  },
+  "response": {
+    "status": 200,
+    "headers": {
+      "content-type": "application/json; charset=utf-8",
+      "x-github-media-type": "github.v3; format=json"
+    },
+    "body": {
+      "url": "https://api.github.com/repos/acme/gadgets/issues/77",
+      "repository_url": "https://api.github.com/repos/acme/gadgets",
+      "html_url": "https://github.com/acme/gadgets/issues/77",
+      "id": 3100000045,
+      "node_id": "I_kwDOAcme0045",
+      "number": 77,
+      "title": "Gadgets cache is stale",
+      "user": {
+        "login": "bob-dev",
+        "id": 41002,
+        "node_id": "MDQ6VXNlcj41002",
+        "avatar_url": "https://avatars.githubusercontent.com/u/41002?v=4",
+        "url": "https://api.github.com/users/bob-dev",
+        "html_url": "https://github.com/bob-dev",
+        "type": "User",
+        "site_admin": false
+      },
+      "labels": [],
+      "state": "open",
+      "locked": false,
+      "assignee": null,
+      "assignees": [],
+      "milestone": null,
+      "comments": 0,
+      "created_at": "2026-10-20T10:00:00Z",
+      "updated_at": "2026-10-21T10:00:00Z",
+      "closed_at": null,
+      "author_association": "MEMBER",
+      "body": "Gadget cache never invalidates.",
+      "state_reason": null
+    }
+  }
+}

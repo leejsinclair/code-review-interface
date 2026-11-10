@@ -54,4 +54,8 @@ export type AdapterDescriptor = {
   id: PlatformId;
   displayName: string;
   signInFields: readonly SignInField[];
+  /** True when the source-control platform needs a repository base address (FR-016). */
+  needsBaseUrl?: boolean;
+  /** Tracker settings fields Setup renders for this adapter; absent means none (R14). */
+  settingsFields?: readonly ('site' | 'projectKeys')[];
 };

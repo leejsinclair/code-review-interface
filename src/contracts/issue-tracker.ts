@@ -6,9 +6,11 @@ import type { PlatformId, SignInCheck } from './shared.ts';
 
 /**
  * The textual form a reference was written in: a project key such as `ABC-12`,
- * a bare `#123`, or a qualified `owner/repo#123`.
+ * a bare `#123`, a qualified `owner/repo#123`, a short merge-request reference `!123`
+ * resolved against the configured repository, or a qualified `owner/repo!123` (any depth
+ * of nested group).
  */
-export type IssueRefForm = 'project-key' | '#123' | 'owner/repo#123';
+export type IssueRefForm = 'project-key' | '#123' | 'owner/repo#123' | '!123' | 'owner/repo!123';
 
 /** A reference found in text, before lookup. `key` is normalised, e.g. "ABC-12" or "owner/repo#123". */
 export type RawIssueReference = {

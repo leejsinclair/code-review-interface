@@ -8,12 +8,13 @@
 
 import assert from 'node:assert/strict';
 import { existsSync } from 'node:fs';
+import { mkdir } from 'node:fs/promises';
 import { join } from 'node:path';
 import { test } from 'node:test';
 import { registerSecret } from '../../src/log.ts';
 import { useTempAppData } from '../helpers/app-data.ts';
 import { createFakeKeyring, type FakeKeyring } from '../helpers/fake-keyring.ts';
-import { createGitSandbox, type GitSandbox } from '../helpers/git-sandbox.ts';
+import { createGitSandbox, makeUnfetchableClone, type GitSandbox } from '../helpers/git-sandbox.ts';
 import { loadFixtures, recordedFetch, type FixtureEntry, type RecordedFetch } from '../helpers/recorded-fetch.ts';
 import { startTestServer, type TestClient } from '../helpers/server.ts';
 
@@ -40,7 +41,7 @@ const FIXTURE_HEAD: Record<number, string> = {
 const JIRA_SITE = 'https://acme.atlassian.net';
 const UTIL_V2 = 'export function add(a, b) {\n  return a + b;\n}\n\nexport const version = 2;\n';
 
-type Clone = 'sandbox' | 'missing' | 'elsewhere';
+type Clone = 'sandbox' | 'missing' | 'elsewhere' | 'none';
 
 type E2EOptions = {
   clone?: Clone;
@@ -89,8 +90,10 @@ function platformEntries(options: E2EOptions): FixtureEntry[] {
 }
 
 async function e2e(t: { after(fn: () => unknown): void }, options: E2EOptions = {}) {
-  const { createContextRoutes } = await import('../../src/server/routes/context.ts');
-  const { registeredPlatforms } = await import('../../src/adapters/registry.ts');
+  const { configPlatforms, createContextRoutes } = await import('../../src/server/routes/context.ts');
+  const { adapterDeps, createSourceControl } = await import('../../src/adapters/registry.ts');
+  const { createWorkspace } = await import('../../src/core/workspace.ts');
+  const { createRepositoryManager } = await import('../../src/repo/manager.ts');
   const { ensureAppData } = await import('../../src/appdata.ts');
   const { saveConfig } = await import('../../src/config.ts');
   const { createCredentials } = await import('../../src/credentials.ts');
@@ -105,11 +108,20 @@ async function e2e(t: { after(fn: () => unknown): void }, options: E2EOptions = 
   const live = new Map<string, string>();
   let sandbox: GitSandbox | null = null;
   let clonePath = join(appData.root, 'no-clone-here');
-  if (clone !== 'missing') {
+  // The base folder discovery scans: the sandbox's folder (holding the clone), or an empty one.
+  let baseFolder = join(appData.root, 'base');
+  await mkdir(baseFolder, { recursive: true });
+  if (clone === 'missing') {
+    // A matched clone whose head cannot be fetched: the snapshot has no local head and its diff comes from the platform.
+    clonePath = join(baseFolder, 'widgets');
+    await makeUnfetchableClone(clonePath, 'https://github.com/Acme/Widgets', 'https://github.com/acme/widgets.git', join(appData.root, 'nowhere'));
+  }
+  if (clone !== 'missing' && clone !== 'none') {
     const s = await createGitSandbox();
     sandbox = s;
     t.after(() => s.cleanup());
     clonePath = s.clone;
+    baseFolder = s.root;
     const opened = [
       await s.openPr({ number: 1, branch: 'feature/ABC-12-reset', files: { 'src/util.js': UTIL_V2 } }),
       await s.openPr({ number: 2, branch: 'docs/typo', files: { 'README.md': '# widgets\n\nSandbox repository.\n' } }),
@@ -138,10 +150,26 @@ async function e2e(t: { after(fn: () => unknown): void }, options: E2EOptions = 
     await credentials.save('jira-cloud', { account: 'alice@acme.example', secret: 'test-jira-token', scheme: 'basic' });
   }
   const configBody = {
-    repository: { platform: 'github', id: 'acme/widgets', clonePath },
+    workspace: { baseFolder, platform: 'github' },
     issueTracker: { platform: 'jira-cloud', site: JIRA_SITE, projectKeys: ['ABC'] },
   };
-  if (options.configured !== false) await saveConfig(appData.dir, configBody, registeredPlatforms());
+  if (options.configured !== false) await saveConfig(appData.dir, configBody, configPlatforms());
+
+  const git = createGit({ hooksPath: paths.emptyHooks });
+  const workspace = createWorkspace({
+    manager: createRepositoryManager({ git, workspacesDir: paths.workspaces }),
+    appDataDir: appData.dir,
+    matcherFor: ({ platform, baseUrl }) => {
+      const sourceControl = createSourceControl(platform, adapterDeps(platform, network, (request) => request), {
+        repository: { platform, id: '' },
+        ...(baseUrl === undefined ? {} : { baseUrl }),
+      });
+      return (remote) => sourceControl.repositoryForRemote(remote);
+    },
+  });
+  workspace.configure(options.configured === false ? null : configBody.workspace);
+  t.after(() => workspace.cancel());
+  await workspace.settled();
 
   const db = openDatabase(paths.db);
   t.after(() => db.close());
@@ -150,10 +178,11 @@ async function e2e(t: { after(fn: () => unknown): void }, options: E2EOptions = 
   const snapshotsAnnounced: string[] = [];
   const routes = createContextRoutes({
     appDataDir: appData.dir,
+    workspace,
     store,
     credentials,
     network,
-    git: createGit({ hooksPath: paths.emptyHooks }),
+    git,
     events,
     aiProviders: ['ai-a'],
     onSnapshot: (_sessionId: string, snapshotId: string) => snapshotsAnnounced.push(snapshotId),
@@ -162,7 +191,7 @@ async function e2e(t: { after(fn: () => unknown): void }, options: E2EOptions = 
   t.after(() => client.close());
 
   const platformRequests = (host: string) => recorded.requests.filter((r) => r.host === host);
-  return { appData, paths, sandbox, clonePath, live, recorded, keyring, credentials, store, client, snapshotsAnnounced, configBody, platformRequests };
+  return { appData, paths, sandbox, clonePath, workspace, live, recorded, keyring, credentials, store, client, snapshotsAnnounced, configBody, platformRequests };
 }
 
 type Json = Record<string, any>; // eslint-disable-line @typescript-eslint/no-explicit-any
@@ -180,11 +209,11 @@ test('VO-053 every platform describes its sign-in fields; Bitbucket Cloud asks f
   const res = await h.client.get('/api/platforms');
   assert.equal(res.status, 200, res.text);
   const platforms = res.json as Json;
-  assert.deepEqual([...platforms.sourceControl].sort(), ['bitbucket-cloud', 'github']);
-  assert.deepEqual([...platforms.issueTrackers].sort(), ['github-issues', 'jira-cloud']);
+  assert.deepEqual([...platforms.sourceControl].sort(), ['bitbucket-cloud', 'github', 'gitlab']);
+  assert.deepEqual([...platforms.issueTrackers].sort(), ['github-issues', 'gitlab-issues', 'jira-cloud']);
   assert.deepEqual(platforms.ai, ['ai-a']);
   const byId = new Map((platforms.descriptors as Json[]).map((d) => [d.id, d]));
-  for (const id of ['github', 'bitbucket-cloud', 'github-issues', 'jira-cloud']) {
+  for (const id of ['github', 'bitbucket-cloud', 'gitlab', 'github-issues', 'gitlab-issues', 'jira-cloud']) {
     const descriptor = byId.get(id);
     assert.ok(descriptor, `${id} is described`);
     assert.ok(descriptor.displayName.length > 0);
@@ -199,6 +228,8 @@ test('VO-053 every platform describes its sign-in fields; Bitbucket Cloud asks f
     for (const field of descriptor.signInFields as Json[]) assert.doesNotMatch(field.label, /app password/i);
   }
   assert.deepEqual((byId.get('github')?.signInFields as Json[]).map((f) => f.name), ['secret']);
+  // Only a self-hosted source-control platform asks for a repository base address (FR-016).
+  assert.deepEqual([...byId.values()].filter((d) => d.needsBaseUrl === true).map((d) => d.id), ['gitlab']);
 });
 
 test('VO-053 each sign-in is checked by one read-only GET before it is stored, and no secret is returned', async (t) => {
@@ -263,7 +294,7 @@ test('VO-053 a credential the read-only check rejects is refused with signin_rej
 test('VO-053 after GitHub rejects the token only GitHub is expired and asks again, and the issue tracker still answers', async (t) => {
   const unauthorized: FixtureEntry['response'] = { status: 401, body: { message: 'Bad credentials' } };
   const h = await e2e(t, { clone: 'missing', pulls: { 1: [respond(prBody(1)), unauthorized] } });
-  const detail = (await h.client.post('/api/sessions', { prNumber: 1 })).json as Json;
+  const detail = (await h.client.post('/api/sessions', { repository: 'acme/widgets', prNumber: 1 })).json as Json;
   assert.equal(completenessRow(detail, 'issue').status, 'found');
 
   const refreshed = await h.client.post(`/api/sessions/${detail.sessionId}/refresh`);

@@ -62,6 +62,7 @@ function fakePlatform(sandbox: GitSandbox) {
       return { ok: true, account: 'reviewer' };
     },
     cloneLocations: () => ['code.example.test/acme/widgets'],
+    repositoryForRemote: (remote: string) => (remote === 'code.example.test/acme/widgets' ? 'acme/widgets' : null),
     async listOpenPullRequests() {
       calls.push('list');
       return [...prs.values()].filter((p) => p.state === 'open').map(strip);
@@ -167,7 +168,7 @@ async function harness(t: { after(fn: () => unknown): void }, options: HarnessOp
   const sessions = createSessions({
     store,
     manager,
-    environment: () => ({
+    environmentFor: () => ({
       sourceControl: platform.sc,
       tracker: options.tracker ?? noIssues,
       repository: { platform: SOURCE, id: 'acme/widgets' },
@@ -235,7 +236,7 @@ test('VO-002 a key in the branch name and another in the description are both re
   await h.sandbox.openPr({ number: 1, branch: 'feature/ABC-12-reset', files: { 'src/util.js': UTIL_V2 } });
   h.platform.publish(1, { title: 'Allow a second reset', description: 'Also fixes ABC-13.' });
 
-  const { detail } = await h.sessions.start(1);
+  const { detail } = await h.sessions.start({ platform: SOURCE, id: 'acme/widgets' }, 1);
   const byKey = new Map(detail.issues.map((i) => [i.key, i]));
   assert.deepEqual([...byKey.keys()].sort(), ['ABC-12', 'ABC-13']);
   assert.deepEqual(byKey.get('ABC-12')?.origins, ['branch']);
@@ -264,7 +265,7 @@ test('VO-007 refresh after a new commit adds snapshot 2, keeps snapshot 1, lists
   const h = await harness(t, { tracker });
   const first = await h.sandbox.openPr({ number: 1, branch: 'feature/ABC-12-reset', files: { 'src/util.js': UTIL_V2 } });
   h.platform.publish(1);
-  const { detail } = await h.sessions.start(1);
+  const { detail } = await h.sessions.start({ platform: SOURCE, id: 'acme/widgets' }, 1);
   const id = detail.sessionId;
   const snapshot1 = h.store.readSnapshot(detail.snapshots[0]?.snapshotId ?? '');
   assert.ok(snapshot1);
@@ -311,7 +312,7 @@ test('VO-029 an issue re-fetch that succeeds appends current, one that fails app
   const h = await harness(t, { tracker });
   await h.sandbox.openPr({ number: 1, branch: 'feature/ABC-12-reset', files: { 'src/util.js': UTIL_V2 } });
   h.platform.publish(1);
-  const { detail } = await h.sessions.start(1);
+  const { detail } = await h.sessions.start({ platform: SOURCE, id: 'acme/widgets' }, 1);
   const id = detail.sessionId;
   const source = { platform: TRACKER, key: 'ABC-12' };
   assert.deepEqual(h.store.listEvidenceBySource(id, source).map((e) => e.status), ['current']);
@@ -344,8 +345,8 @@ test('VO-038 two sessions on the same issue are found by platform and key, and e
   h.platform.publish(1, { description: 'Fixes ABC-12.' });
   h.platform.publish(2, { description: 'Documents ABC-12.' });
 
-  const one = (await h.sessions.start(1)).detail;
-  const two = (await h.sessions.start(2)).detail;
+  const one = (await h.sessions.start({ platform: SOURCE, id: 'acme/widgets' }, 1)).detail;
+  const two = (await h.sessions.start({ platform: SOURCE, id: 'acme/widgets' }, 2)).detail;
 
   const found = h.store.findSessionsByIssue({ platform: TRACKER, key: 'ABC-12' }).map((s) => s.id).sort();
   assert.deepEqual(found, [one.sessionId, two.sessionId].sort());
@@ -365,7 +366,7 @@ test('VO-062 a force-push becomes a new snapshot and earlier snapshots with thei
   const h = await harness(t);
   const first = await h.sandbox.openPr({ number: 1, branch: 'feature/sub', files: { 'src/util.js': UTIL_V2 } });
   h.platform.publish(1);
-  const { detail } = await h.sessions.start(1);
+  const { detail } = await h.sessions.start({ platform: SOURCE, id: 'acme/widgets' }, 1);
   const id = detail.sessionId;
   const snapshot1 = detail.snapshots[0]?.snapshotId ?? '';
   h.store.appendQuestion({
@@ -402,7 +403,7 @@ test('VO-077 a refresh with the head unchanged after a successful fetch takes no
   const h = await harness(t);
   await h.sandbox.openPr({ number: 1, branch: 'feature/sub', files: { 'src/util.js': UTIL_V2 } });
   h.platform.publish(1);
-  const { detail } = await h.sessions.start(1);
+  const { detail } = await h.sessions.start({ platform: SOURCE, id: 'acme/widgets' }, 1);
 
   const refreshed = await h.sessions.refresh(detail.sessionId);
   assert.equal(refreshed.snapshots.length, 1);
@@ -413,7 +414,7 @@ test('VO-077 a refresh with the head unchanged after a failed fetch takes a snap
   const h = await harness(t);
   const pr = await h.sandbox.openPr({ number: 1, branch: 'feature/sub', files: { 'src/util.js': UTIL_V2 } });
   h.platform.publish(1, { brokenHead: true });
-  const { detail } = await h.sessions.start(1);
+  const { detail } = await h.sessions.start({ platform: SOURCE, id: 'acme/widgets' }, 1);
   assert.equal(detail.completeness.find((r) => r.source === 'repository')?.status, 'missing');
   assert.deepEqual(h.snapshotsTaken, [], 'nothing is announced without a workspace');
 

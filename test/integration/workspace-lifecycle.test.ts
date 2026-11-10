@@ -57,6 +57,7 @@ function fakePlatform(sandbox: GitSandbox) {
       return { ok: true, account: 'reviewer' };
     },
     cloneLocations: () => ['code.example.test/acme/widgets'],
+    repositoryForRemote: (remote: string) => (remote === 'code.example.test/acme/widgets' ? 'acme/widgets' : null),
     async listOpenPullRequests() {
       calls.push('list');
       return [...prs.values()].filter((p) => p.state === 'open').map(strip);
@@ -162,7 +163,7 @@ async function harness(t: { after(fn: () => unknown): void }, options: HarnessOp
   const sessions = createSessions({
     store,
     manager,
-    environment: () => ({
+    environmentFor: () => ({
       sourceControl: platform.sc,
       tracker: options.tracker ?? noIssues,
       repository: { platform: SOURCE, id: 'acme/widgets' },
@@ -214,7 +215,7 @@ test('VO-028 close keeps every record and removes only the session worktree', as
   await h.sandbox.openPr({ number: 1, branch: 'feature/sub', files: { 'src/util.js': UTIL_V2 } });
   h.platform.publish(1);
   const own = await withReviewerWorktree(h);
-  const { detail } = await h.sessions.start(1);
+  const { detail } = await h.sessions.start({ platform: SOURCE, id: 'acme/widgets' }, 1);
   const workspace = h.manager.workspacePath(detail.sessionId, detail.snapshots[0]?.snapshotId ?? '');
   assert.ok((await h.worktrees()).includes(workspace));
   const kept = records(h, detail.sessionId);
@@ -237,7 +238,7 @@ test('VO-028 opening a closed session recreates its workspace without a new snap
   const h = await harness(t);
   await h.sandbox.openPr({ number: 1, branch: 'feature/sub', files: { 'src/util.js': UTIL_V2 } });
   h.platform.publish(1);
-  const { detail } = await h.sessions.start(1);
+  const { detail } = await h.sessions.start({ platform: SOURCE, id: 'acme/widgets' }, 1);
   await h.sessions.close(detail.sessionId);
 
   const reopened = await h.sessions.open(detail.sessionId);
@@ -254,7 +255,7 @@ test('VO-028 the start-up sweep removes a leftover worktree from a killed run an
   h.platform.publish(1);
   const own = await withReviewerWorktree(h);
   const before = await h.sandbox.fingerprint();
-  const { detail } = await h.sessions.start(1);
+  const { detail } = await h.sessions.start({ platform: SOURCE, id: 'acme/widgets' }, 1);
   const leftover = h.manager.workspacePath(detail.sessionId, detail.snapshots[0]?.snapshotId ?? '');
   const kept = records(h, detail.sessionId);
 

@@ -75,7 +75,7 @@ test('VO-035 with one configured provider a question starts exactly one provider
     provider,
     git: createGit({ hooksPath: join(appData.dir, 'empty-hooks') }),
     workspacePath: () => workspace,
-    environment: async () => ({ clonePath: appData.dir, limits: DEFAULT_LIMITS }),
+    environmentFor: async () => ({ clonePath: appData.dir, limits: DEFAULT_LIMITS }),
   });
 
   const asked = await interrogation.ask(sessionId, { scope: { type: 'pr' }, category: 'what', text: 'What changes?' });

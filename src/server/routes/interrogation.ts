@@ -31,7 +31,7 @@ export type InterrogationRouteDeps = {
   provider: AiProvider;
   interrogation: Interrogation;
   summaries: Summaries;
-  environment(): Promise<AiEnvironment>;
+  environmentFor(repo: { platform: string; id: string }): Promise<AiEnvironment>;
 };
 
 /** What GET handlers may call: reads only. */
@@ -147,7 +147,10 @@ export function createInterrogationRoutes(deps: InterrogationRouteDeps): RouteMo
       if (!isRepositoryPath(path)) throw new HttpError('invalid_request', 'path must be a repository-relative path.');
       const commit = side === 'head' ? snapshot.headCommit : snapshot.baseCommit;
       if (commit === null) throw new HttpError('not_found', 'The snapshot has no base commit (its diff came from the platform).');
-      const env = await deps.environment();
+      const session = store.readSession(sessionId);
+      const env = await deps.environmentFor({ platform: session?.pr.repo.platform ?? '', id: session?.pr.repo.identifier ?? '' });
+      // Reading stays available whatever the repository's availability, but file content comes from the clone.
+      if (env.clonePath === null) throw new HttpError('not_found', env.unavailableReason ?? 'The repository is not found under the base folder.');
       const found = await createFileReader(deps.git, env.clonePath).read(commit, path);
       if (found.status === 'not_found') throw new HttpError('not_found', 'The file, or its commit, is not in the local clone.');
       return { path, side, commit, lines: found.lines };

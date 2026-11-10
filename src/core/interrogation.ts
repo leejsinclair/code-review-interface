@@ -44,7 +44,10 @@ import { buildPrompt, type BuiltPrompt } from './prompt.ts';
 
 // ------------------------------------------------------------------------------- shared with summaries
 
-export type AiEnvironment = { clonePath: string; limits: Limits };
+/** One repository's environment: its matched clone (null when not found now, FR-057) and the limits. */
+export type AiEnvironment = { clonePath: string | null; limits: Limits; unavailableReason?: string };
+
+export const NO_CLONE_REASON_FOR_AI = 'The repository is not found under the base folder.';
 
 export type AiDeps = {
   store: ReviewStore;
@@ -53,13 +56,13 @@ export type AiDeps = {
   events?: { publish(sessionId: string, event: string, data: unknown): unknown };
   git: Git;
   workspacePath(sessionId: string, snapshotId: string): string;
-  /** The configured clone and limits. */
-  environment(): Promise<AiEnvironment>;
+  /** The session's repository: its matched clone and the configured limits (R13). */
+  environmentFor(repo: { platform: string; id: string }): Promise<AiEnvironment>;
   now?: () => Date;
   newId?: () => string;
 };
 
-export type AiErrorCode = 'not_found' | 'read_only' | 'workspace_unavailable' | 'provider_unavailable' | 'invalid_request' | 'not_cancellable';
+export type AiErrorCode = 'not_found' | 'read_only' | 'repository_unavailable' | 'workspace_unavailable' | 'provider_unavailable' | 'invalid_request' | 'not_cancellable';
 
 export class AiWorkError extends Error {
   readonly code: AiErrorCode;
@@ -97,7 +100,13 @@ export function fetchedIssues(store: ReviewStore, sessionId: string): IssuePaylo
   return out;
 }
 
-export function checkContext(deps: AiDeps, env: AiEnvironment, snapshot: PrSnapshot, issues: readonly IssueKey[]): CheckContext {
+/** The session's repository as the store holds it; null when the session is gone. */
+export function sessionRepository(store: ReviewStore, sessionId: string): { platform: string; id: string } | null {
+  const session = store.readSession(sessionId);
+  return session === null ? null : { platform: session.pr.repo.platform, id: session.pr.repo.identifier };
+}
+
+export function checkContext(deps: AiDeps, env: AiEnvironment & { clonePath: string }, snapshot: PrSnapshot, issues: readonly IssueKey[]): CheckContext {
   return {
     headCommit: snapshot.headCommit,
     baseCommit: snapshot.baseCommit,
@@ -116,6 +125,11 @@ export async function requireReady(deps: AiDeps, sessionId: string): Promise<{ s
   const snapshot = deps.store.readLatestSnapshot(sessionId);
   if (status === null || snapshot === null) throw new AiWorkError('not_found', 'No such session.');
   if (status.prStatus !== 'open') throw new AiWorkError('read_only', `The PR is ${status.prStatus}; the session is read-only.`);
+  const repository = sessionRepository(deps.store, sessionId);
+  if (repository !== null) {
+    const env = await deps.environmentFor(repository);
+    if (env.clonePath === null) throw new AiWorkError('repository_unavailable', env.unavailableReason ?? NO_CLONE_REASON_FOR_AI);
+  }
   if (snapshot.repositoryStatus !== 'found') throw new AiWorkError('workspace_unavailable', snapshot.repositoryReason ?? 'repository not available');
   if (!existsSync(deps.workspacePath(sessionId, snapshot.id))) {
     throw new AiWorkError('workspace_unavailable', "The session's isolated workspace is not ready; open the session again.");
@@ -360,7 +374,14 @@ export function createInterrogation(deps: AiDeps): Interrogation {
         finish(q, { outcome: 'cancelled', cancelReason: control.cancelReason, claims: [] });
         return;
       }
-      const env = await deps.environment();
+      const repository = sessionRepository(store, q.sessionId);
+      if (repository === null) throw new Error('the session is gone');
+      const found = await deps.environmentFor(repository);
+      if (found.clonePath === null) {
+        finish(q, { outcome: 'failed', failureReason: found.unavailableReason ?? NO_CLONE_REASON_FOR_AI, claims: [] });
+        return;
+      }
+      const env = { ...found, clonePath: found.clonePath };
       const snapshot = store.readSnapshot(q.snapshotId);
       if (snapshot === null) throw new Error('the snapshot is gone');
       const caps = await provider.capabilities();

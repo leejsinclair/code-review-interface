@@ -9,10 +9,11 @@
 
 import { randomUUID } from 'node:crypto';
 import { existsSync } from 'node:fs';
-import { readdir } from 'node:fs/promises';
+import { readdir, rm } from 'node:fs/promises';
 import { extname, join } from 'node:path';
 import type {
   ChangedFile as WireChangedFile,
+  PullGroup,
   PullSummary,
   SessionDetail,
   SessionSummary,
@@ -38,19 +39,28 @@ import { issueEvidence, issueId, lookupIssues } from './evidence.ts';
 import { excludedReason, type Limits } from './limits.ts';
 import { collectReferences, type CollectedReference } from './references.ts';
 
+/** One repository's environment (R13): its adapters and the matched clone found under the base folder. */
 export type SessionEnvironment = {
   sourceControl: SourceControlProvider;
+  /** Created with this repository, so a tracker that reads the repository's own issues uses it (FR-058). */
   tracker: IssueTracker;
   repository: RepoRef;
-  clonePath: string;
+  /** The matched clone, looked up at use and never stored; null when the repository is not matched now. */
+  clonePath: string | null;
+  /** Why there is no clone (FR-057); present only when `clonePath` is null. */
+  unavailableReason?: string;
   limits: Limits;
 };
 
 export type SessionsDeps = {
   store: ReviewStore;
   manager: RepositoryManager;
-  /** The configured platforms and clone; may throw when nothing is configured. */
-  environment: () => SessionEnvironment | Promise<SessionEnvironment>;
+  /** The configured platforms and the repository's clone; may throw when nothing is configured. */
+  environmentFor: (repo: RepoRef) => SessionEnvironment | Promise<SessionEnvironment>;
+  /** The repositories matched under the base folder now (for the dashboard); default none. */
+  matched?: () => RepoRef[];
+  /** Whether the workspace has a clone for the repository now; default available. */
+  availability?: (repo: RepoRef) => { available: true } | { available: false; reason: string };
   /** A snapshot with an isolated workspace was taken (its summaries can be queued). */
   onSnapshot?: (sessionId: string, snapshotId: string) => void;
   /** The session was closed or deleted. */
@@ -63,7 +73,7 @@ export type SessionsDeps = {
   newId?: () => string;
 };
 
-export type SessionErrorCode = 'not_found' | 'read_only' | 'confirmation_required';
+export type SessionErrorCode = 'not_found' | 'read_only' | 'confirmation_required' | 'repository_unavailable';
 
 export class SessionError extends Error {
   readonly code: SessionErrorCode;
@@ -75,11 +85,12 @@ export class SessionError extends Error {
 }
 
 export interface Sessions {
-  listPulls(): Promise<PullSummary[]>;
+  /** One group per matched repository (or just `repository`); one failing never fails the others (FR-054). */
+  listPulls(repository?: string): Promise<PullGroup[]>;
   list(): SessionSummary[];
   detail(sessionId: string): SessionDetail;
   snapshot(sessionId: string, snapshotId: string): SnapshotDetail;
-  start(prNumber: number): Promise<{ created: boolean; detail: SessionDetail }>;
+  start(repo: RepoRef, prNumber: number): Promise<{ created: boolean; detail: SessionDetail }>;
   open(sessionId: string): Promise<SessionDetail>;
   refresh(sessionId: string): Promise<SessionDetail>;
   close(sessionId: string): Promise<void>;
@@ -97,6 +108,14 @@ const LANGUAGES: Record<string, string> = {
   '.rb': 'Ruby', '.rs': 'Rust', '.cs': 'C#', '.php': 'PHP', '.css': 'CSS', '.scss': 'SCSS', '.html': 'HTML',
   '.sql': 'SQL', '.yml': 'YAML', '.yaml': 'YAML', '.xml': 'XML', '.sh': 'Shell', '.swift': 'Swift',
 };
+
+export const NO_CLONE_MESSAGE = 'The repository is not found under the base folder.';
+
+/** The clone path, or a `repository_unavailable` refusal carrying the reason (FR-057). */
+function requireClone(env: SessionEnvironment): string {
+  if (env.clonePath === null) throw new SessionError('repository_unavailable', env.unavailableReason ?? NO_CLONE_MESSAGE);
+  return env.clonePath;
+}
 
 const message = (error: unknown): string => (error instanceof Error ? error.message : String(error));
 
@@ -136,6 +155,7 @@ export function createSessions(deps: SessionsDeps): Sessions {
 
   const gather = async (env: SessionEnvironment, sessionId: string, snapshotId: string, seq: number, pr: PullRequestInfo): Promise<Gathered> => {
     const { sourceControl: sc, repository: repo } = env;
+    const clonePath = requireClone(env);
 
     let commits: Commit[] = [];
     try {
@@ -154,14 +174,14 @@ export function createSessions(deps: SessionsDeps): Sessions {
     // The fetch: only when a clone matches, so no platform call is spent on a missing clone.
     let fetched: Awaited<ReturnType<RepositoryManager['fetchSnapshot']>>;
     const cloneLocations = sc.cloneLocations(repo);
-    const match = await manager.matchClone(env.clonePath, cloneLocations);
+    const match = await manager.matchClone(clonePath, cloneLocations);
     if (!match.ok) {
       fetched = { status: 'missing', reason: match.reason };
     } else {
       try {
         const [head, target] = await Promise.all([sc.headLocation(repo, pr), sc.targetLocation(repo, pr)]);
         fetched = await manager.fetchSnapshot({
-          clonePath: env.clonePath,
+          clonePath,
           cloneLocations,
           sessionId,
           snapshotId,
@@ -181,7 +201,7 @@ export function createSessions(deps: SessionsDeps): Sessions {
     let fingerprint = '';
     if (fetched.status === 'found') {
       try {
-        const diff = await manager.localDiff(env.clonePath, fetched.targetCommit, fetched.headCommit);
+        const diff = await manager.localDiff(clonePath, fetched.targetCommit, fetched.headCommit);
         diffFiles = diff.files;
         fingerprint = diff.fingerprint;
         local = { baseCommit: diff.baseCommit, targetCommit: fetched.targetCommit, headRef: fetched.headRef, targetRef: fetched.targetRef };
@@ -278,7 +298,7 @@ export function createSessions(deps: SessionsDeps): Sessions {
 
   /** Creates the snapshot's workspace when its head was fetched; true when one exists. */
   const ensureWorkspace = async (env: SessionEnvironment, snapshot: PrSnapshot): Promise<boolean> => {
-    if (snapshot.repositoryStatus !== 'found') return false;
+    if (snapshot.repositoryStatus !== 'found' || env.clonePath === null) return false;
     try {
       await manager.createWorkspace(env.clonePath, snapshot.sessionId, snapshot.id, snapshot.headCommit);
       return true;
@@ -290,17 +310,24 @@ export function createSessions(deps: SessionsDeps): Sessions {
   const workspaceNames = (sessionId: string): Promise<string[]> =>
     readdir(join(manager.workspacesDir, sessionId)).catch(() => [] as string[]);
 
-  const removeNamed = async (clonePath: string, sessionId: string, names: string[]): Promise<void> => {
-    for (const name of names) await manager.removeWorkspace(clonePath, join(manager.workspacesDir, sessionId, name));
+  // Without a clone (the repository is not found now) a worktree cannot be removed through git, so its
+  // folder under the application-data workspaces is deleted instead; the clone's own record of it goes
+  // when the clone does.
+  const removeNamed = async (clonePath: string | null, sessionId: string, names: string[]): Promise<void> => {
+    for (const name of names) {
+      const path = join(manager.workspacesDir, sessionId, name);
+      if (clonePath === null) await rm(path, { recursive: true, force: true });
+      else await manager.removeWorkspace(clonePath, path);
+    }
   };
 
-  const removeWorkspaces = async (clonePath: string, sessionId: string): Promise<void> =>
+  const removeWorkspaces = async (clonePath: string | null, sessionId: string): Promise<void> =>
     removeNamed(clonePath, sessionId, await workspaceNames(sessionId));
 
   // Work already running on an older snapshot finishes against its own worktree (FR-051), so the
   // worktrees older at this moment go once that work ends. Close, delete and the start-up sweep
   // remove whatever is left.
-  const retireOlderWorkspaces = async (clonePath: string, sessionId: string, keep: string): Promise<void> => {
+  const retireOlderWorkspaces = async (clonePath: string | null, sessionId: string, keep: string): Promise<void> => {
     const older = (await workspaceNames(sessionId)).filter((name) => name !== keep);
     if (deps.afterRunning === undefined) return removeNamed(clonePath, sessionId, older);
     void deps
@@ -366,8 +393,12 @@ export function createSessions(deps: SessionsDeps): Sessions {
       latestHeadCommit: latest.headCommit,
       createdAt: session.createdAt,
       lastOpenedAt: status.lastOpenedAt,
+      repositoryAvailable: true,
     };
     if (status.statusNote !== null) out.statusNote = status.statusNote;
+    const availability = deps.availability?.({ platform: session.pr.repo.platform, id: session.pr.repo.identifier }) ?? { available: true as const };
+    out.repositoryAvailable = availability.available;
+    if (!availability.available) out.repositoryReason = availability.reason;
     return out;
   };
 
@@ -397,13 +428,17 @@ export function createSessions(deps: SessionsDeps): Sessions {
     return out;
   };
 
-  const sessionFor = async (env: SessionEnvironment, prNumber: number) => store.findSessionByPr(prRefOf(env.repository, prNumber));
+  const sessionFor = (repo: RepoRef, prNumber: number) => store.findSessionByPr(prRefOf(repo, prNumber));
+
+  const repoOfSession = (sessionId: string): RepoRef => {
+    const { session } = requireSession(sessionId);
+    return { platform: session.pr.repo.platform, id: session.pr.repo.identifier };
+  };
 
   // ------------------------------------------------------------ the service
 
   const open = async (sessionId: string): Promise<SessionDetail> => {
-    requireSession(sessionId);
-    const env = await deps.environment();
+    const env = await deps.environmentFor(repoOfSession(sessionId));
     const { status } = await checkPlatform(env, sessionId, true);
     const latest = store.readLatestSnapshot(sessionId);
     if (status.prStatus === 'open' && latest !== null) await ensureWorkspace(env, latest);
@@ -411,24 +446,40 @@ export function createSessions(deps: SessionsDeps): Sessions {
   };
 
   return {
-    async listPulls() {
-      const env = await deps.environment();
-      const prs = await env.sourceControl.listOpenPullRequests(env.repository);
-      const out: PullSummary[] = [];
-      for (const pr of prs) {
-        const summary: PullSummary = {
-          number: pr.number,
-          title: pr.title,
-          author: pr.author,
-          sourceBranch: pr.sourceBranch,
-          targetBranch: pr.targetBranch,
-          updatedAt: pr.updatedAt,
-        };
-        const session = await sessionFor(env, pr.number);
-        if (session !== null) summary.sessionId = session.id;
-        out.push(summary);
-      }
-      return out;
+    async listPulls(repository) {
+      const matched = deps.matched?.() ?? [];
+      const wanted = repository?.toLowerCase();
+      const repos = wanted === undefined ? matched : matched.filter((r) => r.id.toLowerCase() === wanted);
+      if (wanted !== undefined && repos.length === 0) throw new SessionError('not_found', 'No such repository under the base folder.');
+      return Promise.all(
+        repos.map(async (repo): Promise<PullGroup> => {
+          try {
+            const env = await deps.environmentFor(repo);
+            const prs = await env.sourceControl.listOpenPullRequests(repo);
+            const pulls: PullSummary[] = [];
+            for (const pr of prs) {
+              const summary: PullSummary = {
+                repository: repo.id,
+                number: pr.number,
+                title: pr.title,
+                author: pr.author,
+                sourceBranch: pr.sourceBranch,
+                targetBranch: pr.targetBranch,
+                updatedAt: pr.updatedAt,
+              };
+              const session = sessionFor(repo, pr.number);
+              if (session !== null) summary.sessionId = session.id;
+              pulls.push(summary);
+            }
+            return { repository: repo.id, status: 'loaded', pulls };
+          } catch (error) {
+            // A rejected sign-in refuses the whole call (signin_required); anything else is this group's failure (V.4).
+            if (error instanceof AdapterError && error.code === 'unauthorized') throw error;
+            const why = error instanceof AdapterError ? `The platform could not be reached (${error.code}).` : message(error);
+            return { repository: repo.id, status: 'failed', reason: why, pulls: [] };
+          }
+        }),
+      );
     },
 
     list: () => store.listSessions().map((s) => summaryOf(s.id)),
@@ -454,9 +505,10 @@ export function createSessions(deps: SessionsDeps): Sessions {
       };
     },
 
-    async start(prNumber) {
-      const env = await deps.environment();
-      const existing = await sessionFor(env, prNumber);
+    async start(repo, prNumber) {
+      const env = await deps.environmentFor(repo);
+      requireClone(env);
+      const existing = sessionFor(env.repository, prNumber);
       if (existing !== null) return { created: false, detail: await open(existing.id) };
 
       const pr = await env.sourceControl.getPullRequest(env.repository, prNumber);
@@ -484,8 +536,8 @@ export function createSessions(deps: SessionsDeps): Sessions {
     open,
 
     async refresh(sessionId) {
-      requireSession(sessionId);
-      const env = await deps.environment();
+      const env = await deps.environmentFor(repoOfSession(sessionId));
+      requireClone(env);
       const { status, pr } = await checkPlatform(env, sessionId, false);
       if (status.prStatus !== 'open') {
         const note = status.statusNote === null ? '' : ` (${status.statusNote})`;
@@ -519,20 +571,18 @@ export function createSessions(deps: SessionsDeps): Sessions {
     },
 
     async close(sessionId) {
-      requireSession(sessionId);
-      const env = await deps.environment();
+      const env = await deps.environmentFor(repoOfSession(sessionId));
       await removeWorkspaces(env.clonePath, sessionId);
       deps.onClose?.(sessionId);
     },
 
     async delete(sessionId, options) {
       if (options.confirm !== true) throw new SessionError('confirmation_required', 'Deleting a session needs confirm: true.');
-      requireSession(sessionId);
-      const env = await deps.environment();
+      const env = await deps.environmentFor(repoOfSession(sessionId));
       store.deleteSession(sessionId);
       await removeWorkspaces(env.clonePath, sessionId);
       try {
-        await manager.deleteSessionRefs(env.clonePath, sessionId);
+        if (env.clonePath !== null) await manager.deleteSessionRefs(env.clonePath, sessionId);
       } catch {
         // No clone (or no refs): nothing to remove.
       }
@@ -546,8 +596,9 @@ export function createSessions(deps: SessionsDeps): Sessions {
         throw new SessionError('not_found', 'No such snapshot.');
       }
       if (from.diffSource === 'local' && to.diffSource === 'local') {
-        const env = await deps.environment();
+        const env = await deps.environmentFor(repoOfSession(sessionId));
         try {
+          if (env.clonePath === null) throw new Error('no clone');
           return await manager.changedBetween(env.clonePath, from.headCommit, to.headCommit);
         } catch {
           // The commits are gone from the clone; compare the stored diffs instead.
