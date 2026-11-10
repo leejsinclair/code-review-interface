@@ -1,29 +1,42 @@
-// Issue view (`#/sessions/:sessionId/issues/:platform/:key`, FR-016): the stored title and
-// plain-text description of an issue fetched for the session, as text nodes only.
+// Issue page (`#/sessions/:sessionId/issues/:platform/:key`, FR-028), under Sources: the stored title and
+// plain-text description of an issue fetched for the session, as text nodes only (FR-042).
+// `IssueView` is shared with the Evidence panel.
 
-import { useEffect, useState } from 'preact/hooks';
-import type { IssueReference } from '../../contracts/http.ts';
-import { getSession } from '../api.ts';
+import { AsyncRegion } from '../components/async-region.tsx';
+import { SourcesNav, useSessionDetail } from '../components/sources-nav.tsx';
+
+export function IssueView(props: { sessionId: string; platform: string; issueKey: string; embedded?: boolean }) {
+  const { detail, error, retry } = useSessionDetail(props.sessionId);
+  const issue = detail?.issues.find((i) => i.platform === props.platform && i.key === props.issueKey);
+  const state =
+    error !== null && detail === null
+      ? ({ state: 'failed', reason: error, retry } as const)
+      : detail === null
+        ? ({ state: 'loading' } as const)
+        : issue === undefined
+          ? ({ state: 'empty', explanation: 'This issue was not referenced in the session.' } as const)
+          : ({ state: 'loaded' } as const);
+  return (
+    <AsyncRegion region="issue" label="the issue" {...state}>
+      {issue !== undefined && (
+        <div class="stack" data-testid="issue-view">
+          {props.embedded === true && <h3>{issue.title !== undefined ? `${issue.key} ${issue.title}` : issue.key}</h3>}
+          {props.embedded !== true && issue.title !== undefined && <p>{issue.title}</p>}
+          {issue.reason !== undefined && <p class="notice">{`${issue.status}: ${issue.reason}`}</p>}
+          <pre class="text-block">{issue.descriptionText ?? ''}</pre>
+        </div>
+      )}
+    </AsyncRegion>
+  );
+}
 
 export function IssueScreen(props: { sessionId: string; platform: string; issueKey: string }) {
-  const [issue, setIssue] = useState<IssueReference | null | undefined>(undefined);
-  const [error, setError] = useState<string | null>(null);
-
-  useEffect(() => {
-    getSession(props.sessionId)
-      .then((detail) => setIssue(detail.issues.find((i) => i.platform === props.platform && i.key === props.issueKey) ?? null))
-      .catch((e: unknown) => setError(e instanceof Error ? e.message : 'Could not load the issue.'));
-  }, [props.sessionId, props.platform, props.issueKey]);
-
-  if (error !== null) return <p class="error">{error}</p>;
-  if (issue === undefined) return <p class="muted">Loading…</p>;
-  if (issue === null) return <p class="error">This issue was not referenced in the session.</p>;
+  const { detail } = useSessionDetail(props.sessionId);
   return (
-    <article class="panel stack" data-testid="issue-view">
-      <h1>{issue.title !== undefined ? `${issue.key} ${issue.title}` : issue.key}</h1>
-      {issue.reason !== undefined && <p class="notice">{`${issue.status}: ${issue.reason}`}</p>}
-      <pre class="text-block">{issue.descriptionText ?? ''}</pre>
-      <a href={`#/sessions/${encodeURIComponent(props.sessionId)}`}>Back to the session</a>
+    <article class="panel stack">
+      <h1>{props.issueKey}</h1>
+      <SourcesNav sessionId={props.sessionId} issues={detail?.issues ?? []} current={{ platform: props.platform, key: props.issueKey }} />
+      <IssueView sessionId={props.sessionId} platform={props.platform} issueKey={props.issueKey} />
     </article>
   );
 }

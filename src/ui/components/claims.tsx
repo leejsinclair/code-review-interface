@@ -5,15 +5,18 @@
 // reference string is rendered as a text node (R7).
 
 import type { Claim, GenerationWarning, Ref, RestrictionId } from '../../contracts/http.ts';
+import { useContext } from 'preact/hooks';
 import { CLAIM_LABELS, INTENT_LABELS, INTENT_ORDER } from '../labels.ts';
+import { ReviewContext } from '../state/review-context.ts';
+import { codeHref } from '../state/routes.ts';
+import { Badge } from './badge.tsx';
 
 const sessionHash = (sessionId: string, rest: string): string => `#/sessions/${encodeURIComponent(sessionId)}${rest}`;
 
 /** Where a reference opens (contracts/ui.md routes). */
 export function refHref(sessionId: string, snapshotId: string, ref: Ref): string {
   if (ref.kind === 'code') {
-    const query = new URLSearchParams({ snapshot: snapshotId, side: ref.side, path: ref.path, line: String(ref.startLine) });
-    return sessionHash(sessionId, `/code?${query.toString()}`);
+    return codeHref(sessionId, { snapshot: snapshotId, side: ref.side, path: ref.path, start: ref.startLine, end: ref.endLine });
   }
   if (ref.kind === 'issue') return sessionHash(sessionId, `/issues/${encodeURIComponent(ref.platform)}/${encodeURIComponent(ref.key)}`);
   return sessionHash(sessionId, '/description');
@@ -30,20 +33,36 @@ function refText(ref: Ref): string {
 
 function ClaimItem(props: { sessionId: string; snapshotId: string; claim: Claim }) {
   const { claim } = props;
+  const ctx = useContext(ReviewContext);
   const downgraded = claim.labelledByProvider !== claim.label;
   return (
     <li data-testid="claim" data-label={claim.label} {...(claim.intent === undefined ? {} : { 'data-intent': claim.intent })} class="claim">
-      <span class={`chip chip-${claim.label}`}>{CLAIM_LABELS[claim.label]}</span>
+      <Badge kind="claim" label={claim.label} />
+      {claim.intent !== undefined && <Badge kind="intent" intent={claim.intent} />}
       {downgraded && <span class="muted">{` (proposed as ${CLAIM_LABELS[claim.labelledByProvider]})`}</span>}{' '}
       <span>{claim.text}</span>
       {claim.refs.length > 0 && (
         <ul class="refs">
           {claim.refs.map((ref, i) => (
             <li key={i}>
-              <a data-testid="claim-ref" data-kind={ref.kind} href={refHref(props.sessionId, props.snapshotId, ref)}>
+              <a
+                data-testid="claim-ref"
+                data-kind={ref.kind}
+                href={refHref(props.sessionId, props.snapshotId, ref)}
+                onClick={(e) => {
+                  if (ref.kind !== 'code' || e.button !== 0 || e.metaKey || e.ctrlKey || e.shiftKey) return;
+                  e.preventDefault();
+                  ctx.openEvidence({ snapshot: props.snapshotId, side: ref.side, path: ref.path, start: ref.startLine, end: ref.endLine }, (e.currentTarget as HTMLElement).id);
+                }}
+              >
                 {refText(ref)}
               </a>
-              {!ref.resolved && <span class="muted">{` unresolved: ${ref.unresolvedReason ?? 'not checked'}`}</span>}
+              {!ref.resolved && (
+                <>
+                  {' '}
+                  <Badge kind="unresolved" reason={ref.unresolvedReason ?? 'not checked'} />
+                </>
+              )}
             </li>
           ))}
         </ul>

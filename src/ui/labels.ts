@@ -55,3 +55,76 @@ export const INTENT_LABELS: Readonly<Record<Intent, string>> = {
 };
 
 export const INTENT_ORDER: readonly Intent[] = ['documented', 'inferred'];
+
+/** Verbatim strings from the redesign contracts section 0. U+2212, U+2013 and U+2014 are written as the contract has them. */
+export const ASK_FORM_LABELS = {
+  question: 'Your question',
+  category: 'Category',
+  answerFor: 'Answer for',
+} as const;
+
+export const ACTION_LABELS = {
+  askAboutPr: 'Ask about this PR',
+  askAboutSelection: 'Ask about selection',
+  startReview: 'Start review',
+  resumeReview: 'Resume review',
+  openFullPage: 'Open full page',
+  newCommitsRefresh: 'New commits — Refresh',
+} as const;
+
+export const LIVE_BANNER_TEXT = 'Live updates paused — Reconnect';
+
+/** Home empty state: `No open pull requests in <base folder>`. */
+export const homeEmptyState = (baseFolder: string): string => `No open pull requests in ${baseFolder}`;
+
+export const DASHBOARD_LABELS = {
+  backToDashboard: 'Back to dashboard',
+  rescan: 'Rescan',
+  yourReviewSessions: 'Your review sessions',
+  openPullRequests: 'Open pull requests',
+  baseFolder: 'Base folder',
+} as const;
+
+export const REVIEW_NAV_LABELS = {
+  overview: 'Overview',
+  files: 'Files',
+  questions: 'Questions',
+  sources: 'Sources',
+} as const;
+
+export const ADVANCED_LIMITS_LABEL = 'Advanced limits';
+
+export const REVIEW_FOCUS = { heading: 'Review focus', body: 'Not available yet.' } as const;
+
+export const FILE_NAV_LABELS = {
+  previous: '‹ Previous file',
+  next: 'Next file ›',
+  all: 'All changed files',
+} as const;
+
+export const NEW_CAPABILITY_LABEL = '[NEW]';
+
+/** Scope bar text: `Selected: <path> lines a–b (new side)`. */
+export const scopeBarText = (path: string, start: number, end: number, side: 'new' | 'old'): string =>
+  `Selected: ${path} lines ${start}–${end} (${side} side)`;
+
+/** Badge texts and glyphs (contracts 4.4). */
+export const BADGE_TEXT = {
+  claim: CLAIM_LABELS,
+  intent: INTENT_LABELS,
+  completeness: COMPLETENESS_STATUS_LABELS,
+  unresolved: 'Unresolved',
+  olderHead: 'Older head',
+  readOnly: 'Read-only',
+} as const;
+
+export const BADGE_GLYPHS = {
+  claim: { evidence: '✓', inference: '≈' },
+  intent: { documented: '✎', inferred: '≈' },
+  completeness: { found: '✓', missing: '✕', stale: '⟳' },
+  skipped: '⊘',
+  unresolved: '?',
+  olderHead: '⟲',
+  readOnly: '🔒︎',
+  prStatus: '●',
+} as const;

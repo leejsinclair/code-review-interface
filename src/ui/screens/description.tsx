@@ -1,27 +1,33 @@
-// PR description view (`#/sessions/:sessionId/description`), the target of a `pr` reference (FR-016).
-// The description is shown as a text node, never rendered as HTML or Markdown (R7).
+// PR description page (`#/sessions/:sessionId/description`, FR-028), under Sources. The description is shown
+// as a text node, never rendered as HTML or Markdown (FR-042). `DescriptionView` is shared with the Evidence panel.
 
-import { useEffect, useState } from 'preact/hooks';
-import type { SessionDetail } from '../../contracts/http.ts';
-import { getSession } from '../api.ts';
+import { AsyncRegion } from '../components/async-region.tsx';
+import { SourcesNav, useSessionDetail } from '../components/sources-nav.tsx';
+
+/** The description text with its heading. `embedded` is for the Evidence panel, where the panel owns the h2. */
+export function DescriptionView(props: { sessionId: string; embedded?: boolean }) {
+  const { detail, error, retry } = useSessionDetail(props.sessionId);
+  const state =
+    error !== null && detail === null ? ({ state: 'failed', reason: error, retry } as const) : detail === null ? ({ state: 'loading' } as const) : ({ state: 'loaded' } as const);
+  return (
+    <AsyncRegion region="description" label="the description" {...state}>
+      {detail !== null && (
+        <div class="stack" data-testid="pr-description">
+          {props.embedded === true ? <h3>{`#${detail.prNumber} ${detail.title}`}</h3> : <p class="muted">{`#${detail.prNumber} ${detail.title}`}</p>}
+          <pre class="text-block">{detail.description === '' ? 'The PR has no description.' : detail.description}</pre>
+        </div>
+      )}
+    </AsyncRegion>
+  );
+}
 
 export function DescriptionScreen(props: { sessionId: string }) {
-  const [detail, setDetail] = useState<SessionDetail | null>(null);
-  const [error, setError] = useState<string | null>(null);
-
-  useEffect(() => {
-    getSession(props.sessionId)
-      .then(setDetail)
-      .catch((e: unknown) => setError(e instanceof Error ? e.message : 'Could not load the session.'));
-  }, [props.sessionId]);
-
-  if (error !== null) return <p class="error">{error}</p>;
-  if (detail === null) return <p class="muted">Loading…</p>;
+  const { detail } = useSessionDetail(props.sessionId);
   return (
-    <article class="panel stack" data-testid="pr-description">
-      <h1>{`#${detail.prNumber} ${detail.title}`}</h1>
-      <pre class="text-block">{detail.description === '' ? 'The PR has no description.' : detail.description}</pre>
-      <a href={`#/sessions/${encodeURIComponent(props.sessionId)}`}>Back to the session</a>
+    <article class="panel stack">
+      <h1>Description</h1>
+      <SourcesNav sessionId={props.sessionId} issues={detail?.issues ?? []} current="description" />
+      <DescriptionView sessionId={props.sessionId} />
     </article>
   );
 }

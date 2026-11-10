@@ -6,12 +6,19 @@ import { useEffect, useState } from 'preact/hooks';
 import type { SignIn } from '../../contracts/http.ts';
 import type { AdapterDescriptor } from '../../contracts/shared.ts';
 import { ApiError, getPlatforms, listSignIns, signIn } from '../api.ts';
+import { parseRoute, safeReturn } from '../state/routes.ts';
 
 const STATE_LABELS: Record<SignIn['state'], string> = {
   'signed-in': 'Signed in',
   'signed-out': 'Not signed in',
   expired: 'Sign-in expired: sign in again',
 };
+
+/** Where to go after a successful sign-in: the page that sent the reviewer here, or Home. */
+function returnTarget(): string {
+  const route = parseRoute(location.hash);
+  return safeReturn(route.name === 'signin' ? route.return : undefined);
+}
 
 function SignInForm(props: { descriptor: AdapterDescriptor; current: SignIn | undefined; onDone: (s: SignIn) => void }) {
   const { descriptor, current } = props;
@@ -26,7 +33,9 @@ function SignInForm(props: { descriptor: AdapterDescriptor; current: SignIn | un
     setError(null);
     const body = descriptor.signInFields.some((f) => f.name === 'account') ? { account: account.trim(), secret } : { secret };
     try {
-      props.onDone(await signIn(descriptor.id, body));
+      const done = await signIn(descriptor.id, body);
+      props.onDone(done);
+      if (done.state === 'signed-in') location.hash = returnTarget();
     } catch (e) {
       setError(e instanceof ApiError || e instanceof Error ? e.message : 'The sign-in was not accepted.');
     } finally {
@@ -38,6 +47,7 @@ function SignInForm(props: { descriptor: AdapterDescriptor; current: SignIn | un
   return (
     <form class="panel stack" data-testid={`signin-form-${descriptor.id}`} onSubmit={submit}>
       <h2>{descriptor.displayName}</h2>
+      <p>{`The workbench needs your ${descriptor.displayName} sign-in to read pull requests and issues. Access is read-only: it never changes anything there.`}</p>
       <p class="muted" data-state={current?.state ?? 'signed-out'}>
         {STATE_LABELS[current?.state ?? 'signed-out']}
         {current?.account !== undefined ? ` (${current.account})` : ''}
@@ -90,11 +100,12 @@ export function SignInScreen() {
   return (
     <section class="stack" data-testid="signin">
       <h1 class="page-header">Sign in</h1>
+      <p>You are asked to sign in because a platform refused a request or you have not signed in to it yet. Sign-in is read-only.</p>
       {error !== null && <p class="error">{error}</p>}
       {descriptors.map((d) => (
         <SignInForm key={d.id} descriptor={d} current={signins.find((s) => s.platform === d.id)} onDone={done} />
       ))}
-      <a class="button" href="#/">
+      <a class="button" href={returnTarget()}>
         Continue
       </a>
     </section>

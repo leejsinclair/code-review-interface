@@ -16,7 +16,7 @@ import type {
   PlatformId,
   Platforms,
   ProviderStatus,
-  PullSummary,
+  PullGroup,
   Question,
   ScopeType,
   SessionDetail,
@@ -29,9 +29,18 @@ import type {
   SnapshotDetail,
   Suggestion,
   Summary,
+  Workspace,
 } from '../contracts/http.ts';
 
 export const SIGNIN_HASH = '#/signin';
+
+/** `#/signin?return=<encoded current hash>`; no return when already on the sign-in view (contracts §1). */
+export function signinHashFor(currentHash: string): string {
+  if (currentHash === '' || currentHash === '#' || currentHash === '#/' || currentHash.startsWith(SIGNIN_HASH)) {
+    return SIGNIN_HASH;
+  }
+  return `${SIGNIN_HASH}?return=${encodeURIComponent(currentHash)}`;
+}
 
 /** A non-2xx response. `code` is the API's error code, or `null` when the body was not an ErrorBody. */
 export class ApiError extends Error {
@@ -91,7 +100,7 @@ async function request<T>(method: Method, path: string, body?: unknown): Promise
   if (!response.ok) {
     if (isErrorBody(data)) {
       const { code, message, platform } = data.error;
-      if (code === 'signin_required') location.hash = SIGNIN_HASH;
+      if (code === 'signin_required') location.hash = signinHashFor(location.hash);
       throw new ApiError(response.status, code, message, platform);
     }
     throw new ApiError(response.status, null, `Request failed with status ${response.status}.`);
@@ -138,10 +147,28 @@ export function getProvider(): Promise<ProviderStatus> {
   return request<ProviderStatus>('GET', '/api/provider');
 }
 
+// ---------------------------------------------------------------- 4b. Workspace and discovery
+
+export function getWorkspace(): Promise<Workspace> {
+  return request<Workspace>('GET', '/api/workspace');
+}
+
+export function rescanWorkspace(): Promise<Workspace> {
+  return request<Workspace>('POST', '/api/workspace/rescan');
+}
+
+export function cancelDiscovery(): Promise<Workspace> {
+  return request<Workspace>('POST', '/api/workspace/cancel');
+}
+
 // ---------------------------------------------------------------- 5. Pull requests and sessions
 
-export function listPulls(): Promise<PullSummary[]> {
-  return request<PullSummary[]>('GET', '/api/pulls');
+/** One group per matched repository; with `repository`, the single group for that repository (Retry). */
+export function listPullGroups(): Promise<PullGroup[]>;
+export function listPullGroups(repository: string): Promise<PullGroup>;
+export function listPullGroups(repository?: string): Promise<PullGroup[] | PullGroup> {
+  if (repository === undefined) return request<PullGroup[]>('GET', '/api/pulls');
+  return request<PullGroup>('GET', withQuery('/api/pulls', { repository }));
 }
 
 export function listSessions(): Promise<SessionSummary[]> {
@@ -149,8 +176,8 @@ export function listSessions(): Promise<SessionSummary[]> {
 }
 
 /** Creates the session (201) or opens the existing one for that PR (200); both return the detail. */
-export function createSession(prNumber: number): Promise<SessionDetail> {
-  return request<SessionDetail>('POST', '/api/sessions', { prNumber });
+export function createSession(repository: string, prNumber: number): Promise<SessionDetail> {
+  return request<SessionDetail>('POST', '/api/sessions', { repository, prNumber });
 }
 
 export function getSession(sessionId: string): Promise<SessionDetail> {
@@ -222,11 +249,19 @@ export type SessionStreamOptions = SessionEventHandlers & {
   onSummaries?: (snapshotId: string, summaries: Summary[]) => void;
   /** The stream dropped; `EventSource` retries by itself. */
   onDisconnect?: () => void;
+  /** Every `open`, first or after a retry. */
+  onOpen?: () => void;
+  /** Every `error`, with the `EventSource` readyState (2 = CLOSED: no more retries). */
+  onError?: (readyState: number) => void;
   /** A re-read after reconnect failed. */
   onResyncError?: (error: unknown) => void;
 };
 
-export type SessionStream = { close(): void };
+export type SessionStream = {
+  close(): void;
+  /** 0 connecting, 1 open, 2 closed. */
+  readonly readyState: number;
+};
 
 const EVENT_NAMES: readonly SessionEventName[] = [
   'session',
@@ -271,17 +306,23 @@ export function subscribeSession(sessionId: string, options: SessionStreamOption
 
   source.onerror = () => {
     if (closed) return;
+    options.onError?.(source.readyState);
     if (!dropped) options.onDisconnect?.();
     dropped = true;
   };
 
   source.onopen = () => {
-    if (!dropped || closed) return;
+    if (closed) return;
+    options.onOpen?.();
+    if (!dropped) return;
     dropped = false;
     resync(sessionId, options).catch((error: unknown) => options.onResyncError?.(error));
   };
 
   return {
+    get readyState() {
+      return source.readyState;
+    },
     close() {
       closed = true;
       source.close();

@@ -1,49 +1,70 @@
-// Code view (`#/sessions/:sessionId/code?snapshot=<id>&side=head|base&path=<path>&line=<n>`, FR-035):
-// any file at a snapshot's head commit, or its base commit for a removed line, scrolled to the cited
-// line. A commit no longer in the clone shows the server's reason. Code is rendered as text.
+// Code view (`#/sessions/:sessionId/code?snapshot=<id>&side=head|base&path=<path>&start=<n>&end=<m>`, FR-010,
+// FR-028): any file at a snapshot's head commit, or its base commit for a removed line, with the cited lines
+// marked. A commit no longer in the clone is a state with its reason, not an error. Code is rendered as text.
 
-import { useEffect, useRef, useState } from 'preact/hooks';
-import type { FileContent, Side } from '../../contracts/http.ts';
-import { getFileContent } from '../api.ts';
+import { useEffect, useState } from 'preact/hooks';
+import type { FileContent } from '../../contracts/http.ts';
+import { ApiError, getFileContent } from '../api.ts';
+import { AsyncRegion } from '../components/async-region.tsx';
+import { CodeView } from '../components/code-view.tsx';
+import { parseRoute, type Route } from '../state/routes.ts';
 
-export function CodeScreen(props: { sessionId: string; snapshotId: string; side: Side; path: string; line?: number }) {
-  const { sessionId, snapshotId, side, path, line } = props;
+export function CodeScreen(_props: { sessionId: string }) {
+  const route = parseRoute(location.hash);
+  if (route.name !== 'code') return <p class="error">This code link is not valid.</p>;
+  return <CodePage route={route} />;
+}
+
+function CodePage(props: { route: Extract<Route, { name: 'code' }> }) {
+  const { sessionId, snapshot, side, path, range } = props.route;
   const [file, setFile] = useState<FileContent | null>(null);
-  const [error, setError] = useState<string | null>(null);
-  const cited = useRef<HTMLTableRowElement>(null);
+  const [problem, setProblem] = useState<{ unknown: boolean; reason: string } | null>(null);
+  const [attempt, setAttempt] = useState(0);
 
   useEffect(() => {
+    let live = true;
     setFile(null);
-    getFileContent(sessionId, snapshotId, side, path)
-      .then(setFile)
-      .catch((e: unknown) => setError(e instanceof Error ? e.message : 'Could not open the file.'));
-  }, [sessionId, snapshotId, side, path]);
+    setProblem(null);
+    getFileContent(sessionId, snapshot, side, path)
+      .then((f) => live && setFile(f))
+      .catch((e: unknown) => {
+        if (!live) return;
+        const reason = e instanceof Error ? e.message : 'Could not open the file.';
+        setProblem({ unknown: e instanceof ApiError && (e.code === 'not_found' || e.code === 'workspace_unavailable' || e.code === 'repository_unavailable'), reason });
+      });
+    return () => {
+      live = false;
+    };
+  }, [sessionId, snapshot, side, path, attempt]);
 
-  useEffect(() => {
-    cited.current?.scrollIntoView({ block: 'center' });
-  }, [file, line]);
+  const state =
+    problem !== null
+      ? problem.unknown
+        ? ({ state: 'unknown', reason: problem.reason } as const)
+        : ({ state: 'failed', reason: problem.reason, retry: () => setAttempt((n) => n + 1) } as const)
+      : file === null
+        ? ({ state: 'loading' } as const)
+        : ({ state: 'loaded' } as const);
 
-  if (error !== null) return <p class="error">{error}</p>;
-  if (file === null) return <p class="muted">Loading…</p>;
   return (
     <article class="panel stack" data-testid="code-view">
-      <h1 class="mono">{file.path}</h1>
-      <p class="muted">{`${side === 'head' ? 'Head' : 'Base'} commit ${file.commit}`}</p>
-      <table class="code mono">
-        <tbody>
-          {file.lines.map((text, i) => {
-            const n = i + 1;
-            const isCited = n === line;
-            return (
-              <tr key={n} data-testid={`code-line-${n}`} class={isCited ? 'selected' : ''} {...(isCited ? { ref: cited } : {})}>
-                <td class="line-no">{n}</td>
-                <td>{text}</td>
-              </tr>
-            );
-          })}
-        </tbody>
-      </table>
-      <a href={`#/sessions/${encodeURIComponent(sessionId)}`}>Back to the session</a>
+      <h1 class="mono">{path}</h1>
+      <p class="muted">{`${side === 'head' ? 'Head' : 'Base'} commit ${file?.commit ?? ''}`}</p>
+      <AsyncRegion region="code" label="the file" {...state}>
+        {file !== null && <CodeView lines={file.lines} range={range} />}
+      </AsyncRegion>
+      <a
+        data-testid="code-back"
+        href={`#/sessions/${encodeURIComponent(sessionId)}`}
+        onClick={(e) => {
+          if (history.length > 1) {
+            e.preventDefault();
+            history.back();
+          }
+        }}
+      >
+        Back
+      </a>
     </article>
   );
 }

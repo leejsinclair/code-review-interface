@@ -1,11 +1,14 @@
-// Hash router composing every screen (contracts/ui.md). `#/setup` comes first while no configuration
-// is saved (FR-039); `#/signin` is reached when any call answers `signin_required`, since api.ts sets
-// the hash (FR-040). Each route change remounts its screen, so a screen loads for the ids it is given.
+// Hash router composing every screen (contracts 4.1, 4.2). The app header and `<main>` persist; every
+// `#/sessions/:id…` route is wrapped in a review shell keyed by session id, so the session loads once and its
+// stream, panel and scroll survive moving between pages. `#/setup` comes first while no configuration is saved
+// (FR-039); `#/signin` is reached when any call answers `signin_required`, since api.ts sets the hash (FR-040).
 
 import { render } from 'preact';
+import type { ComponentChild } from 'preact';
 import { useEffect, useState } from 'preact/hooks';
 import { getConfig } from './api.ts';
-import { SummariesPanel } from './components/summaries.tsx';
+import { AppHeader } from './components/app-header.tsx';
+import { ReviewShell } from './components/review-shell.tsx';
 import { AskScreen } from './screens/ask.tsx';
 import { CodeScreen } from './screens/code.tsx';
 import { DescriptionScreen } from './screens/description.tsx';
@@ -15,42 +18,37 @@ import { IssueScreen } from './screens/issue.tsx';
 import { OverviewScreen } from './screens/overview.tsx';
 import { SetupScreen } from './screens/setup.tsx';
 import { SignInScreen } from './screens/signin.tsx';
+import { parseRoute } from './state/routes.ts';
 
-function screenFor(hash: string) {
-  const [pathText = '', queryText = ''] = hash.replace(/^#\/?/, '').split('?', 2);
-  const query = new URLSearchParams(queryText);
-  const [first, sessionId, view, ...rest] = pathText.split('/').filter((s) => s !== '').map(decodeURIComponent);
-
-  if (first === 'setup') return <SetupScreen />;
-  if (first === 'signin') return <SignInScreen />;
-  if (first !== 'sessions' || sessionId === undefined) return <HomeScreen />;
-  switch (view) {
-    case undefined:
-      return <OverviewScreen sessionId={sessionId}>{(detail) => <SummariesPanel sessionId={sessionId} detail={detail} />}</OverviewScreen>;
+function screenFor(hash: string): ComponentChild {
+  const route = parseRoute(hash);
+  switch (route.name) {
+    case 'setup':
+      return <SetupScreen />;
+    case 'signin':
+      return <SignInScreen />;
+    case 'overview':
+      return inShell(route.sessionId, <OverviewScreen key={hash} sessionId={route.sessionId} />);
     case 'diff':
-      return <DiffScreen sessionId={sessionId} path={query.get('path') ?? ''} />;
-    case 'code': {
-      const line = Number(query.get('line'));
-      return (
-        <CodeScreen
-          sessionId={sessionId}
-          snapshotId={query.get('snapshot') ?? ''}
-          side={query.get('side') === 'base' ? 'base' : 'head'}
-          path={query.get('path') ?? ''}
-          {...(Number.isInteger(line) && line > 0 ? { line } : {})}
-        />
-      );
-    }
-    case 'issues':
-      if (rest.length === 2) return <IssueScreen sessionId={sessionId} platform={rest[0]!} issueKey={rest[1]!} />;
-      break;
+      return inShell(route.sessionId, <DiffScreen key={hash} sessionId={route.sessionId} path={route.path ?? ''} />);
+    case 'code':
+      return inShell(route.sessionId, <CodeScreen key={hash} sessionId={route.sessionId} />);
     case 'description':
-      return <DescriptionScreen sessionId={sessionId} />;
+      return inShell(route.sessionId, <DescriptionScreen key={hash} sessionId={route.sessionId} />);
+    case 'issue':
+      return inShell(route.sessionId, <IssueScreen key={hash} sessionId={route.sessionId} platform={route.platform} issueKey={route.key} />);
     case 'ask':
-      return <AskScreen sessionId={sessionId} query={query} />;
+      return inShell(route.sessionId, <AskScreen key={hash} sessionId={route.sessionId} query={route.query} />);
+    default:
+      return <HomeScreen />;
   }
-  return <HomeScreen />;
 }
+
+const inShell = (sessionId: string, screen: ComponentChild): ComponentChild => (
+  <ReviewShell key={sessionId} sessionId={sessionId}>
+    {screen}
+  </ReviewShell>
+);
 
 function App() {
   const [hash, setHash] = useState(location.hash);
@@ -70,15 +68,8 @@ function App() {
 
   return (
     <>
-      <header class="app-header">
-        <h1 class="app-title">
-          <a href="#/">PR Review Workbench</a>
-        </h1>
-        <span class="spacer" />
-        <a href="#/setup">Setup</a>
-        <a href="#/signin">Sign-in</a>
-      </header>
-      <main class="app-main" key={hash}>
+      <AppHeader />
+      <main id="main" tabIndex={-1} class="app-main">
         {ready ? screenFor(hash) : <p class="muted">Loading…</p>}
       </main>
     </>
