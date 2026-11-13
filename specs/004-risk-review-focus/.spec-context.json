@@ -1,0 +1,1613 @@
+{
+  "workflow": "speckit",
+  "specName": "Risk-Based Review Focus",
+  "branch": "main",
+  "currentStep": "implement",
+  "status": "completed",
+  "history": [
+    {
+      "step": "specify",
+      "substep": null,
+      "kind": "start",
+      "by": "extension",
+      "at": "2026-11-10T03:39:03.000Z"
+    },
+    {
+      "step": "specify",
+      "substep": null,
+      "kind": "complete",
+      "by": "extension",
+      "at": "2026-11-10T03:44:58.926Z"
+    },
+    {
+      "step": "plan",
+      "substep": null,
+      "kind": "start",
+      "by": "extension",
+      "at": "2026-11-10T03:47:27.781Z"
+    },
+    {
+      "step": "plan",
+      "substep": null,
+      "kind": "complete",
+      "by": "ai",
+      "at": "2026-11-10T03:52:36.322Z"
+    },
+    {
+      "step": "tasks",
+      "substep": null,
+      "kind": "start",
+      "by": "extension",
+      "at": "2026-11-10T03:58:38.162Z"
+    },
+    {
+      "step": "tasks",
+      "substep": null,
+      "kind": "complete",
+      "by": "extension",
+      "at": "2026-11-10T04:01:21.621Z"
+    },
+    {
+      "step": "analyze",
+      "substep": null,
+      "kind": "start",
+      "by": "extension",
+      "at": "2026-11-10T04:02:08.374Z"
+    },
+    {
+      "step": "analyze",
+      "substep": null,
+      "kind": "complete",
+      "by": "ai",
+      "at": "2026-11-10T04:03:11.623Z"
+    },
+    {
+      "step": "implement",
+      "substep": null,
+      "kind": "start",
+      "by": "extension",
+      "at": "2026-11-10T04:12:39.321Z"
+    },
+    {
+      "step": "analyze",
+      "substep": null,
+      "kind": "complete",
+      "by": "extension",
+      "at": "2026-11-10T04:12:45.042Z"
+    },
+    {
+      "step": "implement",
+      "substep": null,
+      "kind": "start",
+      "by": "extension",
+      "at": "2026-11-10T04:12:40.049Z"
+    },
+    {
+      "step": "implement",
+      "substep": null,
+      "task": "T001",
+      "kind": "complete",
+      "by": "ai",
+      "at": "2026-11-10T04:14:07.268Z"
+    },
+    {
+      "step": "implement",
+      "substep": null,
+      "task": "T003",
+      "kind": "complete",
+      "by": "ai",
+      "at": "2026-11-10T04:14:12.097Z"
+    },
+    {
+      "step": "implement",
+      "substep": null,
+      "task": "T004",
+      "kind": "complete",
+      "by": "ai",
+      "at": "2026-11-10T04:14:12.273Z"
+    },
+    {
+      "step": "implement",
+      "substep": null,
+      "task": "T005",
+      "kind": "complete",
+      "by": "ai",
+      "at": "2026-11-10T04:16:02.142Z"
+    },
+    {
+      "step": "implement",
+      "substep": null,
+      "task": "T006",
+      "kind": "complete",
+      "by": "ai",
+      "at": "2026-11-10T04:16:02.292Z"
+    },
+    {
+      "step": "implement",
+      "substep": null,
+      "task": "T007",
+      "kind": "complete",
+      "by": "ai",
+      "at": "2026-11-10T04:16:02.426Z"
+    },
+    {
+      "step": "implement",
+      "substep": null,
+      "task": "T008",
+      "kind": "complete",
+      "by": "ai",
+      "at": "2026-11-10T04:16:02.595Z"
+    },
+    {
+      "step": "implement",
+      "substep": null,
+      "task": "T009",
+      "kind": "complete",
+      "by": "ai",
+      "at": "2026-11-10T04:16:02.765Z"
+    },
+    {
+      "step": "implement",
+      "substep": null,
+      "task": "T010",
+      "kind": "complete",
+      "by": "ai",
+      "at": "2026-11-10T04:16:02.920Z"
+    },
+    {
+      "step": "implement",
+      "substep": null,
+      "task": "T011",
+      "kind": "complete",
+      "by": "ai",
+      "at": "2026-11-10T04:16:03.086Z"
+    },
+    {
+      "step": "implement",
+      "substep": null,
+      "task": "T012",
+      "kind": "complete",
+      "by": "ai",
+      "at": "2026-11-10T04:17:59.286Z"
+    },
+    {
+      "step": "implement",
+      "substep": null,
+      "task": "T002",
+      "kind": "complete",
+      "by": "ai",
+      "at": "2026-11-10T04:17:59.432Z"
+    },
+    {
+      "step": "implement",
+      "substep": null,
+      "task": "T013",
+      "kind": "complete",
+      "by": "ai",
+      "at": "2026-11-10T04:17:59.600Z"
+    },
+    {
+      "step": "implement",
+      "substep": null,
+      "task": "T014",
+      "kind": "complete",
+      "by": "ai",
+      "at": "2026-11-10T04:18:46.534Z"
+    },
+    {
+      "step": "implement",
+      "substep": null,
+      "task": "T015",
+      "kind": "complete",
+      "by": "ai",
+      "at": "2026-11-10T04:18:46.697Z"
+    },
+    {
+      "step": "implement",
+      "substep": null,
+      "task": "T016",
+      "kind": "complete",
+      "by": "ai",
+      "at": "2026-11-10T04:21:28.358Z"
+    },
+    {
+      "step": "implement",
+      "substep": null,
+      "task": "T021",
+      "kind": "complete",
+      "by": "ai",
+      "at": "2026-11-10T04:21:28.515Z"
+    },
+    {
+      "step": "implement",
+      "substep": null,
+      "task": "T022",
+      "kind": "complete",
+      "by": "ai",
+      "at": "2026-11-10T04:21:28.684Z"
+    },
+    {
+      "step": "implement",
+      "substep": null,
+      "task": "T023",
+      "kind": "complete",
+      "by": "ai",
+      "at": "2026-11-10T04:21:28.859Z"
+    },
+    {
+      "step": "implement",
+      "substep": null,
+      "task": "T017",
+      "kind": "complete",
+      "by": "ai",
+      "at": "2026-11-10T04:21:48.581Z"
+    },
+    {
+      "step": "implement",
+      "substep": null,
+      "task": "T024",
+      "kind": "complete",
+      "by": "ai",
+      "at": "2026-11-10T04:21:48.740Z"
+    },
+    {
+      "step": "implement",
+      "substep": null,
+      "task": "T018",
+      "kind": "complete",
+      "by": "ai",
+      "at": "2026-11-10T04:23:15.934Z"
+    },
+    {
+      "step": "implement",
+      "substep": null,
+      "task": "T019",
+      "kind": "complete",
+      "by": "ai",
+      "at": "2026-11-10T04:23:16.081Z"
+    },
+    {
+      "step": "implement",
+      "substep": null,
+      "task": "T020",
+      "kind": "complete",
+      "by": "ai",
+      "at": "2026-11-10T04:23:16.250Z"
+    },
+    {
+      "step": "implement",
+      "substep": null,
+      "task": "T025",
+      "kind": "complete",
+      "by": "ai",
+      "at": "2026-11-10T04:24:48.281Z"
+    },
+    {
+      "step": "implement",
+      "substep": null,
+      "task": "T026",
+      "kind": "complete",
+      "by": "ai",
+      "at": "2026-11-10T04:24:48.447Z"
+    },
+    {
+      "step": "implement",
+      "substep": null,
+      "task": "T027",
+      "kind": "complete",
+      "by": "ai",
+      "at": "2026-11-10T04:24:48.597Z"
+    },
+    {
+      "step": "implement",
+      "substep": null,
+      "task": "T028",
+      "kind": "complete",
+      "by": "ai",
+      "at": "2026-11-10T04:27:19.188Z"
+    },
+    {
+      "step": "implement",
+      "substep": null,
+      "task": "T029",
+      "kind": "complete",
+      "by": "ai",
+      "at": "2026-11-10T04:27:19.352Z"
+    },
+    {
+      "step": "implement",
+      "substep": null,
+      "task": "T030",
+      "kind": "complete",
+      "by": "ai",
+      "at": "2026-11-10T04:27:19.501Z"
+    },
+    {
+      "step": "implement",
+      "substep": null,
+      "task": "T031",
+      "kind": "complete",
+      "by": "ai",
+      "at": "2026-11-10T04:27:19.662Z"
+    },
+    {
+      "step": "implement",
+      "substep": null,
+      "task": "T032",
+      "kind": "complete",
+      "by": "ai",
+      "at": "2026-11-10T04:30:06.298Z"
+    },
+    {
+      "step": "implement",
+      "substep": null,
+      "task": "T033",
+      "kind": "complete",
+      "by": "ai",
+      "at": "2026-11-10T04:30:06.440Z"
+    },
+    {
+      "step": "implement",
+      "substep": null,
+      "task": "T034",
+      "kind": "complete",
+      "by": "ai",
+      "at": "2026-11-10T04:30:06.585Z"
+    },
+    {
+      "step": "implement",
+      "substep": null,
+      "task": "T035",
+      "kind": "complete",
+      "by": "ai",
+      "at": "2026-11-10T04:30:06.719Z"
+    },
+    {
+      "step": "implement",
+      "substep": null,
+      "task": "T036",
+      "kind": "complete",
+      "by": "ai",
+      "at": "2026-11-10T04:32:50.903Z"
+    },
+    {
+      "step": "implement",
+      "substep": null,
+      "task": "T037",
+      "kind": "complete",
+      "by": "ai",
+      "at": "2026-11-10T04:32:51.071Z"
+    },
+    {
+      "step": "implement",
+      "substep": null,
+      "task": "T038",
+      "kind": "complete",
+      "by": "ai",
+      "at": "2026-11-10T04:32:51.233Z"
+    },
+    {
+      "step": "implement",
+      "substep": null,
+      "task": "T039",
+      "kind": "complete",
+      "by": "ai",
+      "at": "2026-11-10T04:32:51.395Z"
+    },
+    {
+      "step": "implement",
+      "substep": null,
+      "task": "T040",
+      "kind": "complete",
+      "by": "ai",
+      "at": "2026-11-10T04:32:51.549Z"
+    },
+    {
+      "step": "implement",
+      "substep": null,
+      "task": "T041",
+      "kind": "complete",
+      "by": "ai",
+      "at": "2026-11-10T04:32:51.717Z"
+    },
+    {
+      "step": "implement",
+      "substep": null,
+      "task": "T042",
+      "kind": "complete",
+      "by": "ai",
+      "at": "2026-11-10T04:32:51.877Z"
+    },
+    {
+      "step": "implement",
+      "substep": null,
+      "task": "T088",
+      "kind": "complete",
+      "by": "ai",
+      "at": "2026-11-10T04:32:52.066Z"
+    },
+    {
+      "step": "implement",
+      "substep": null,
+      "task": "T043",
+      "kind": "complete",
+      "by": "ai",
+      "at": "2026-11-10T04:32:52.218Z"
+    },
+    {
+      "step": "implement",
+      "substep": null,
+      "task": "T044",
+      "kind": "complete",
+      "by": "ai",
+      "at": "2026-11-10T04:36:13.272Z"
+    },
+    {
+      "step": "implement",
+      "substep": null,
+      "task": "T045",
+      "kind": "complete",
+      "by": "ai",
+      "at": "2026-11-10T04:36:13.421Z"
+    },
+    {
+      "step": "implement",
+      "substep": null,
+      "task": "T046",
+      "kind": "complete",
+      "by": "ai",
+      "at": "2026-11-10T04:36:13.594Z"
+    },
+    {
+      "step": "implement",
+      "substep": null,
+      "task": "T048",
+      "kind": "complete",
+      "by": "ai",
+      "at": "2026-11-10T04:36:13.757Z"
+    },
+    {
+      "step": "implement",
+      "substep": null,
+      "task": "T049",
+      "kind": "complete",
+      "by": "ai",
+      "at": "2026-11-10T04:36:13.910Z"
+    },
+    {
+      "step": "implement",
+      "substep": null,
+      "task": "T050",
+      "kind": "complete",
+      "by": "ai",
+      "at": "2026-11-10T04:36:14.063Z"
+    },
+    {
+      "step": "implement",
+      "substep": null,
+      "task": "T051",
+      "kind": "complete",
+      "by": "ai",
+      "at": "2026-11-10T04:36:14.217Z"
+    },
+    {
+      "step": "implement",
+      "substep": null,
+      "task": "T052",
+      "kind": "complete",
+      "by": "ai",
+      "at": "2026-11-10T04:40:55.631Z"
+    },
+    {
+      "step": "implement",
+      "substep": null,
+      "task": "T053",
+      "kind": "complete",
+      "by": "ai",
+      "at": "2026-11-10T04:40:55.781Z"
+    },
+    {
+      "step": "implement",
+      "substep": null,
+      "task": "T047",
+      "kind": "complete",
+      "by": "ai",
+      "at": "2026-11-10T04:40:55.929Z"
+    },
+    {
+      "step": "implement",
+      "substep": null,
+      "task": "T054",
+      "kind": "complete",
+      "by": "ai",
+      "at": "2026-11-10T04:40:56.074Z"
+    },
+    {
+      "step": "implement",
+      "substep": null,
+      "task": "T055",
+      "kind": "complete",
+      "by": "ai",
+      "at": "2026-11-10T04:44:54.285Z"
+    },
+    {
+      "step": "implement",
+      "substep": null,
+      "task": "T085",
+      "kind": "complete",
+      "by": "ai",
+      "at": "2026-11-10T04:44:54.441Z"
+    },
+    {
+      "step": "implement",
+      "substep": null,
+      "task": "T056",
+      "kind": "complete",
+      "by": "ai",
+      "at": "2026-11-10T04:44:54.607Z"
+    },
+    {
+      "step": "implement",
+      "substep": null,
+      "task": "T057",
+      "kind": "complete",
+      "by": "ai",
+      "at": "2026-11-10T04:47:00.930Z"
+    },
+    {
+      "step": "implement",
+      "substep": null,
+      "task": "T058",
+      "kind": "complete",
+      "by": "ai",
+      "at": "2026-11-10T04:47:01.075Z"
+    },
+    {
+      "step": "implement",
+      "substep": null,
+      "task": "T059",
+      "kind": "complete",
+      "by": "ai",
+      "at": "2026-11-10T04:47:01.242Z"
+    },
+    {
+      "step": "implement",
+      "substep": null,
+      "task": "T060",
+      "kind": "complete",
+      "by": "ai",
+      "at": "2026-11-10T04:47:01.410Z"
+    },
+    {
+      "step": "implement",
+      "substep": null,
+      "task": "T061",
+      "kind": "complete",
+      "by": "ai",
+      "at": "2026-11-10T04:47:01.557Z"
+    },
+    {
+      "step": "implement",
+      "substep": null,
+      "task": "T062",
+      "kind": "complete",
+      "by": "ai",
+      "at": "2026-11-10T04:48:30.888Z"
+    },
+    {
+      "step": "implement",
+      "substep": null,
+      "task": "T063",
+      "kind": "complete",
+      "by": "ai",
+      "at": "2026-11-10T04:48:31.043Z"
+    },
+    {
+      "step": "implement",
+      "substep": null,
+      "task": "T064",
+      "kind": "complete",
+      "by": "ai",
+      "at": "2026-11-10T04:51:19.982Z"
+    },
+    {
+      "step": "implement",
+      "substep": null,
+      "task": "T065",
+      "kind": "complete",
+      "by": "ai",
+      "at": "2026-11-10T04:51:20.155Z"
+    },
+    {
+      "step": "implement",
+      "substep": null,
+      "task": "T066",
+      "kind": "complete",
+      "by": "ai",
+      "at": "2026-11-10T04:51:20.316Z"
+    },
+    {
+      "step": "implement",
+      "substep": null,
+      "task": "T067",
+      "kind": "complete",
+      "by": "ai",
+      "at": "2026-11-10T04:51:20.489Z"
+    },
+    {
+      "step": "implement",
+      "substep": null,
+      "task": "T069",
+      "kind": "complete",
+      "by": "ai",
+      "at": "2026-11-10T04:51:20.655Z"
+    },
+    {
+      "step": "implement",
+      "substep": null,
+      "task": "T072",
+      "kind": "complete",
+      "by": "ai",
+      "at": "2026-11-10T04:57:06.032Z"
+    },
+    {
+      "step": "implement",
+      "substep": null,
+      "task": "T073",
+      "kind": "complete",
+      "by": "ai",
+      "at": "2026-11-10T04:57:06.192Z"
+    },
+    {
+      "step": "implement",
+      "substep": null,
+      "task": "T074",
+      "kind": "complete",
+      "by": "ai",
+      "at": "2026-11-10T04:57:06.343Z"
+    },
+    {
+      "step": "implement",
+      "substep": null,
+      "task": "T075",
+      "kind": "complete",
+      "by": "ai",
+      "at": "2026-11-10T04:57:06.495Z"
+    },
+    {
+      "step": "implement",
+      "substep": null,
+      "task": "T077",
+      "kind": "complete",
+      "by": "ai",
+      "at": "2026-11-10T04:57:54.908Z"
+    },
+    {
+      "step": "implement",
+      "substep": null,
+      "task": "T078",
+      "kind": "complete",
+      "by": "ai",
+      "at": "2026-11-10T04:57:55.075Z"
+    },
+    {
+      "step": "implement",
+      "substep": null,
+      "task": "T084",
+      "kind": "complete",
+      "by": "ai",
+      "at": "2026-11-10T04:58:14.884Z"
+    },
+    {
+      "step": "implement",
+      "substep": null,
+      "task": "T079",
+      "kind": "complete",
+      "by": "ai",
+      "at": "2026-11-10T04:59:45.473Z"
+    },
+    {
+      "step": "implement",
+      "substep": null,
+      "task": "T080",
+      "kind": "complete",
+      "by": "ai",
+      "at": "2026-11-10T04:59:45.630Z"
+    },
+    {
+      "step": "implement",
+      "substep": null,
+      "task": "T068",
+      "kind": "complete",
+      "by": "ai",
+      "at": "2026-11-10T05:05:32.132Z"
+    },
+    {
+      "step": "implement",
+      "substep": null,
+      "task": "T070",
+      "kind": "complete",
+      "by": "ai",
+      "at": "2026-11-10T05:05:32.275Z"
+    },
+    {
+      "step": "implement",
+      "substep": null,
+      "task": "T071",
+      "kind": "complete",
+      "by": "ai",
+      "at": "2026-11-10T05:05:32.421Z"
+    },
+    {
+      "step": "implement",
+      "substep": null,
+      "task": "T086",
+      "kind": "complete",
+      "by": "ai",
+      "at": "2026-11-10T05:05:32.575Z"
+    },
+    {
+      "step": "implement",
+      "substep": null,
+      "task": "T087",
+      "kind": "complete",
+      "by": "ai",
+      "at": "2026-11-10T05:05:32.738Z"
+    },
+    {
+      "step": "implement",
+      "substep": null,
+      "task": "T076",
+      "kind": "complete",
+      "by": "ai",
+      "at": "2026-11-10T05:05:32.926Z"
+    },
+    {
+      "step": "implement",
+      "substep": null,
+      "task": "T081",
+      "kind": "complete",
+      "by": "ai",
+      "at": "2026-11-10T05:17:51.690Z"
+    },
+    {
+      "step": "implement",
+      "substep": null,
+      "task": "T082",
+      "kind": "complete",
+      "by": "ai",
+      "at": "2026-11-10T05:17:51.850Z"
+    },
+    {
+      "step": "implement",
+      "substep": null,
+      "kind": "complete",
+      "by": "extension",
+      "at": "2026-11-10T05:25:01.060Z"
+    }
+  ],
+  "telemetryInstanceId": "d9c9c93a-ffb9-4c5f-927e-7e585cf1e724",
+  "assistant": "claude",
+  "approach": "A pure classifier in core/risk runs when a snapshot is stored and writes append-only rule records; a separate AI lane can only raise a class and must cite a resolvable changed line; overrides are append-only Dispositions carried across snapshots by a change fingerprint, with the platform identity read server-side through a new currentUser() contract method. The effective class is derived, never stored.",
+  "decisions": [
+    {
+      "decision": "Rule file uses globs and literal line terms, not regexes",
+      "why": "A user-edited file cannot cause catastrophic backtracking and needs no new dependency",
+      "rejected": "Regex line patterns; YAML rule file",
+      "by": "agent",
+      "at": "2026-11-10T03:52:35.707Z"
+    },
+    {
+      "decision": "Overrides carry over by a fingerprint of the file's changed lines, not head commit",
+      "why": "An unrelated new head must not lapse an override on an unchanged file",
+      "rejected": "head commit; whole-diff fingerprint",
+      "by": "agent",
+      "at": "2026-11-10T03:52:35.840Z"
+    },
+    {
+      "decision": "Separate risk lane and risk_run table with its own context columns",
+      "why": "Risk must not queue behind summaries, and stored_prompt owner CHECK would need an append-only table rebuild",
+      "rejected": "Share the summary lane; extend stored_prompt",
+      "by": "agent",
+      "at": "2026-11-10T03:52:35.956Z"
+    },
+    {
+      "decision": "New currentUser() on SourceControlProvider instead of reusing verifySignIn().account",
+      "why": "Account value differs by platform and a sign-in check should not be the audit source; feature 008 reuses it",
+      "rejected": "verifySignIn account; typed reviewer name",
+      "by": "agent",
+      "at": "2026-11-10T03:52:36.079Z"
+    }
+  ],
+  "step_summaries": {
+    "plan": {
+      "summary": "Plan, research (11 decisions), data model (6 append-only tables), HTTP/rule-file/currentUser/UI contracts, quickstart and 38 verification obligations; constitution check passes with no violations."
+    },
+    "tasks": {
+      "summary": "84 tasks in 9 phases: setup 4, foundational 11, US1 16, US2 4, US3 8, US4 13, US5 15, US6 5, polish 8; test-first, VO-001 to VO-038 covered."
+    },
+    "implement": {
+      "summary": "Rule-based risk classes stored on every snapshot, a raise-only AI lane, append-only overrides with a server-read reviewer and fingerprint carry-over, an optional rule file, and the Review focus, badges, filter, order, diff marks and override dialog in the UI; 87 of 88 tasks done, T083 manual checks need a person."
+    }
+  },
+  "coverage": {
+    "FR-001": {
+      "tasks": [
+        "T016",
+        "T023",
+        "T024"
+      ],
+      "tests": [
+        "test/unit/risk-classify.test.ts",
+        "test/integration/risk-service.test.ts"
+      ]
+    },
+    "FR-005": {
+      "tasks": [
+        "T009",
+        "T010",
+        "T016",
+        "T023"
+      ],
+      "tests": [
+        "test/unit/risk-classify.test.ts",
+        "test/unit/risk-comments.test.ts"
+      ]
+    },
+    "FR-014": {
+      "tasks": [
+        "T044",
+        "T045"
+      ],
+      "tests": [
+        "test/unit/risk-assess.test.ts",
+        "test/end-to-end/risk.test.ts"
+      ]
+    },
+    "FR-020": {
+      "tasks": [
+        "T057",
+        "T058",
+        "T064",
+        "T065"
+      ],
+      "tests": [
+        "test/integration/risk-service.test.ts",
+        "test/end-to-end/risk.test.ts",
+        "test/contract/source-control.contract.test.ts"
+      ]
+    },
+    "FR-023": {
+      "tasks": [
+        "T007",
+        "T008",
+        "T062",
+        "T063"
+      ],
+      "tests": [
+        "test/integration/risk-service.test.ts",
+        "test/unit/risk-effective.test.ts"
+      ]
+    },
+    "FR-029": {
+      "tasks": [
+        "T036",
+        "T039",
+        "T042"
+      ],
+      "tests": [
+        "test/unit/ui-file-order.test.ts",
+        "test/ui/overview.ui.ts"
+      ]
+    },
+    "FR-035": {
+      "tasks": [
+        "T072",
+        "T073",
+        "T074",
+        "T075"
+      ],
+      "tests": [
+        "test/unit/risk-ruleset.test.ts",
+        "test/integration/risk-service.test.ts"
+      ]
+    }
+  },
+  "concerns": [
+    {
+      "note": "Two-step lowering of a Critical class (Critical->Elevated->Low) needs a named reviewer only on the first step, because FR-020 keys on the current effective class; accountability can be bypassed",
+      "step": "analyze"
+    },
+    {
+      "note": "T003 deletes REVIEW_FOCUS.body in Phase 1 but src/ui/screens/overview.tsx:55 still renders it until T031, so typecheck breaks between them",
+      "step": "analyze"
+    },
+    {
+      "note": "No test task covers Origin/CSRF refusal of the override POST (X.5, XI.3); T019 guard test covers GET only",
+      "step": "analyze"
+    },
+    {
+      "note": "Plan cites EC-01..EC-13 but spec Edge Cases are unnumbered; FR-013 cites FR-008 for prompt limits though FR-008 is about classification",
+      "step": "analyze"
+    },
+    {
+      "note": "A1 resolved: named reviewer required when a Critical-calculated file is taken below Critical, via calculated_class column; spec, tasks, data-model, contracts updated",
+      "step": "analyze"
+    },
+    {
+      "note": "T083 (manual checks MV-001 on a real display, MV-002 with a screen reader) is not done: it needs a person. Forced-colors and greyscale are emulated and pass, announcements are asserted through the live region.",
+      "step": "implement"
+    },
+    {
+      "note": "npm run test:gitlab was not run (needs the local GitLab). The currentUser case is in the shared suite and the GitLab target passes expected.currentUser.",
+      "step": "implement"
+    },
+    {
+      "note": "T004: the reference PR fixture lives in test/fixtures/risk/risk-reference.json, not test/fixtures/github/, because the recorded-fetch replayer reads every JSON there as a recorded request.",
+      "step": "implement"
+    },
+    {
+      "note": "The code page Head commit line (one unbreakable sha) pushed the page 1 to 13 px sideways at 400 px depending on the sha, failing references.ui and sweep.ui intermittently; fixed with overflow-wrap in app.css. UI test files must be run one process at a time (shared dist/ui).",
+      "step": "implement"
+    }
+  ],
+  "currentTask": "T083",
+  "task_summaries": {
+    "T001": {
+      "status": "DONE",
+      "did": "Added the risk wire types, SSE risk event and override body to src/contracts/http.ts",
+      "files": [
+        "src/contracts/http.ts"
+      ]
+    },
+    "T003": {
+      "status": "DONE",
+      "did": "Added RISK_LABELS (and kept REVIEW_FOCUS.body until T031) to labels.ts",
+      "files": [
+        "src/ui/labels.ts"
+      ]
+    },
+    "T004": {
+      "status": "DONE",
+      "did": "Added the reference PR fixture with migration, auth, lockfile, README, comment-only, rename, binary and markup-path files",
+      "files": [
+        "test/fixtures/github/risk-reference.json"
+      ]
+    },
+    "T005": {
+      "status": "DONE",
+      "did": "Wrote the glob matcher tests",
+      "files": [
+        "test/unit/risk-glob.test.ts"
+      ]
+    },
+    "T006": {
+      "status": "DONE",
+      "did": "Implemented the linear glob matcher with no RegExp from input",
+      "files": [
+        "src/core/risk/glob.ts"
+      ]
+    },
+    "T007": {
+      "status": "DONE",
+      "did": "Wrote patch parsing and fingerprint tests",
+      "files": [
+        "test/unit/risk-patch.test.ts"
+      ]
+    },
+    "T008": {
+      "status": "DONE",
+      "did": "Implemented changedLines and changeFingerprint",
+      "files": [
+        "src/core/risk/patch.ts"
+      ]
+    },
+    "T009": {
+      "status": "DONE",
+      "did": "Wrote behavioural-line tests",
+      "files": [
+        "test/unit/risk-comments.test.ts"
+      ]
+    },
+    "T010": {
+      "status": "DONE",
+      "did": "Implemented the comment table, hunk scan and reindent test",
+      "files": [
+        "src/core/risk/comments.ts"
+      ]
+    },
+    "T011": {
+      "status": "DONE",
+      "did": "Added RiskClass helpers and rank constant",
+      "files": [
+        "src/core/risk/classes.ts"
+      ]
+    },
+    "T012": {
+      "status": "DONE",
+      "did": "Extended the store test with the six risk tables, the new methods and the per-file override rules",
+      "files": [
+        "test/integration/review-store.test.ts"
+      ]
+    },
+    "T002": {
+      "status": "DONE",
+      "did": "Added the six append-only risk tables to schema.sql and bumped the schema version to 2",
+      "files": [
+        "src/store/schema.sql",
+        "src/store/db.ts"
+      ]
+    },
+    "T013": {
+      "status": "DONE",
+      "did": "Added the risk append and read methods to the review store",
+      "files": [
+        "src/store/review-store.ts"
+      ]
+    },
+    "T014": {
+      "status": "DONE",
+      "did": "Wrote integration tests for the onSnapshotStored hook on start, refresh and a missing workspace",
+      "files": [
+        "test/integration/session-context.test.ts"
+      ]
+    },
+    "T015": {
+      "status": "DONE",
+      "did": "Added onSnapshotStored to SessionsDeps and call it after the snapshot transaction, swallowing hook failures",
+      "files": [
+        "src/core/sessions.ts"
+      ]
+    },
+    "T016": {
+      "status": "DONE",
+      "did": "Wrote classifier unit tests for VO-001 to VO-012 and VO-037",
+      "files": [
+        "test/unit/risk-classify.test.ts"
+      ]
+    },
+    "T021": {
+      "status": "DONE",
+      "did": "Added the built-in rule data",
+      "files": [
+        "src/core/risk/builtin-rules.ts"
+      ]
+    },
+    "T022": {
+      "status": "DONE",
+      "did": "Added the built-ins-only ruleset loader",
+      "files": [
+        "src/core/risk/ruleset.ts"
+      ]
+    },
+    "T023": {
+      "status": "DONE",
+      "did": "Implemented the pure classifier with the RR-3 precedence",
+      "files": [
+        "src/core/risk/classify.ts"
+      ]
+    },
+    "T017": {
+      "status": "DONE",
+      "did": "Wrote rule-only report tests",
+      "files": [
+        "test/unit/risk-effective.test.ts"
+      ]
+    },
+    "T024": {
+      "status": "DONE",
+      "did": "Implemented the rule-only report derivation",
+      "files": [
+        "src/core/risk/effective.ts"
+      ]
+    },
+    "T018": {
+      "status": "DONE",
+      "did": "Wrote the risk-service integration tests for classify-on-store and VO-036",
+      "files": [
+        "test/integration/risk-service.test.ts",
+        "test/helpers/risk-seed.ts"
+      ]
+    },
+    "T019": {
+      "status": "DONE",
+      "did": "Wrote the end-to-end report, 404, guard, older snapshot and SSE tests",
+      "files": [
+        "test/end-to-end/risk.test.ts"
+      ]
+    },
+    "T020": {
+      "status": "DONE",
+      "did": "Wrote the Review focus UI tests",
+      "files": [
+        "test/ui/overview.ui.ts"
+      ]
+    },
+    "T025": {
+      "status": "DONE",
+      "did": "Created the risk service with classify-on-store and the derived report",
+      "files": [
+        "src/core/risk-service.ts"
+      ]
+    },
+    "T026": {
+      "status": "DONE",
+      "did": "Added the risk report GET route",
+      "files": [
+        "src/server/routes/risk.ts"
+      ]
+    },
+    "T027": {
+      "status": "DONE",
+      "did": "Wired the risk service and routes into main.ts and the test workbench",
+      "files": [
+        "src/main.ts",
+        "src/server/routes/context.ts",
+        "test/helpers/fake-ai-cli.ts"
+      ]
+    },
+    "T028": {
+      "status": "DONE",
+      "did": "Added getRisk and the risk event to the API client, useRisk with class-change announcements",
+      "files": [
+        "src/ui/api.ts",
+        "src/ui/state/use-risk.ts",
+        "src/ui/components/review-shell.tsx"
+      ]
+    },
+    "T029": {
+      "status": "DONE",
+      "did": "Created the icon-plus-word risk badge and its light/dark/forced-colors styles",
+      "files": [
+        "src/ui/components/risk-badge.tsx",
+        "src/ui/app.css"
+      ]
+    },
+    "T030": {
+      "status": "DONE",
+      "did": "Created the Review focus component with counts, class lists, mechanical and not-fully-analysed lists",
+      "files": [
+        "src/ui/components/review-focus.tsx",
+        "src/ui/state/risk-links.ts"
+      ]
+    },
+    "T031": {
+      "status": "DONE",
+      "did": "Replaced the Overview placeholder with Review focus and removed REVIEW_FOCUS.body",
+      "files": [
+        "src/ui/screens/overview.tsx",
+        "src/ui/labels.ts"
+      ]
+    },
+    "T032": {
+      "status": "DONE",
+      "did": "Wrote the diff risk reason, mark and keyboard UI tests",
+      "files": [
+        "test/ui/diff.ui.ts"
+      ]
+    },
+    "T033": {
+      "status": "DONE",
+      "did": "Created the risk reasons component with distinct origin labels",
+      "files": [
+        "src/ui/components/risk-reasons.tsx"
+      ]
+    },
+    "T034": {
+      "status": "DONE",
+      "did": "Added a riskMarks gutter prop to CodeView and the diff row risk-mark column",
+      "files": [
+        "src/ui/components/code-view.tsx",
+        "src/ui/app.css"
+      ]
+    },
+    "T035": {
+      "status": "DONE",
+      "did": "Added the file risk header, gutter marks and Next/Previous risk mark buttons to the diff screen",
+      "files": [
+        "src/ui/screens/diff.tsx",
+        "src/ui/state/risk-links.ts"
+      ]
+    },
+    "T036": {
+      "status": "DONE",
+      "did": "Wrote the arrangeFiles and neighbours unit tests",
+      "files": [
+        "test/unit/ui-file-order.test.ts"
+      ]
+    },
+    "T037": {
+      "status": "DONE",
+      "did": "Extended the view-state tests for fileOrder and riskClasses",
+      "files": [
+        "test/unit/ui-view-state.test.ts"
+      ]
+    },
+    "T038": {
+      "status": "DONE",
+      "did": "Wrote the file list badge, Why?, filter, order and count UI tests",
+      "files": [
+        "test/ui/overview.ui.ts"
+      ]
+    },
+    "T039": {
+      "status": "DONE",
+      "did": "Created the shared arrangeFiles and neighbours functions",
+      "files": [
+        "src/ui/state/file-order.ts"
+      ]
+    },
+    "T040": {
+      "status": "DONE",
+      "did": "Added fileOrder and riskClasses to the per-tab view state",
+      "files": [
+        "src/ui/state/view-state.ts",
+        "src/ui/state/use-file-view.ts"
+      ]
+    },
+    "T041": {
+      "status": "DONE",
+      "did": "Created the class filter checkbox group with its own clear",
+      "files": [
+        "src/ui/components/risk-filter.tsx"
+      ]
+    },
+    "T042": {
+      "status": "DONE",
+      "did": "Added badges, Why?, the class filter, the order control and the count to the file list",
+      "files": [
+        "src/ui/components/file-list.tsx",
+        "src/ui/screens/overview.tsx"
+      ]
+    },
+    "T088": {
+      "status": "DONE",
+      "did": "Wrote the Files view Next/Previous order and filter UI test",
+      "files": [
+        "test/ui/diff.ui.ts"
+      ]
+    },
+    "T043": {
+      "status": "DONE",
+      "did": "Made Previous/Next follow the arranged list and show No previous/further file at the ends",
+      "files": [
+        "src/ui/screens/diff.tsx",
+        "src/ui/labels.ts"
+      ]
+    },
+    "T044": {
+      "status": "DONE",
+      "did": "Wrote the raise-only assessment tests",
+      "files": [
+        "test/unit/risk-assess.test.ts"
+      ]
+    },
+    "T045": {
+      "status": "DONE",
+      "did": "Implemented the pure raise-only assess with the output guard",
+      "files": [
+        "src/core/risk/assess.ts"
+      ]
+    },
+    "T046": {
+      "status": "DONE",
+      "did": "Added risk scripts to the fake CLI and helper (separate numbering, riskInvocations)",
+      "files": [
+        "test/fixtures/fake-claude/fake-claude.mjs",
+        "test/helpers/fake-ai-cli.ts"
+      ]
+    },
+    "T048": {
+      "status": "DONE",
+      "did": "Added the risk output kind and RISK_SCHEMA",
+      "files": [
+        "src/contracts/ai-provider.ts",
+        "src/adapters/claude-code-cli/schemas.ts",
+        "src/adapters/claude-code-cli/provider.ts"
+      ]
+    },
+    "T049": {
+      "status": "DONE",
+      "did": "Added the risk lane and made every lane iterate",
+      "files": [
+        "src/core/lanes.ts"
+      ]
+    },
+    "T050": {
+      "status": "DONE",
+      "did": "Wrote the risk prompt tests",
+      "files": [
+        "test/unit/prompt.test.ts"
+      ]
+    },
+    "T051": {
+      "status": "DONE",
+      "did": "Implemented the risk prompt output",
+      "files": [
+        "src/core/prompt.ts"
+      ]
+    },
+    "T052": {
+      "status": "DONE",
+      "did": "Wrote the AI-step report tests",
+      "files": [
+        "test/unit/risk-effective.test.ts"
+      ]
+    },
+    "T053": {
+      "status": "DONE",
+      "did": "Added the AI raise, state and run summary to the effective report",
+      "files": [
+        "src/core/risk/effective.ts"
+      ]
+    },
+    "T047": {
+      "status": "DONE",
+      "did": "Wrote the AI-run integration tests (VO-016,017,020,021,038)",
+      "files": [
+        "test/integration/risk-service.test.ts",
+        "test/helpers/risk-seed.ts"
+      ]
+    },
+    "T054": {
+      "status": "DONE",
+      "did": "Added the risk lane run, its records and the missing-assessment reasons to the risk service",
+      "files": [
+        "src/core/risk-service.ts"
+      ]
+    },
+    "T055": {
+      "status": "DONE",
+      "did": "Wired the risk AI lane into main.ts and the test workbench and chained onSnapshot",
+      "files": [
+        "src/main.ts",
+        "test/helpers/fake-ai-cli.ts"
+      ]
+    },
+    "T085": {
+      "status": "DONE",
+      "did": "Wrote the AI notice UI and end-to-end tests",
+      "files": [
+        "test/ui/overview.ui.ts",
+        "test/end-to-end/risk.test.ts"
+      ]
+    },
+    "T056": {
+      "status": "DONE",
+      "did": "Added the AI notices, ignored-opinion and not-assessed text to Review focus and the reasons",
+      "files": [
+        "src/ui/components/review-focus.tsx",
+        "src/ui/components/risk-reasons.tsx",
+        "src/ui/components/risk-text.ts",
+        "src/ui/state/use-risk.ts"
+      ]
+    },
+    "T057": {
+      "status": "DONE",
+      "did": "Added the currentUser contract cases and expectations for every adapter",
+      "files": [
+        "test/contract/source-control.suite.ts",
+        "test/contract/source-control.contract.test.ts",
+        "test/gitlab/contract.test.ts"
+      ]
+    },
+    "T058": {
+      "status": "DONE",
+      "did": "Added CurrentUser and currentUser() to the neutral source-control contract",
+      "files": [
+        "src/contracts/source-control.ts"
+      ]
+    },
+    "T059": {
+      "status": "DONE",
+      "did": "Implemented currentUser in the GitHub adapter and reused it for sign-in and approvals",
+      "files": [
+        "src/adapters/github/source-control.ts"
+      ]
+    },
+    "T060": {
+      "status": "DONE",
+      "did": "Implemented currentUser in the GitLab adapter with the same reuse",
+      "files": [
+        "src/adapters/gitlab/source-control.ts"
+      ]
+    },
+    "T061": {
+      "status": "DONE",
+      "did": "Implemented currentUser in the Bitbucket adapter with the same reuse",
+      "files": [
+        "src/adapters/bitbucket/source-control.ts"
+      ]
+    },
+    "T062": {
+      "status": "DONE",
+      "did": "Wrote the override derivation tests",
+      "files": [
+        "test/unit/risk-effective.test.ts"
+      ]
+    },
+    "T063": {
+      "status": "DONE",
+      "did": "Added the override step with fingerprint carry-over and lapse to the effective report",
+      "files": [
+        "src/core/risk/effective.ts"
+      ]
+    },
+    "T064": {
+      "status": "DONE",
+      "did": "Wrote the override integration tests (VO-022 to VO-026 and the refusals)",
+      "files": [
+        "test/integration/risk-service.test.ts"
+      ]
+    },
+    "T065": {
+      "status": "DONE",
+      "did": "Added createOverride, currentReviewer and overrideHistory to the risk service",
+      "files": [
+        "src/core/risk-service.ts",
+        "src/server/reviewer.ts",
+        "src/main.ts"
+      ]
+    },
+    "T066": {
+      "status": "DONE",
+      "did": "Wrote the override route tests (201, 400, 404, 409, 502, guard)",
+      "files": [
+        "test/end-to-end/risk.test.ts"
+      ]
+    },
+    "T067": {
+      "status": "DONE",
+      "did": "Added the override POST, reviewer and history routes",
+      "files": [
+        "src/server/routes/risk.ts"
+      ]
+    },
+    "T069": {
+      "status": "DONE",
+      "did": "Added getReviewer, postOverride and getOverrideHistory to the API client (with T028)",
+      "files": [
+        "src/ui/api.ts"
+      ]
+    },
+    "T072": {
+      "status": "DONE",
+      "did": "Wrote the rule-file validation, version and notice tests",
+      "files": [
+        "test/unit/risk-ruleset.test.ts"
+      ]
+    },
+    "T073": {
+      "status": "DONE",
+      "did": "Implemented the rule-file loader and validator (globs and terms only)",
+      "files": [
+        "src/core/risk/ruleset.ts"
+      ]
+    },
+    "T074": {
+      "status": "DONE",
+      "did": "Wrote the rule-file integration tests",
+      "files": [
+        "test/integration/risk-service.test.ts"
+      ]
+    },
+    "T075": {
+      "status": "DONE",
+      "did": "Made the risk service read the rule file at every snapshot and store its version and notice",
+      "files": [
+        "src/core/risk-service.ts"
+      ]
+    },
+    "T077": {
+      "status": "DONE",
+      "did": "Wrote the no-approval labels, icons and styles test",
+      "files": [
+        "test/unit/risk-labels.test.ts"
+      ]
+    },
+    "T078": {
+      "status": "DONE",
+      "did": "Wrote the no-score and no-cross-file-override boundary tests",
+      "files": [
+        "test/unit/risk-boundaries.test.ts"
+      ]
+    },
+    "T084": {
+      "status": "DONE",
+      "did": "Added the Review focus section to the README",
+      "files": [
+        "README.md"
+      ]
+    },
+    "T079": {
+      "status": "DONE",
+      "did": "Extended the axe sweep with the risk surfaces at three widths in both themes plus forced-colors and greyscale renders",
+      "files": [
+        "test/ui/sweep.ui.ts"
+      ]
+    },
+    "T080": {
+      "status": "DONE",
+      "did": "Added the reference journey tests: refresh recalculation, read-only session, session deletion, one-action link to marked lines and markup rendered as text",
+      "files": [
+        "test/end-to-end/risk.test.ts",
+        "test/ui/overview.ui.ts"
+      ]
+    },
+    "T068": {
+      "status": "DONE",
+      "did": "Wrote the diff override dialog, history, lapse and closed-session UI tests",
+      "files": [
+        "test/ui/diff.ui.ts"
+      ]
+    },
+    "T070": {
+      "status": "DONE",
+      "did": "Created the override dialog, state and history components",
+      "files": [
+        "src/ui/components/override-dialog.tsx"
+      ]
+    },
+    "T071": {
+      "status": "DONE",
+      "did": "Wired the override dialog, state, lapse note and canOverride reason into the Files view and the Overridden note and count into Review focus",
+      "files": [
+        "src/ui/screens/diff.tsx",
+        "src/ui/components/review-focus.tsx"
+      ]
+    },
+    "T086": {
+      "status": "DONE",
+      "did": "Wrote the Overridden note and count UI test",
+      "files": [
+        "test/ui/overview.ui.ts"
+      ]
+    },
+    "T087": {
+      "status": "DONE",
+      "did": "Wrote the rule-file notice UI test",
+      "files": [
+        "test/ui/overview.ui.ts"
+      ]
+    },
+    "T076": {
+      "status": "DONE",
+      "did": "Showed the rule-file notice naming the file or entry and the reason in Review focus",
+      "files": [
+        "src/ui/components/review-focus.tsx"
+      ]
+    },
+    "T081": {
+      "status": "DONE",
+      "did": "Typecheck clean, npm test 520 passing with 0 failing, every UI test file passing one at a time",
+      "files": [
+        "specs/004-risk-review-focus/tests/behaviour-checklist.md"
+      ]
+    },
+    "T082": {
+      "status": "DONE",
+      "did": "Walked the quickstart and the behaviour checklist against the tests and recorded the result; no gap found",
+      "files": [
+        "specs/004-risk-review-focus/tests/behaviour-checklist.md",
+        "specs/004-risk-review-focus/quickstart.md"
+      ]
+    }
+  },
+  "verified": [
+    {
+      "what": "Typecheck",
+      "command": "npm run typecheck",
+      "result": "clean"
+    },
+    {
+      "what": "Unit, contract, integration and end-to-end tests",
+      "command": "npm test",
+      "result": "524 tests, 520 pass, 4 skipped, 0 fail"
+    },
+    {
+      "what": "UI tests incl. axe sweep of the risk surfaces at three widths in both themes, forced-colors and greyscale",
+      "command": "npm run build:ui; node --test --test-concurrency=1 test/ui/*.ui.ts (one file at a time)",
+      "result": "all pass; references and sweep re-run after the code-page overflow fix"
+    }
+  ]
+}
