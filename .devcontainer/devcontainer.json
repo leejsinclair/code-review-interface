@@ -1,0 +1,62 @@
+{
+  "name": "code-review-interface",
+  "build": {
+    "dockerfile": "Dockerfile",
+    "args": { "INSTALL_SONAR": "false" }
+  },
+  "remoteUser": "node",
+
+  // Same path inside and outside the container. Docker runs on the host (via the socket), so
+  // `gitlab/compose.yaml` bind mounts and `gitlab.sh reset` need paths that exist on the host.
+  "workspaceMount": "source=${localWorkspaceFolder},target=${localWorkspaceFolder},type=bind,consistency=cached",
+  "workspaceFolder": "${localWorkspaceFolder}",
+
+  "features": {
+    // Docker CLI + compose against the host daemon, for `npm run gitlab:*`.
+    // Expects the host socket at /var/run/docker-host.sock (mounted below).
+    "ghcr.io/devcontainers/features/docker-outside-of-docker:1": {}
+  },
+
+  "mounts": [
+    "source=/home/lsinclair/projects,target=/workspaces/projects,type=bind,consistency=cached",
+    "source=${localEnv:HOME}/.ssh,target=/home/node/.ssh,type=bind,readonly",
+    "source=${localEnv:HOME}/.gitconfig,target=/home/node/.gitconfig.host,type=bind,readonly",
+    "source=${localEnv:HOME}/.aws,target=/home/node/.aws,type=bind,consistency=cached",
+    "source=${localEnv:HOME}/.kube,target=/home/node/.kube,type=bind,consistency=cached",
+
+    "source=/var/run/docker.sock,target=/var/run/docker-host.sock,type=bind",
+
+    // Claude config, mounted twice: at the container user's home, and at the host user's home path,
+    // because ~/.claude/plugins/installed_plugins.json records absolute host paths.
+    "source=${localEnv:HOME}/.claude,target=/home/node/.claude,type=bind,consistency=cached",
+    "source=${localEnv:HOME}/.claude,target=/home/${localEnv:USER}/.claude,type=bind,consistency=cached",
+    "source=${localEnv:HOME}/.claude.json,target=/home/node/.claude.json,type=bind,consistency=cached"
+  ],
+
+  "containerEnv": {
+    "PROJECTS_ROOT": "/workspaces/projects",
+    "GIT_CONFIG_GLOBAL": "/home/node/.gitconfig.container",
+    // Taken from the host environment; never commit the token.
+    "SONAR_TOKEN": "${localEnv:SONAR_TOKEN}"
+  },
+
+  // Host networking: the local GitLab publishes on the host's 127.0.0.1:8929 and advertises
+  // `localhost:8929`, and the workbench listens on a random 127.0.0.1 port the host browser must reach.
+  "runArgs": ["--add-host=host.docker.internal:host-gateway"],
+
+  "customizations": {
+    "vscode": {
+      "extensions": [
+        "dbaeumer.vscode-eslint",
+        "esbenp.prettier-vscode",
+        "connor4312.esbuild-problem-matchers",
+        "ms-playwright.playwright",
+        "aikidosecurity.aikido",
+        "anthropic.claude-code",
+        "alfredoperez.speckit-companion"
+      ]
+    }
+  },
+
+  "postCreateCommand": "bash .devcontainer/setup-claude.sh && bash .devcontainer/post-create.sh"
+}

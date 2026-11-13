@@ -19,3 +19,4 @@ coverage/
 
 # Local GitLab test instance: runtime data (see gitlab/README.md)
 gitlab/volumes/
+.trace.jsonl
