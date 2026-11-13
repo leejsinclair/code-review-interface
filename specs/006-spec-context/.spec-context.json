@@ -1,0 +1,970 @@
+{
+  "workflow": "companion",
+  "specName": "Specification Context and TDD Alignment",
+  "branch": "main",
+  "currentStep": "implement",
+  "status": "completed",
+  "history": [
+    {
+      "step": "specify",
+      "substep": null,
+      "kind": "start",
+      "by": "extension",
+      "at": "2026-11-10T11:49:17.000Z"
+    },
+    {
+      "step": "specify",
+      "substep": null,
+      "kind": "complete",
+      "by": "extension",
+      "at": "2026-11-10T11:56:36.305Z"
+    },
+    {
+      "step": "plan",
+      "substep": null,
+      "kind": "start",
+      "by": "extension",
+      "at": "2026-11-10T11:57:49.064Z"
+    },
+    {
+      "step": "plan",
+      "substep": "research",
+      "kind": "complete",
+      "by": "ai",
+      "at": "2026-11-10T12:00:55.401Z"
+    },
+    {
+      "step": "plan",
+      "substep": "design",
+      "kind": "complete",
+      "by": "ai",
+      "at": "2026-11-10T12:00:55.514Z"
+    },
+    {
+      "step": "plan",
+      "substep": null,
+      "kind": "complete",
+      "by": "ai",
+      "at": "2026-11-10T12:00:55.938Z"
+    },
+    {
+      "step": "tasks",
+      "substep": null,
+      "kind": "start",
+      "by": "extension",
+      "at": "2026-11-10T12:09:21.966Z"
+    },
+    {
+      "step": "tasks",
+      "substep": "generate",
+      "kind": "complete",
+      "by": "ai",
+      "at": "2026-11-10T12:11:20.044Z"
+    },
+    {
+      "step": "tasks",
+      "substep": null,
+      "kind": "complete",
+      "by": "ai",
+      "at": "2026-11-10T12:11:20.194Z"
+    },
+    {
+      "step": "implement",
+      "substep": null,
+      "kind": "start",
+      "by": "extension",
+      "at": "2026-11-10T12:11:25.273Z"
+    },
+    {
+      "step": "implement",
+      "substep": null,
+      "task": "T001",
+      "kind": "complete",
+      "by": "ai",
+      "at": "2026-11-10T12:12:08.704Z"
+    },
+    {
+      "step": "implement",
+      "substep": null,
+      "task": "T002",
+      "kind": "complete",
+      "by": "ai",
+      "at": "2026-11-10T12:12:08.845Z"
+    },
+    {
+      "step": "implement",
+      "substep": null,
+      "task": "T005",
+      "kind": "complete",
+      "by": "ai",
+      "at": "2026-11-10T12:13:35.101Z"
+    },
+    {
+      "step": "implement",
+      "substep": null,
+      "task": "T009",
+      "kind": "complete",
+      "by": "ai",
+      "at": "2026-11-10T12:13:35.215Z"
+    },
+    {
+      "step": "implement",
+      "substep": null,
+      "task": "T004",
+      "kind": "complete",
+      "by": "ai",
+      "at": "2026-11-10T12:13:53.911Z"
+    },
+    {
+      "step": "implement",
+      "substep": null,
+      "task": "T008",
+      "kind": "complete",
+      "by": "ai",
+      "at": "2026-11-10T12:13:54.012Z"
+    },
+    {
+      "step": "implement",
+      "substep": null,
+      "task": "T006",
+      "kind": "complete",
+      "by": "ai",
+      "at": "2026-11-10T12:14:58.825Z"
+    },
+    {
+      "step": "implement",
+      "substep": null,
+      "task": "T010",
+      "kind": "complete",
+      "by": "ai",
+      "at": "2026-11-10T12:14:58.929Z"
+    },
+    {
+      "step": "implement",
+      "substep": null,
+      "task": "T003",
+      "kind": "complete",
+      "by": "ai",
+      "at": "2026-11-10T12:17:06.063Z"
+    },
+    {
+      "step": "implement",
+      "substep": null,
+      "task": "T007",
+      "kind": "complete",
+      "by": "ai",
+      "at": "2026-11-10T12:17:06.149Z"
+    },
+    {
+      "step": "implement",
+      "substep": null,
+      "task": "T011",
+      "kind": "complete",
+      "by": "ai",
+      "at": "2026-11-10T12:17:06.239Z"
+    },
+    {
+      "step": "implement",
+      "substep": null,
+      "task": "T015",
+      "kind": "complete",
+      "by": "ai",
+      "at": "2026-11-10T12:18:24.685Z"
+    },
+    {
+      "step": "implement",
+      "substep": null,
+      "task": "T019",
+      "kind": "complete",
+      "by": "ai",
+      "at": "2026-11-10T12:18:24.807Z"
+    },
+    {
+      "step": "implement",
+      "substep": null,
+      "task": "T012",
+      "kind": "complete",
+      "by": "ai",
+      "at": "2026-11-10T12:18:34.132Z"
+    },
+    {
+      "step": "implement",
+      "substep": null,
+      "task": "T016",
+      "kind": "complete",
+      "by": "ai",
+      "at": "2026-11-10T12:18:34.234Z"
+    },
+    {
+      "step": "implement",
+      "substep": null,
+      "task": "T013",
+      "kind": "complete",
+      "by": "ai",
+      "at": "2026-11-10T12:18:43.407Z"
+    },
+    {
+      "step": "implement",
+      "substep": null,
+      "task": "T017",
+      "kind": "complete",
+      "by": "ai",
+      "at": "2026-11-10T12:18:43.519Z"
+    },
+    {
+      "step": "implement",
+      "substep": null,
+      "task": "T014",
+      "kind": "complete",
+      "by": "ai",
+      "at": "2026-11-10T12:20:38.180Z"
+    },
+    {
+      "step": "implement",
+      "substep": null,
+      "task": "T018",
+      "kind": "complete",
+      "by": "ai",
+      "at": "2026-11-10T12:20:38.301Z"
+    },
+    {
+      "step": "implement",
+      "substep": null,
+      "task": "T020",
+      "kind": "complete",
+      "by": "ai",
+      "at": "2026-11-10T12:21:22.515Z"
+    },
+    {
+      "step": "implement",
+      "substep": null,
+      "task": "T021",
+      "kind": "complete",
+      "by": "ai",
+      "at": "2026-11-10T12:22:55.317Z"
+    },
+    {
+      "step": "implement",
+      "substep": null,
+      "task": "T022",
+      "kind": "complete",
+      "by": "ai",
+      "at": "2026-11-10T12:27:27.233Z"
+    },
+    {
+      "step": "implement",
+      "substep": null,
+      "task": "T023",
+      "kind": "complete",
+      "by": "ai",
+      "at": "2026-11-10T12:28:44.246Z"
+    },
+    {
+      "step": "implement",
+      "substep": null,
+      "task": "T027",
+      "kind": "complete",
+      "by": "ai",
+      "at": "2026-11-10T12:28:44.355Z"
+    },
+    {
+      "step": "implement",
+      "substep": null,
+      "task": "T026",
+      "kind": "complete",
+      "by": "ai",
+      "at": "2026-11-10T12:29:02.532Z"
+    },
+    {
+      "step": "implement",
+      "substep": null,
+      "task": "T025",
+      "kind": "complete",
+      "by": "ai",
+      "at": "2026-11-10T12:29:09.340Z"
+    },
+    {
+      "step": "implement",
+      "substep": null,
+      "task": "T024",
+      "kind": "complete",
+      "by": "ai",
+      "at": "2026-11-10T12:32:55.618Z"
+    },
+    {
+      "step": "implement",
+      "substep": null,
+      "task": "T028",
+      "kind": "complete",
+      "by": "ai",
+      "at": "2026-11-10T12:33:56.500Z"
+    },
+    {
+      "step": "implement",
+      "substep": null,
+      "task": "T029",
+      "kind": "complete",
+      "by": "ai",
+      "at": "2026-11-10T12:35:17.788Z"
+    },
+    {
+      "step": "implement",
+      "substep": null,
+      "task": "T030",
+      "kind": "complete",
+      "by": "ai",
+      "at": "2026-11-10T12:38:59.769Z"
+    },
+    {
+      "step": "implement",
+      "substep": null,
+      "task": "T031",
+      "kind": "complete",
+      "by": "ai",
+      "at": "2026-11-10T12:38:59.910Z"
+    },
+    {
+      "step": "implement",
+      "substep": null,
+      "task": "T032",
+      "kind": "complete",
+      "by": "ai",
+      "at": "2026-11-10T12:39:00.034Z"
+    },
+    {
+      "step": "implement",
+      "substep": null,
+      "task": "T033",
+      "kind": "complete",
+      "by": "ai",
+      "at": "2026-11-10T12:39:42.179Z"
+    },
+    {
+      "step": "implement",
+      "substep": null,
+      "task": "T034",
+      "kind": "complete",
+      "by": "ai",
+      "at": "2026-11-10T12:39:42.341Z"
+    },
+    {
+      "step": "implement",
+      "substep": null,
+      "task": "T035",
+      "kind": "complete",
+      "by": "ai",
+      "at": "2026-11-10T12:42:54.356Z"
+    },
+    {
+      "step": "implement",
+      "substep": null,
+      "task": "T036",
+      "kind": "complete",
+      "by": "ai",
+      "at": "2026-11-10T12:42:54.514Z"
+    },
+    {
+      "step": "implement",
+      "substep": null,
+      "task": "T037",
+      "kind": "complete",
+      "by": "ai",
+      "at": "2026-11-10T12:42:54.674Z"
+    },
+    {
+      "step": "implement",
+      "substep": null,
+      "task": "T038",
+      "kind": "complete",
+      "by": "ai",
+      "at": "2026-11-10T12:42:54.841Z"
+    },
+    {
+      "step": "implement",
+      "substep": null,
+      "task": "T039",
+      "kind": "complete",
+      "by": "ai",
+      "at": "2026-11-10T12:43:06.022Z"
+    },
+    {
+      "step": "implement",
+      "substep": null,
+      "task": "T040",
+      "kind": "complete",
+      "by": "ai",
+      "at": "2026-11-10T12:43:06.156Z"
+    },
+    {
+      "step": "implement",
+      "substep": null,
+      "task": "T041",
+      "kind": "complete",
+      "by": "ai",
+      "at": "2026-11-10T12:43:13.108Z"
+    },
+    {
+      "step": "implement",
+      "substep": null,
+      "task": "T042",
+      "kind": "complete",
+      "by": "ai",
+      "at": "2026-11-10T14:07:43.829Z"
+    },
+    {
+      "step": "implement",
+      "substep": null,
+      "kind": "complete",
+      "by": "ai",
+      "at": "2026-11-10T14:07:43.849Z"
+    }
+  ],
+  "telemetryInstanceId": "4a19b274-f43d-4bdc-acbf-4953821ff208",
+  "assistant": "claude",
+  "decisions": [
+    {
+      "decision": "Find the enclosing project repo by nearest ancestor folder among discovered clones",
+      "why": "Discovery already records nested clones; no platform or naming knowledge needed (VIII.2)",
+      "rejected": "Naming convention or configured mapping"
+    },
+    {
+      "decision": "Read other branches with allowlisted ls-remote, fetch into refs/prwb spec-N, ls-tree, log -1",
+      "why": "Same safety shape as the PR fetch; no working copy change (IX)",
+      "rejected": "Reading the reviewer refs, or a platform file API"
+    },
+    {
+      "decision": "One AI run on a new alignment lane returns summaries, rows, verdict and deviations",
+      "why": "Rows need both documents and the diff together; one record, no disagreement",
+      "rejected": "Separate runs, or reusing the summary lane"
+    },
+    {
+      "decision": "Store full document text and downgrade unresolvable citations rather than drop them",
+      "why": "Citations stay openable after a branch moves; dropped findings read as clean (V.1)",
+      "rejected": "Re-reading from git on demand"
+    },
+    {
+      "decision": "One alignment run uses the first key with a found specification; its parts sit under that key",
+      "why": "data-model.md ties a run to one specification document",
+      "rejected": "one run per key"
+    },
+    {
+      "decision": "Refresh re-reads the documents and compares a signature rather than only ls-remote",
+      "why": "simplest way to detect a moved commit or a new matching branch",
+      "rejected": "ls-remote plus last-commit checks only"
+    },
+    {
+      "decision": "Added a commitTime git command and own-repository-first to the stored rule enum",
+      "why": "chooseCopy needs commit dates and the own-repository rule has no stored value",
+      "rejected": "leaving the rule lossy"
+    },
+    {
+      "decision": "The overview file list was removed; its risk-badge tests were ported to the Diff screen",
+      "why": "FR-007",
+      "rejected": "keeping both"
+    }
+  ],
+  "step_summaries": {
+    "plan": {
+      "summary": "Plan, research, data model and contracts for spec context and TDD alignment",
+      "key_finding": "Discovery already finds nested clones, so the enclosing project repo is a path-ancestor lookup; only four git commands are new"
+    },
+    "tasks": {
+      "summary": "42 tasks: setup, foundational (7 waves), US1, US2, US4, US3, polish"
+    },
+    "implement": {
+      "summary": "Specification panel on the overview with git lookup, alignment lane, store, routes and tests"
+    }
+  },
+  "approach": "Find spec folders by Jira key in the PR repo then the enclosing clone using read-only git into product-owned refs, store the documents, and run one AI alignment job per snapshot whose citations are checked deterministically.",
+  "coverage": {
+    "FR-001": {
+      "title": "Take Jira keys from branch, title, description",
+      "tasks": [
+        "T003",
+        "T022"
+      ]
+    },
+    "FR-002": {
+      "title": "Search own repository then enclosing project repository",
+      "tasks": [
+        "T009",
+        "T010",
+        "T018",
+        "T022"
+      ]
+    },
+    "FR-003": {
+      "title": "Consider develop and matching branches, whole key case-insensitive",
+      "tasks": [
+        "T003",
+        "T016",
+        "T020"
+      ]
+    },
+    "FR-004": {
+      "title": "Matching branch beats develop, panel names other copy",
+      "tasks": [
+        "T003",
+        "T016",
+        "T031"
+      ]
+    },
+    "FR-005": {
+      "title": "Read each document from its best place and record source",
+      "tasks": [
+        "T003",
+        "T021",
+        "T022",
+        "T031"
+      ]
+    },
+    "FR-006": {
+      "title": "Never change the reviewer working copy",
+      "tasks": [
+        "T006",
+        "T015",
+        "T020"
+      ]
+    },
+    "FR-007": {
+      "title": "Specification panel replaces Changed files",
+      "tasks": [
+        "T030",
+        "T032"
+      ]
+    },
+    "FR-008": {
+      "title": "Show summaries, sources and full read-only text",
+      "tasks": [
+        "T011",
+        "T029",
+        "T030"
+      ]
+    },
+    "FR-009": {
+      "title": "Completeness rows for specification and TDD evidence",
+      "tasks": [
+        "T035",
+        "T038"
+      ]
+    },
+    "FR-010": {
+      "title": "Missing, stale or ambiguous documents are explicit gaps",
+      "tasks": [
+        "T029",
+        "T036",
+        "T037"
+      ]
+    },
+    "FR-011": {
+      "title": "One row per acceptance criterion",
+      "tasks": [
+        "T017",
+        "T033",
+        "T034"
+      ]
+    },
+    "FR-012": {
+      "title": "Test sufficiency verdict",
+      "tasks": [
+        "T033",
+        "T034"
+      ]
+    },
+    "FR-013": {
+      "title": "Scope deviations in both directions",
+      "tasks": [
+        "T039",
+        "T040"
+      ]
+    },
+    "FR-014": {
+      "title": "Statements labelled Inferred with checked citations",
+      "tasks": [
+        "T004",
+        "T017",
+        "T033"
+      ]
+    },
+    "FR-015": {
+      "title": "No assessment without a specification, no coverage figure",
+      "tasks": [
+        "T010",
+        "T034",
+        "T036"
+      ]
+    },
+    "FR-016": {
+      "title": "Automatic per snapshot, tied to head, stale, append-only",
+      "tasks": [
+        "T007",
+        "T010",
+        "T023",
+        "T036"
+      ]
+    },
+    "FR-017": {
+      "title": "Documents, assessment and judgement kept separate",
+      "tasks": [
+        "T007",
+        "T014",
+        "T021"
+      ]
+    },
+    "FR-018": {
+      "title": "Failures degrade to a visible gap",
+      "tasks": [
+        "T010",
+        "T036"
+      ]
+    }
+  },
+  "currentTask": null,
+  "task_summaries": {
+    "T001": {
+      "status": "DONE",
+      "did": "spec sandbox helper",
+      "files": [
+        "test/helpers/spec-sandbox.ts"
+      ]
+    },
+    "T002": {
+      "status": "DONE",
+      "did": "alignment scenarios in fake AI",
+      "files": [
+        "test/fixtures/fake-claude/fake-claude.mjs",
+        "test/helpers/fake-ai-cli.ts"
+      ]
+    },
+    "T005": {
+      "status": "DONE",
+      "did": "Wrote git allowlist tests for listRemoteHeads, listTreePaths, lastCommitTouching and bad commit/path refusal; red until src/repo/git.ts is extended",
+      "files": [
+        "test/unit/git-commands.test.ts"
+      ]
+    },
+    "T009": {
+      "status": "DONE",
+      "did": "Wrote enclosingOf test over a real discovered base folder; red until Workspace.enclosingOf exists",
+      "files": [
+        "test/integration/workspace-lifecycle.test.ts"
+      ]
+    },
+    "T004": {
+      "status": "DONE",
+      "did": "Wrote alignment output check tests (red until src/core/spec-alignment.ts exists)",
+      "files": [
+        "test/unit/spec-alignment.test.ts"
+      ]
+    },
+    "T008": {
+      "status": "DONE",
+      "did": "Added alignment prompt and alignment lane tests (red until Wave 2 prompt/lanes code exists)",
+      "files": [
+        "test/unit/prompt.test.ts"
+      ]
+    },
+    "T006": {
+      "status": "DONE",
+      "did": "Wrote sandbox test for spec lookup git reads: spec-ref-only fetches, last-touching-commit reads, working copy untouched, ref cleanup (fails until manager methods exist)",
+      "files": [
+        "test/integration/spec-lookup-git.test.ts"
+      ]
+    },
+    "T010": {
+      "status": "DONE",
+      "did": "Wrote service test: own-then-enclosing search, non-blocking lookup, refresh, git/AI failure, restart notice, superseded run (fails until spec-context service exists)",
+      "files": [
+        "test/integration/spec-context-service.test.ts"
+      ]
+    },
+    "T003": {
+      "status": "DONE",
+      "did": "Wrote key, folder, file and copy-choice tests against the spec-match contract; fails only for the missing module",
+      "files": [
+        "test/unit/spec-match.test.ts"
+      ]
+    },
+    "T007": {
+      "status": "DONE",
+      "did": "Wrote tests for the six spec tables: append-only, session delete, CHECK rules, same-lookup document references; fail only for missing tables and store methods",
+      "files": [
+        "test/integration/review-store.test.ts"
+      ]
+    },
+    "T011": {
+      "status": "DONE",
+      "did": "Wrote route tests: guard, 404s, text/plain nosniff, retry 409/400/202, SSE, GET never writes; fail only for missing routes and store methods",
+      "files": [
+        "test/integration/spec-context-routes.test.ts"
+      ]
+    },
+    "T015": {
+      "status": "DONE",
+      "did": "Added listRemoteHeads, listTreePaths, lastCommitTouching with commit and path validation before git runs",
+      "files": [
+        "src/repo/git.ts"
+      ]
+    },
+    "T019": {
+      "status": "DONE",
+      "did": "Added the alignment output kind (documents, leftOut, context version) and the alignment lane",
+      "files": [
+        "src/core/prompt.ts",
+        "src/core/lanes.ts"
+      ]
+    },
+    "T012": {
+      "status": "DONE",
+      "did": "Added spec-context wire types and the two new CompletenessRow sources",
+      "files": [
+        "src/contracts/http.ts"
+      ]
+    },
+    "T016": {
+      "status": "DONE",
+      "did": "Pure key, folder, file matching and copy precedence; spec-match tests pass",
+      "files": [
+        "src/core/spec-match.ts"
+      ]
+    },
+    "T013": {
+      "status": "DONE",
+      "did": "Added the alignment AskOutput kind and ALIGNMENT_SCHEMA (title specAlignment)",
+      "files": [
+        "src/contracts/ai-provider.ts",
+        "src/adapters/claude-code-cli/schemas.ts"
+      ]
+    },
+    "T017": {
+      "status": "DONE",
+      "did": "Pure alignment finaliser: guard, citation resolution, downgrade, uncovered recompute, unparseable fallback",
+      "files": [
+        "src/core/spec-alignment.ts"
+      ]
+    },
+    "T014": {
+      "status": "DONE",
+      "did": "Added six append-only spec_* tables with checks, indexes and session-delete triggers to the schema",
+      "files": [
+        "src/store/schema.sql"
+      ]
+    },
+    "T018": {
+      "status": "DONE",
+      "did": "Added Workspace.enclosingOf returning the nearest proper path-ancestor matched clone",
+      "files": [
+        "src/core/workspace.ts"
+      ]
+    },
+    "T020": {
+      "status": "DONE",
+      "did": "manager spec reads; T006 passes",
+      "files": [
+        "src/repo/manager.ts"
+      ]
+    },
+    "T021": {
+      "status": "DONE",
+      "did": "store methods; T007 passes (25/25)",
+      "files": [
+        "src/store/review-store.ts"
+      ]
+    },
+    "T022": {
+      "status": "DONE",
+      "did": "service: lookup, run, report, retry; T010 passes (11/11)",
+      "files": [
+        "src/core/spec-context.ts",
+        "src/repo/git.ts",
+        "src/repo/manager.ts",
+        "src/store/schema.sql"
+      ]
+    },
+    "T023": {
+      "status": "DONE",
+      "did": "Added optional onRefreshed hook to SessionsDeps, called best-effort after a same-head refresh",
+      "files": [
+        "src/core/sessions.ts"
+      ]
+    },
+    "T027": {
+      "status": "DONE",
+      "did": "Added Specification panel, verdict, criteria table, citation and document viewer styles using existing tokens",
+      "files": [
+        "src/ui/app.css"
+      ]
+    },
+    "T026": {
+      "status": "DONE",
+      "did": "Added getSpecContext, getSpecDocument, retrySpecContext client calls, SPEC_LABELS, and completeness labels for the new sources; tsc clean",
+      "files": [
+        "src/ui/api.ts",
+        "src/ui/labels.ts",
+        "src/ui/components/completeness.tsx"
+      ]
+    },
+    "T025": {
+      "status": "DONE",
+      "did": "Wired the spec-context service, its events and routes into main.ts and the test harness",
+      "files": [
+        "src/main.ts",
+        "src/server/routes/context.ts",
+        "test/helpers/fake-ai-cli.ts"
+      ]
+    },
+    "T024": {
+      "status": "DONE",
+      "did": "routes; T011 passes (10/10)",
+      "files": [
+        "src/server/routes/spec-context.ts",
+        "src/contracts/http.ts"
+      ]
+    },
+    "T028": {
+      "status": "DONE",
+      "did": "hook + SSE seams (api EVENT_NAMES, shell fan-out)",
+      "files": [
+        "src/ui/state/use-spec-context.ts",
+        "src/ui/api.ts",
+        "src/ui/components/review-shell.tsx",
+        "src/ui/labels.ts"
+      ]
+    },
+    "T029": {
+      "status": "DONE",
+      "did": "Specification panel with viewer",
+      "files": [
+        "src/ui/components/spec-context.tsx"
+      ]
+    },
+    "T030": {
+      "status": "DONE",
+      "did": "UI test: panel, viewer, branch copy",
+      "files": [
+        "test/ui/spec-context.ui.ts",
+        "test/helpers/spec-seed.ts"
+      ]
+    },
+    "T031": {
+      "status": "DONE",
+      "did": "e2e: report sources, branch precedence, document text",
+      "files": [
+        "test/end-to-end/spec-context.test.ts"
+      ]
+    },
+    "T032": {
+      "status": "DONE",
+      "did": "overview shows Specification panel, no Changed files; ported file-list tests to Diff",
+      "files": [
+        "src/ui/screens/overview.tsx",
+        "test/ui/overview.ui.ts"
+      ]
+    },
+    "T033": {
+      "status": "DONE",
+      "did": "UI test alignment rows, verdict, citations",
+      "files": [
+        "test/ui/spec-alignment.ui.ts"
+      ]
+    },
+    "T034": {
+      "status": "DONE",
+      "did": "e2e alignment run via fake AI",
+      "files": [
+        "test/end-to-end/spec-alignment.test.ts"
+      ]
+    },
+    "T035": {
+      "status": "DONE",
+      "did": "completeness spec rows tests",
+      "files": [
+        "test/unit/completeness.test.ts"
+      ]
+    },
+    "T036": {
+      "status": "DONE",
+      "did": "e2e gaps",
+      "files": [
+        "test/end-to-end/spec-gaps.test.ts"
+      ]
+    },
+    "T037": {
+      "status": "DONE",
+      "did": "UI gaps",
+      "files": [
+        "test/ui/spec-gaps.ui.ts"
+      ]
+    },
+    "T038": {
+      "status": "DONE",
+      "did": "specification and tdd-evidence completeness rows",
+      "files": [
+        "src/core/completeness.ts"
+      ]
+    },
+    "T039": {
+      "status": "DONE",
+      "did": "UI deviations",
+      "files": [
+        "test/ui/spec-deviations.ui.ts"
+      ]
+    },
+    "T040": {
+      "status": "DONE",
+      "did": "e2e deviations",
+      "files": [
+        "test/end-to-end/spec-deviations.test.ts"
+      ]
+    },
+    "T041": {
+      "status": "DONE",
+      "did": "README Specification section",
+      "files": [
+        "README.md"
+      ]
+    },
+    "T042": {
+      "status": "DONE",
+      "did": "validated: tsc clean; 145 feature node tests and 30 browser tests pass; full suites could not finish (see concerns)",
+      "files": [
+        "package.json"
+      ]
+    }
+  },
+  "verified": [
+    {
+      "what": "typecheck",
+      "command": "npx tsc --noEmit",
+      "source": "derived",
+      "exitCode": 0,
+      "durationSeconds": 10.0,
+      "result": "no output"
+    },
+    {
+      "what": "feature 006 node tests (unit, integration, end-to-end)",
+      "command": "node --test <15 feature files>",
+      "result": "145 pass, 0 fail"
+    },
+    {
+      "what": "feature 006 browser tests incl. ported overview tests",
+      "command": "node --test test/ui/spec-*.ui.ts test/ui/overview.ui.ts",
+      "result": "30 pass, 0 fail"
+    }
+  ],
+  "concerns": [
+    {
+      "note": "The full npm test and npm run test:ui could not be completed: runs hung in this environment (stale processes, shared inspector port) and I was not permitted to kill them. Two failures predate this feature: feature 005 bitbucket postLineComment and ui-safety no-HTML-injection on the untracked markdown-preview.tsx.",
+      "step": "implement"
+    },
+    {
+      "note": "Code review findings not fixed: per-citation resolved flag is lost (a statement is resolved if any citation is); summaries and verdict citations are not stored; documents can crowd out changed lines in the prompt; ls-tree has no -z so non-ASCII paths are skipped; no timeout on ls-remote/fetch; first remote of the clone is used; staleness is only a newer snapshot; retry may return 202 when nothing queues.",
+      "step": "implement"
+    },
+    {
+      "note": "End-to-end tests seed lookup and run records instead of running a real project clone through the composed server; real git is covered by spec-lookup-git and spec-context-service tests. Multi-key grouping and the stale-by-moved-commit case have service-level coverage only.",
+      "step": "implement"
+    }
+  ],
+  "last_action": "all 42 tasks done; feature tests green, full suites unfinished"
+}
