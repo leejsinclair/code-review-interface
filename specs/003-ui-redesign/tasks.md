@@ -283,7 +283,7 @@ Files: src/ui/components/panel.tsx, src/ui/components/sources-nav.tsx, src/ui/sc
 
 **⟶ Wait for Wave 2 to finish, then:**
 
-- [x] **T065** [US6] Evidence panel: a code ref through `CodeView` with the full range, issue and description refs through their views, and `open-full-page` linking the existing route (FR-021) · src/ui/components/evidence-panel.tsx
+- [x] **T065** [US6] *(Superseded after delivery: the Evidence panel was removed and a code citation now opens the Files view; see spec FR-019 and FR-021. `openEvidence` no longer exists in `ReviewContext`.)* Evidence panel: a code ref through `CodeView` with the full range, issue and description refs through their views, and `open-full-page` linking the existing route (FR-021) · src/ui/components/evidence-panel.tsx
 
 **⟶ Wait for T065, then:**
 

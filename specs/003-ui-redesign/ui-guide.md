@@ -84,9 +84,9 @@ Skip link · Product name → Home · Repository identity (platform + repo id) �
 
 ### 5.4 Contextual panels (agreed approach)
 - **Ask panel**: opens beside the diff with the current scope pre-filled; full page at `/ask`.
-- **Evidence panel**: clicking a claim reference opens the cited code/issue/description in the side panel
-  with the full range highlighted; "Open full page" goes to the existing route. Returning keeps the
-  question list scroll position and Answer-for choice.
+- **Evidence panel (superseded)**: removed. Clicking a claim reference now opens the Files view with the
+  cited range selected and scrolled into view, or the code page when the diff cannot show it (spec FR-019,
+  FR-021). Issue and description references open their full pages.
 
 ## 6. Screen specifications
 

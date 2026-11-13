@@ -27,11 +27,11 @@ The PR Review Workbench is a decision-support tool that helps a reviewer underst
 | Principle | Requirement |
 | --- | --- |
 | Evidence before opinion | Every material AI finding links to identifiable evidence (file/line, requirement, report). |
-| Human accountability | AI recommends; humans decide. The product never approves or merges. |
+| Human accountability | AI recommends; humans decide. The product never approves or merges on its own. |
 | Risk-directed review | Attention is concentrated where the consequence of a defect is greatest. |
 | Explainability | Every classification states why, and which lines caused it. |
 | Incremental integration | Consume existing tools; do not recreate them. |
-| Read-only by default | No silent modification of any repository. |
+| Read-only by default | No silent modification of any repository. The only platform writes are the reviewer's own actions on a pull request (comment, reply, edit or delete own comments, approve, request changes, withdraw), each started by one click from a person and never by AI. Never merge, decline or close. |
 | Separation of concerns | Evidence, AI assessment and human decision are stored and displayed separately. |
 | Role-oriented presentation | One underlying dataset, three lenses. |
 | Progressive complexity | Single-PR workflow first; cross-PR intelligence later. |

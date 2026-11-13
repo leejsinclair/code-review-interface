@@ -38,7 +38,7 @@ The product owner sees every redesigned screen at wide, medium and narrow widths
 
 **Acceptance Scenarios**:
 
-1. **Given** the wireframe set, **When** the product owner reviews it, **Then** it shows Home as the pull request dashboard across repositories (including one repository failing to load), Overview, Files/Diff with a selection and the Ask panel open, Questions with the Evidence panel open, Code full page with a range, Description, Issue, Setup (GitHub, Bitbucket Cloud with Jira Cloud, self-hosted and issue-tracker variants, each showing the repositories found under the base folder), Sign-in (including the Bitbucket Cloud and Jira Cloud sign-ins), the Delete confirmation dialog, and a state gallery, each at about 1440, 1000 and 400 pixels wide.
+1. **Given** the wireframe set, **When** the product owner reviews it, **Then** it shows Home as the pull request dashboard across repositories (including one repository failing to load), Overview, Files/Diff with a selection and the notes column, Questions, Code full page with a range, Description, Issue, Setup (GitHub, Bitbucket Cloud with Jira Cloud, self-hosted and issue-tracker variants, each showing the repositories found under the base folder), Sign-in (including the Bitbucket Cloud and Jira Cloud sign-ins), the Delete confirmation dialog, and a state gallery, each at about 1440, 1000 and 400 pixels wide.
 2. **Given** the state gallery, **When** it is reviewed, **Then** it shows loading, empty, failed, stale, live-updates-disconnected, AI provider unavailable, read-only PR and answered-for-an-older-head states.
 3. **Given** the Diff and panel wireframes, **When** they are reviewed, **Then** each annotates the keyboard path and focus order, including where focus goes when a panel opens and closes.
 4. **Given** the wireframes are not yet approved, **When** planning is proposed, **Then** it does not start.
@@ -122,14 +122,14 @@ On a wide screen, a reviewer asks about their selection in a panel beside the di
 
 **Why this priority**: It removes most back-and-forth navigation, but depends on the review shell and preserved state from Story 5.
 
-**Independent Test**: At 1440 pixels, select a range, open the Ask panel, ask, open a claim reference in the Evidence panel, close it, and confirm focus and scroll return to where they were. Repeat at 400 pixels and confirm full pages open instead.
+**Independent Test**: At 1440 pixels, select a range, ask in the notes column, follow a claim reference, and confirm it opens the Files view with the cited lines selected (or the code page when the diff cannot show them).
 
 **Acceptance Scenarios**:
 
-1. **Given** a selection on a wide screen, **When** the reviewer chooses "Ask about selection", **Then** the Ask panel opens beside the diff with the scope filled in and focus on the panel heading.
-2. **Given** a claim reference, **When** the reviewer follows it on a wide screen, **Then** the Evidence panel shows the referenced code, issue or description with the full range highlighted, plus "Open full page".
-3. **Given** an open panel, **When** the reviewer closes it (button or Escape), **Then** focus returns to the control that opened it and the thread keeps its scroll position and Answer-for choice.
-4. **Given** a narrow screen, **When** the reviewer asks or follows a reference, **Then** the existing full-page route opens instead of a panel.
+1. **Given** a selection on a wide screen, **When** the reviewer chooses "Ask about selection", **Then** focus moves to the notes column's question field, whose scope is the selection.
+2. **Given** a claim reference, **When** the reviewer follows it on a wide screen, **Then** the Files view opens with the cited lines selected, or the code page with the range highlighted when the diff cannot show them; an issue or the description opens its own page.
+3. **Given** the Questions page, **When** the reviewer chooses "Ask about this PR" from any other tab, **Then** the Questions page opens scoped to the whole pull request.
+4. **Given** a narrow screen, **When** the reviewer asks or follows a reference, **Then** the same pages open; there is no panel at any width.
 5. **Given** an existing deep link to any review route, **When** it is opened, **Then** it shows the same content as before the redesign.
 6. **Given** Overview, **When** it is shown, **Then** "Ask about this PR" is available without entering the diff, so a business analyst can ask about the whole PR.
 
@@ -289,15 +289,15 @@ A reviewer points the workbench at one folder holding many clones. The dashboard
 
 - **FR-014**: Every page MUST have an app header with a skip-to-content link, the product name linking Home, workspace identity (base folder and platform; amended by FR-048), connection state, and a settings menu holding Setup and Sign-in.
 - **FR-015**: Every review-session page MUST show the review header, review navigation and context strip described in Story 5.
-- **FR-016**: The context strip and all other copy MUST NOT state or imply that a PR is ready, safe or approved to merge.
+- **FR-016**: The context strip and all other copy MUST NOT state or imply that a PR is ready, safe or approved to merge. The one exception is the dashboard's "Approved by you" indicator, which reports the signed-in reviewer's own recorded approval on the platform and is attributed to them, never to the workbench.
 - **FR-017**: The question draft, Category, Answer-for choice, selected scope and per-page scroll position MUST survive navigation within the same session and reloads of the same browser tab. They MUST be kept only in that tab, never sent to the server, and never hold credentials (constitution X.7).
 - **FR-018**: Answer-for MUST default to Technical and keep the reviewer's choice for that session.
 
 **Panels**
 
-- **FR-019**: At 1200 pixels and wider, Ask and Evidence MUST open as side panels; between 900 and 1199 pixels they MUST overlay the page; below 900 pixels they MUST open the existing full-page routes.
-- **FR-020**: Opening a panel MUST move focus to its heading; closing it (button or Escape) MUST return focus to the control that opened it.
-- **FR-021**: The Evidence panel MUST show the referenced source with its full range highlighted and an "Open full page" link to the existing route.
+- **FR-019**: There is no side panel. Questions about a file or a line selection MUST be asked in the Files view's notes column, which is always shown and follows the selection. Questions about the whole pull request MUST open the Questions page. Code citations MUST open the Files view with the cited lines selected, or the code page when the diff cannot show them.
+- **FR-020**: "Ask about selection" in the Files view MUST move focus to the notes column's question field.
+- **FR-021**: A code reference MUST open the Files view with its full range selected and scrolled into view, or the code page with the range highlighted when the diff cannot show it.
 - **FR-022**: Overview MUST offer "Ask about this PR"; Files MUST offer "Ask about selection" when a range is selected.
 - **FR-023**: Every existing route MUST keep working as a deep link with the same content.
 - **FR-024**: At 1200 pixels and wider, the file list MUST sit in a collapsible left region; between 900 and 1199 pixels it MUST be a drawer; below 900 pixels the diff MUST offer "‹ Previous file", "Next file ›" and "All changed files".

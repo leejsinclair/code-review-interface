@@ -4,6 +4,8 @@ Nov 7, 2026 · @Lee Sinclair
 
 Phase 2 starts once Phase 1 ([MVP.md](MVP.md)) has passed its validation checkpoint. It holds the MVP requirements moved out of Phase 1 (see [ADR 0001](../docs/domain_knowledge/adr/0001-phase-1-scope.md)) and the work the MVP specification planned for after validation. Requirement IDs are unchanged from `MVP.md`, so references to them stay valid. Principles, roles, architecture, the AI provider contract and repository-safety rules are those of [MVP.md](MVP.md).
 
+> **Scope update (2026-11-10, [ADR 0003](../docs/domain_knowledge/adr/0003-reviewer-actions-and-workbench-scope.md)).** Parts of this phase are being built earlier, as features 004 to 010: FR-4.1 to 4.5 and spec discovery, FR-6 (SonarQube evidence, read-only), and FR-7.3 to 7.6 in part (finding triage and an append-only history). Readiness (FR-7.1, 7.2), role lenses (FR-8), FR-4.6 to 4.8, FR-5.3 and FR-5.6 stay here. FR-7.7 now reads: the product never merges or declines, and writes only the reviewer actions in constitution II.4.
+
 ## 1. Requirements moved from Phase 1
 
 ### FR-4 Requirements and change intent
