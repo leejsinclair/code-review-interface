@@ -1,6 +1,6 @@
 // Hash router composing every screen (contracts 4.1, 4.2). The app header and `<main>` persist; every
 // `#/sessions/:id…` route is wrapped in a review shell keyed by session id, so the session loads once and its
-// stream, panel and scroll survive moving between pages. `#/setup` comes first while no configuration is saved
+// stream and scroll survive moving between pages. `#/setup` comes first while no configuration is saved
 // (FR-039); `#/signin` is reached when any call answers `signin_required`, since api.ts sets the hash (FR-040).
 
 import { render } from 'preact';
@@ -30,7 +30,7 @@ function screenFor(hash: string): ComponentChild {
     case 'overview':
       return inShell(route.sessionId, <OverviewScreen key={hash} sessionId={route.sessionId} />);
     case 'diff':
-      return inShell(route.sessionId, <DiffScreen key={hash} sessionId={route.sessionId} path={route.path ?? ''} />);
+      return inShell(route.sessionId, <DiffScreen key={hash} sessionId={route.sessionId} path={route.path ?? ''} focus={route.focus} />);
     case 'code':
       return inShell(route.sessionId, <CodeScreen key={hash} sessionId={route.sessionId} />);
     case 'description':

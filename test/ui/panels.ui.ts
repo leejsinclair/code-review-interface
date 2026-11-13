@@ -1,8 +1,8 @@
-// US6 (FR-019 to FR-023, FR-042): Ask and Evidence open as panels on wide and medium screens and as full pages on
-// narrow ones. Needs the review shell (Phase 11) to mount PanelHost, so it passes only after Phase 11.
+// US6 (FR-019 to FR-023, FR-042): code citations open the Files view with the cited lines selected (the code page
+// when the diff cannot show them), and Ask about the PR opens the Questions page.
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
-import { assertNoPageScroll, checkA11y, useBrowser } from '../helpers/browser.ts';
+import { checkA11y, useBrowser } from '../helpers/browser.ts';
 import { defaultPrFiles, waitFor } from '../helpers/fake-ai-cli.ts';
 
 const ref = (path: string, startLine: number, endLine: number) => ({ kind: 'code', path, side: 'head', startLine, endLine });
@@ -12,102 +12,41 @@ const ANSWER = {
   suggestedFollowUps: [],
 };
 const diffHash = (id: string, path: string): string => `#/sessions/${id}/diff?path=${encodeURIComponent(path)}`;
-const focusIs = (page: import('playwright').Page, id: string) => page.waitForFunction((want) => document.activeElement?.id === want, id);
-const active = (page: import('playwright').Page) => page.evaluate(() => document.activeElement?.id ?? document.activeElement?.tagName ?? '');
 
-test('wide: Ask panel beside the diff, Evidence from a claim, Escape and close return focus', async (t) => {
-  const b = await useBrowser(t, { prFiles: defaultPrFiles(), fake: { scenario: 'structured', answer: ANSWER } });
-  const { sessionId } = await b.bench.startSession();
-  const page = await b.openPage(diffHash(sessionId, 'src/app.js'), { width: 1440 });
-  await page.getByTestId('diff-line-head-40').getByRole('button').click();
-  await page.getByTestId('ask-about-selection').click();
-  const panel = page.getByTestId('ask-panel');
-  await panel.waitFor();
-  assert.match((await panel.getByTestId('scope-indicator').textContent()) ?? '', /src\/app\.js lines 40-40/);
-  await page.waitForFunction(() => document.activeElement?.matches('[data-testid="ask-panel"] h2') === true);
-  assert.equal(await page.getByTestId('diff-line-head-40').count(), 1, 'the diff stays beside the panel');
-  await page.getByLabel('Your question').fill('Why?');
-  await page.getByTestId('answer-for-business').check();
-
-  await page.keyboard.press('Escape');
-  await panel.waitFor({ state: 'detached' });
-  await focusIs(page, 'ask-about-selection');
-
-  await page.getByTestId('ask-about-selection').click();
-  await panel.waitFor();
-  assert.equal(await page.getByLabel('Your question').inputValue(), 'Why?', 'the draft survives');
-  await page.getByTestId('panel-close').click();
-  await panel.waitFor({ state: 'detached' });
-  await focusIs(page, 'ask-about-selection');
-  await checkA11y(page);
-});
-
-test('wide: a claim reference opens the Evidence panel with the full range; focus and scroll return', async (t) => {
+test('a code citation opens the Files view with the cited lines selected; one outside the diff opens the code page', async (t) => {
   const b = await useBrowser(t, { fake: { scenario: 'structured', answer: ANSWER } });
   const { sessionId } = await b.bench.startSession();
   const asked = await b.bench.client.post(`/api/sessions/${sessionId}/questions`, { scope: { type: 'pr' }, category: 'what', text: 'What does the loop do?' });
   assert.equal(asked.status, 202, asked.text);
   await waitFor(async () => ((await b.bench.client.get(`/api/sessions/${sessionId}/questions`)).json as Array<{ state: string }>).every((q) => q.state === 'completed'), 'the answer');
-  const page = await b.openPage(`#/sessions/${sessionId}/diff`, { width: 1440 });
-  // From the Questions page the panel is not shown, so open the evidence from a page that shows both.
-  await page.goto(`${page.url().split('#')[0]}#/sessions/${sessionId}/ask`);
+  const page = await b.openPage(`#/sessions/${sessionId}/ask`, { width: 1440 });
   await page.getByTestId('claim-ref').first().waitFor();
-  await page.getByTestId('claim-ref').first().scrollIntoViewIfNeeded();
-  const before = await page.evaluate(() => window.scrollY);
   await page.getByTestId('claim-ref').first().click();
-  const panel = page.getByTestId('evidence-panel');
-  await panel.waitFor();
-  await panel.locator('tr[aria-current="true"]').first().waitFor();
-  assert.equal(await panel.locator('tr[aria-current="true"]').count(), 6);
-  assert.match((await panel.getByTestId('open-full-page').getAttribute('href')) ?? '', /start=45&end=50/);
-  await page.waitForFunction(() => document.activeElement?.matches('[data-testid="evidence-panel"] h2') === true);
-  await page.keyboard.press('Escape');
-  await panel.waitFor({ state: 'detached' });
-  await page.waitForFunction(() => document.activeElement?.matches('[data-testid="claim-ref"]') === true);
-  // The page height differs by a few pixels while the panel is open, so the position returns to within 50px.
-  assert.ok(Math.abs((await page.evaluate(() => window.scrollY)) - before) <= 50);
+  await page.getByTestId('diff-line-head-45').waitFor();
+  assert.match(page.url(), /\/diff\?path=src%2Fapp\.js/);
+  assert.match(page.url(), /start=45&end=50/);
+  assert.equal(await page.locator('tr[aria-selected="true"]').count(), 6);
+  assert.equal(await page.getByTestId('evidence-panel').count(), 0);
+  assert.ok(await page.getByTestId('diff-line-head-45').isVisible());
+
+  // A range the diff cannot show lands on the code page.
+  const snapshot = ((await b.bench.client.get(`/api/sessions/${sessionId}`)).json as { snapshots: Array<{ snapshotId: string }> }).snapshots.at(-1)!.snapshotId;
+  await page.goto(`${page.url().split('#')[0]}#/sessions/${sessionId}/diff?path=src%2Fapp.js&snapshot=${snapshot}&side=head&start=78&end=90`);
+  await page.getByTestId('code-range-notice').waitFor();
+  assert.match(page.url(), /\/code\?/);
 });
 
-test('medium overlays, narrow opens full pages, and resizing keeps the draft', async (t) => {
+test('ask-about-pr opens the Questions page for the whole PR, from Overview and from Files', async (t) => {
   const b = await useBrowser(t, { prFiles: defaultPrFiles() });
   const { sessionId } = await b.bench.startSession();
-
-  const medium = await b.openPage(diffHash(sessionId, 'src/app.js'), { width: 1000 });
-  await medium.getByTestId('diff-line-head-40').click();
-  await medium.getByTestId('ask-about-selection').click();
-  await medium.getByTestId('ask-panel').waitFor();
-  assert.equal(await medium.locator('.panel-host').getAttribute('data-band'), 'medium');
-  assert.equal(await medium.getByTestId('ask-panel').evaluate((el) => getComputedStyle(el.parentElement as Element).position), 'fixed');
-
-  const narrow = await b.openPage(diffHash(sessionId, 'src/app.js'), { width: 400 });
-  await narrow.getByTestId('diff-line-head-40').click();
-  await narrow.getByTestId('ask-about-selection').click();
-  await narrow.waitForURL(/\/ask\?/);
-  assert.equal(await narrow.getByTestId('ask-panel').count(), 0);
-  await assertNoPageScroll(narrow);
-
-  const page = await b.openPage(diffHash(sessionId, 'src/app.js'), { width: 1440 });
-  await page.getByTestId('diff-line-head-40').click();
-  await page.getByTestId('ask-about-selection').click();
-  await page.getByTestId('ask-panel').waitFor();
-  await page.getByLabel('Your question').fill('Draft kept');
-  await page.setViewportSize({ width: 1000, height: 900 });
-  await page.getByTestId('ask-panel').waitFor();
-  assert.equal(await page.getByLabel('Your question').inputValue(), 'Draft kept');
-  assert.equal(await page.getByTestId('ask-panel').evaluate((el) => getComputedStyle(el.parentElement as Element).position), 'fixed');
-  await page.setViewportSize({ width: 400, height: 900 });
-  await page.waitForURL(/\/ask\?/);
-  assert.equal(await page.getByTestId('ask-panel').count(), 0);
-  assert.equal(await page.getByLabel('Your question').inputValue(), 'Draft kept');
-});
-
-test('ask-about-pr works from Overview', async (t) => {
-  const b = await useBrowser(t);
-  const { sessionId } = await b.bench.startSession();
-  const page = await b.openPage(`#/sessions/${sessionId}`, { width: 1440 });
-  await page.getByTestId('ask-about-pr').click();
-  await page.getByTestId('ask-panel').waitFor();
-  assert.match((await page.getByTestId('ask-panel').getByTestId('scope-indicator').textContent()) ?? '', /whole PR/);
+  for (const hash of [`#/sessions/${sessionId}`, diffHash(sessionId, 'src/app.js')]) {
+    const page = await b.openPage(hash, { width: 1440 });
+    await page.getByTestId('ask-about-pr').click();
+    await page.waitForURL(/\/ask/);
+    assert.match((await page.getByTestId('scope-indicator').textContent()) ?? '', /whole PR/);
+    assert.equal(await page.locator('[data-panel]').count(), 0, 'there is no side panel');
+    await page.context().close();
+  }
 });
 
 test('every 001 route opens as a deep link; Sources sub-navigation; markup shows literally', async (t) => {

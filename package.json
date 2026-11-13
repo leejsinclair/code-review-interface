@@ -21,8 +21,8 @@
     "test:gitlab": "node --env-file=test/gitlab/required.env --test \"test/gitlab/*.test.ts\"",
     "typecheck": "tsc --noEmit",
     "build": "tsc -p tsconfig.build.json && node -e \"require('node:fs').cpSync('src/store/schema.sql','dist/store/schema.sql')\"",
-    "build:ui": "esbuild src/ui/app.tsx src/ui/launch.ts src/ui/app.css src/ui/index.html src/ui/launch.html --bundle --outdir=dist/ui --format=esm --target=es2022 --jsx=automatic --jsx-import-source=preact --loader:.html=copy",
-    "dev": "npm run build:ui -- --watch=forever & node src/main.ts",
+    "build:ui": "esbuild src/ui/app.tsx src/ui/launch.ts src/ui/app.css src/ui/index.html src/ui/launch.html --bundle --splitting --chunk-names=chunks/[name]-[hash] --outdir=dist/ui --format=esm --target=es2022 --jsx=automatic --jsx-import-source=preact --loader:.html=copy",
+    "dev": "npm run build:ui -- --watch=forever & node --watch src/main.ts",
     "gitlab:up": "gitlab/gitlab.sh up",
     "gitlab:bootstrap": "gitlab/gitlab.sh bootstrap",
     "gitlab:down": "gitlab/gitlab.sh down",
@@ -37,7 +37,11 @@
   "devDependencies": {
     "@axe-core/playwright": "^4.14.0",
     "@types/node": "^24.0.0",
+    "dompurify": "^3.4.17",
     "esbuild": "^0.25.0",
+    "lucide-preact": "^1.70.0",
+    "marked": "^18.2.0",
+    "mermaid": "^12.3.0",
     "playwright": "^1.65.0",
     "typescript": "^5.8.0"
   }

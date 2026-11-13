@@ -1,4 +1,4 @@
-// Ask form (contracts 4.6), used by the full page and the Ask panel: a labelled question field, Category and
+// Ask form (contracts 4.6), used by the full page and the Files view's notes: a labelled question field, Category and
 // Answer for as fieldsets, an Ask button that stays focusable and says why when it is unavailable, and
 // submit errors linked to their field. Draft, category, Answer for and scope live in per-tab view state.
 
@@ -27,9 +27,11 @@ export type AskComposerProps = {
   onAsked?: () => void;
   /** For a follow-up asked from the thread. */
   idPrefix?: string;
+  /** Whether the scope given is written to the session's view state. False when the caller owns it. */
+  persistScope?: boolean;
 };
 
-export function AskComposer({ sessionId, scope: given, onAsked, idPrefix = '' }: AskComposerProps) {
+export function AskComposer({ sessionId, scope: given, onAsked, idPrefix = '', persistScope = true }: AskComposerProps) {
   const ctx = useContext(ReviewContext);
   const stored = readSession(sessionId);
   const [text, setText] = useState(stored.draft);
@@ -46,7 +48,7 @@ export function AskComposer({ sessionId, scope: given, onAsked, idPrefix = '' }:
   const [tries, setTries] = useState({ provider: 0, suggestions: 0 });
 
   useEffect(() => {
-    if (given !== undefined) writeSession(sessionId, { scope: given });
+    if (persistScope && given !== undefined) writeSession(sessionId, { scope: given });
   }, [sessionId, given === undefined ? '' : JSON.stringify(given)]);
 
   useEffect(() => {
@@ -92,7 +94,7 @@ export function AskComposer({ sessionId, scope: given, onAsked, idPrefix = '' }:
   const id = (name: string): string => `${idPrefix}${name}`;
   return (
     <form class="panel stack ask-form" onSubmit={(e) => { e.preventDefault(); submit(); }}>
-      <p data-testid="scope-indicator">{scopeText(scope)}</p>
+      <p data-testid={idPrefix === 'notes-' ? 'notes-scope-indicator' : 'scope-indicator'}>{scopeText(scope)}</p>
       <AsyncRegion
         region="provider"
         label="the AI provider check"
@@ -163,23 +165,23 @@ export function AskComposer({ sessionId, scope: given, onAsked, idPrefix = '' }:
         id={id('question-input')}
         data-testid="question-input"
         value={text}
-        {...(error !== null ? { 'aria-invalid': 'true', 'aria-describedby': 'ask-error' } : {})}
+        {...(error !== null ? { 'aria-invalid': 'true', 'aria-describedby': id('ask-error') } : {})}
         onInput={(e) => {
           const v = (e.currentTarget as HTMLTextAreaElement).value;
           setText(v);
           update({ draft: v });
         }}
       />
-      <button type="submit" id={id('ask-button')} data-testid="ask-button" aria-disabled={reason !== null ? 'true' : undefined} aria-describedby={reason !== null ? 'ask-unavailable-reason' : undefined}>
+      <button type="submit" id={id('ask-button')} data-testid="ask-button" aria-disabled={reason !== null ? 'true' : undefined} aria-describedby={reason !== null ? id('ask-unavailable-reason') : undefined}>
         Ask
       </button>
       {reason !== null && (
-        <p id="ask-unavailable-reason" data-testid="ask-unavailable-reason" class="muted">
+        <p id={id('ask-unavailable-reason')} data-testid="ask-unavailable-reason" class="muted">
           {reason}
         </p>
       )}
       {error !== null && (
-        <p id="ask-error" data-testid="ask-error" role="alert" class="error">
+        <p id={id('ask-error')} data-testid="ask-error" role="alert" class="error">
           {error}
         </p>
       )}

@@ -8,6 +8,9 @@ import type { ConfigBody, Platforms, ProviderStatus, SignIn, Workspace } from '.
 import { ApiError, cancelDiscovery, getConfig, getPlatforms, getProvider, getWorkspace, listSignIns, rescanWorkspace, saveConfig } from '../api.ts';
 import { AsyncRegion } from '../components/async-region.tsx';
 import { formatBytes, formatLines, parseKilobytes } from '../state/units.ts';
+import { RefreshCw } from 'lucide-preact';
+import { IconButton } from '../components/icon-button.tsx';
+import { ICON_LABELS } from '../labels.ts';
 
 type Form = {
   baseFolder: string;
@@ -346,9 +349,7 @@ export function SetupScreen() {
                         : workspace.matched.length === 0
                           ? `No ${name(workspace.platform)} repositories were found under ${workspace.baseFolder}. Check the base folder and that its clones have a ${name(workspace.platform)} remote.`
                           : `${workspace.matched.length} repositories found in ${workspace.discovery.foldersScanned} folders.`}{' '}
-                    <button type="button" data-testid="rescan-button" onClick={rescan}>
-                      Rescan
-                    </button>
+                    <IconButton icon={RefreshCw} label={ICON_LABELS.rescan} data-testid="rescan-button" onClick={rescan} />
                   </p>
                 )}
                 <ul class="list">

@@ -13,11 +13,20 @@ import type {
   ErrorCode,
   FileContent,
   FileDiff,
+  OverrideBody,
+  OverrideHistory,
+  OverrideRecord,
   PlatformId,
   Platforms,
   ProviderStatus,
   PullGroup,
   Question,
+  ReviewActionBody,
+  ReviewActionResult,
+  ReviewComments,
+  ReviewDecisionState,
+  RiskReport,
+  RiskReviewer,
   ScopeType,
   SessionDetail,
   SessionEventName,
@@ -26,6 +35,8 @@ import type {
   Side,
   SignIn,
   SignInBody,
+  SpecContextReport,
+  SpecContextRetryResult,
   SnapshotDetail,
   Suggestion,
   Summary,
@@ -47,9 +58,12 @@ export class ApiError extends Error {
   readonly status: number;
   readonly code: ErrorCode | null;
   readonly platform: PlatformId | undefined;
+  /** The platform's own reason for a refused review action, shown as stated. */
+  readonly platformMessage: string | undefined;
 
-  constructor(status: number, code: ErrorCode | null, message: string, platform?: PlatformId) {
+  constructor(status: number, code: ErrorCode | null, message: string, platform?: PlatformId, platformMessage?: string) {
     super(message);
+    this.platformMessage = platformMessage;
     this.name = 'ApiError';
     this.status = status;
     this.code = code;
@@ -99,9 +113,9 @@ async function request<T>(method: Method, path: string, body?: unknown): Promise
   const data = await readJson(response);
   if (!response.ok) {
     if (isErrorBody(data)) {
-      const { code, message, platform } = data.error;
+      const { code, message, platform, platformMessage } = data.error;
       if (code === 'signin_required') location.hash = signinHashFor(location.hash);
-      throw new ApiError(response.status, code, message, platform);
+      throw new ApiError(response.status, code, message, platform, platformMessage);
     }
     throw new ApiError(response.status, null, `Request failed with status ${response.status}.`);
   }
@@ -171,6 +185,11 @@ export function listPullGroups(repository?: string): Promise<PullGroup[] | PullG
   return request<PullGroup>('GET', withQuery('/api/pulls', { repository }));
 }
 
+/** The last known list per repository, with no platform call; empty before the first fresh list. */
+export function listCachedPullGroups(): Promise<PullGroup[]> {
+  return request<PullGroup[]>('GET', withQuery('/api/pulls', { cached: '1' }));
+}
+
 export function listSessions(): Promise<SessionSummary[]> {
   return request<SessionSummary[]>('GET', '/api/sessions');
 }
@@ -238,6 +257,73 @@ export function cancelQuestion(sessionId: string, questionId: string): Promise<Q
   return request<Question>('POST', `${sessionPath(sessionId)}/questions/${seg(questionId)}/cancel`);
 }
 
+// ---------------------------------------------------------------- 8c. Review actions (feature 005)
+
+/** Performs one action at once. A fresh `requestId` per click; the caller keeps the typed text on any error. */
+export function postReviewAction(sessionId: string, body: ReviewActionBody): Promise<ReviewActionResult> {
+  return request<ReviewActionResult>('POST', `${sessionPath(sessionId)}/review-actions`, body);
+}
+
+export function getReviewComments(sessionId: string): Promise<ReviewComments> {
+  return request<ReviewComments>('GET', `${sessionPath(sessionId)}/review-actions/comments`);
+}
+
+export function getReviewDecision(sessionId: string): Promise<ReviewDecisionState> {
+  return request<ReviewDecisionState>('GET', `${sessionPath(sessionId)}/review-actions/decision`);
+}
+
+// ---------------------------------------------------------------- 8b. Risk (feature 004)
+
+export function getRisk(sessionId: string, snapshotId: string): Promise<RiskReport> {
+  return request<RiskReport>('GET', `${snapshotPath(sessionId, snapshotId)}/risk`);
+}
+
+/** Who the platform would record for an override that lowers a Critical class. */
+export function getReviewer(sessionId: string): Promise<RiskReviewer> {
+  return request<RiskReviewer>('GET', `${sessionPath(sessionId)}/risk/reviewer`);
+}
+
+export function postOverride(sessionId: string, body: OverrideBody): Promise<OverrideRecord> {
+  return request<OverrideRecord>('POST', `${sessionPath(sessionId)}/risk/overrides`, body);
+}
+
+export function getOverrideHistory(sessionId: string, path: string): Promise<OverrideHistory> {
+  return request<OverrideHistory>('GET', withQuery(`${sessionPath(sessionId)}/risk/overrides`, { path }));
+}
+
+// ---------------------------------------------------------------- 8c. Spec context (feature 006)
+
+export function getSpecContext(sessionId: string, snapshotId: string): Promise<SpecContextReport> {
+  return request<SpecContextReport>('GET', `${snapshotPath(sessionId, snapshotId)}/spec-context`);
+}
+
+/** The stored text of one document, as plain text. */
+export async function getSpecDocument(sessionId: string, snapshotId: string, documentId: string): Promise<string> {
+  const path = `${snapshotPath(sessionId, snapshotId)}/spec-context/documents/${seg(documentId)}`;
+  let response: Response;
+  try {
+    response = await fetch(path, { method: 'GET', credentials: 'same-origin', mode: 'same-origin', headers: { Accept: 'text/plain' } });
+  } catch {
+    throw new ApiError(0, null, 'The workbench server could not be reached.', undefined);
+  }
+  const text = await response.text();
+  if (!response.ok) {
+    let data: unknown;
+    try {
+      data = JSON.parse(text) as unknown;
+    } catch {
+      data = undefined;
+    }
+    if (isErrorBody(data)) throw new ApiError(response.status, data.error.code, data.error.message);
+    throw new ApiError(response.status, null, `Request failed with status ${response.status}.`);
+  }
+  return text;
+}
+
+export function retrySpecContext(sessionId: string, snapshotId: string): Promise<SpecContextRetryResult> {
+  return request<SpecContextRetryResult>('POST', `${snapshotPath(sessionId, snapshotId)}/spec-context/retry`, {});
+}
+
 // ---------------------------------------------------------------- 9. Session event stream
 
 export type SessionEventHandlers = { [K in SessionEventName]?: (data: SessionEvents[K]) => void };
@@ -270,6 +356,8 @@ const EVENT_NAMES: readonly SessionEventName[] = [
   'answer-delta',
   'summary',
   'summary-delta',
+  'risk',
+  'spec-context',
 ];
 
 /** Re-reads what a disconnected stream may have missed. */

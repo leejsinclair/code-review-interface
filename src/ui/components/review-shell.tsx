@@ -14,7 +14,6 @@ import { readSession, writeSession } from '../state/view-state.ts';
 import { Badge } from './badge.tsx';
 import { ContextVersion } from './claims.tsx';
 import { LiveBanner } from './live-banner.tsx';
-import { PanelHost } from './panel-host.tsx';
 import { SessionActions } from './session-actions.tsx';
 
 type Handlers = Parameters<ReviewContextValue['subscribe']>[0];
@@ -64,6 +63,9 @@ export function ReviewShell(props: { sessionId: string; children?: ComponentChil
       'answer-delta': each('answer-delta'),
       summary: each('summary'),
       'summary-delta': each('summary-delta'),
+      risk: each('risk'),
+      // The Context rows for specification and TDD evidence come from the session detail, so refresh it too.
+      'spec-context': (d) => (each('spec-context')(d), void reloadDetail()),
       onQuestions: (q) => {
         setQuestions(q);
         for (const l of listeners.current) l.onQuestions?.(q);
@@ -71,7 +73,10 @@ export function ReviewShell(props: { sessionId: string; children?: ComponentChil
       onSummaries: (id, s) => {
         for (const l of listeners.current) l.onSummaries?.(id, s);
       },
-      onOpen: () => model.current?.opened(),
+      onOpen: () => {
+        model.current?.opened();
+        void reloadDetail(); // an event sent between the first GET and this subscription is not replayed
+      },
       onError: (rs) => {
         model.current?.errored(rs);
         void getSession(sessionId).catch(fail); // a deleted session answers 404
@@ -123,9 +128,8 @@ export function ReviewShell(props: { sessionId: string; children?: ComponentChil
       },
       announce: outer.announce,
       openAsk: outer.openAsk,
-      openEvidence: outer.openEvidence,
     }),
-    [detail, outer.announce, outer.openAsk, outer.openEvidence],
+    [detail, outer.announce, outer.openAsk],
   );
 
   if (gone) {
@@ -194,48 +198,46 @@ export function ReviewShell(props: { sessionId: string; children?: ComponentChil
         {askBlock !== null && detail.readOnly && <p class="muted">{askBlock}</p>}
         <SessionActions sessionId={sessionId} />
       </header>
-      <PanelHost sessionId={sessionId}>
-        <nav aria-label="Review" data-testid="review-nav" class="review-nav">
-          {tab('overview', base)}
-          {tab('files', `${base}/diff`)}
+      <nav aria-label="Review" data-testid="review-nav" class="review-nav">
+        {tab('overview', base)}
+        {tab('files', `${base}/diff`)}
+        <a
+          href={`${base}/ask`}
+          data-testid="review-nav-questions"
+          data-count={String(questions.length)}
+          data-running={running ? 'true' : 'false'}
+          aria-current={here === 'questions' ? 'page' : undefined}
+        >
+          {`${REVIEW_NAV_LABELS.questions} (${questions.length})${running ? ' · running' : ''}`}
+        </a>
+        {tab('sources', `${base}/description`)}
+        {here !== 'questions' && <AskAboutPr blocked={askBlock !== null} />}
+      </nav>
+      <p class="context-strip" data-testid="context-strip">
+        {detail.completeness.map((row) => (
           <a
-            href={`${base}/ask`}
-            data-testid="review-nav-questions"
-            data-count={String(questions.length)}
-            data-running={running ? 'true' : 'false'}
-            aria-current={here === 'questions' ? 'page' : undefined}
+            key={row.source}
+            href={base}
+            onClick={(e) => {
+              e.preventDefault();
+              const target = () => document.getElementById(`completeness-${row.source}`)?.scrollIntoView({ block: 'center' });
+              if (route.name === 'overview') target();
+              else {
+                location.hash = base;
+                setTimeout(target, 400);
+              }
+            }}
           >
-            {`${REVIEW_NAV_LABELS.questions} (${questions.length})${running ? ' · running' : ''}`}
+            {`${row.source === 'pr' ? 'PR' : row.source === 'repository' ? 'Repository' : 'Issue'}: ${row.status}`}
           </a>
-          {tab('sources', `${base}/description`)}
-          {here !== 'files' && <AskAboutPr blocked={askBlock !== null} />}
-        </nav>
-        <p class="context-strip" data-testid="context-strip">
-          {detail.completeness.map((row) => (
-            <a
-              key={row.source}
-              href={base}
-              onClick={(e) => {
-                e.preventDefault();
-                const target = () => document.getElementById(`completeness-${row.source}`)?.scrollIntoView({ block: 'center' });
-                if (route.name === 'overview') target();
-                else {
-                  location.hash = base;
-                  setTimeout(target, 400);
-                }
-              }}
-            >
-              {`${row.source === 'pr' ? 'PR' : row.source === 'repository' ? 'Repository' : 'Issue'}: ${row.status}`}
-            </a>
-          ))}
-        </p>
-        {props.children}
-      </PanelHost>
+        ))}
+      </p>
+      {props.children}
     </ReviewContext.Provider>
   );
 }
 
-/** Inside the panel host, so `openAsk` opens the panel beside the page rather than navigating. */
+/** Opens the Questions page scoped to the whole pull request. */
 function AskAboutPr(props: { blocked: boolean }) {
   const ctx = useContext(ReviewContext);
   return (

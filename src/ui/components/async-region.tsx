@@ -2,6 +2,9 @@
 // loads data. A failure is never shown as an empty list: it names what failed and offers Retry.
 
 import type { ComponentChildren, JSX } from 'preact';
+import { RotateCw } from 'lucide-preact';
+import { IconButton } from './icon-button.tsx';
+import { ICON_LABELS } from '../labels.ts';
 
 export type AsyncRegionState =
   | { state: 'loading' }
@@ -40,9 +43,7 @@ export function AsyncRegion(props: AsyncRegionProps): JSX.Element {
           <p>
             Could not load {label}: {props.reason}
           </p>
-          <button type="button" data-testid={retryId} onClick={props.retry}>
-            Retry
-          </button>
+          <IconButton icon={RotateCw} label={ICON_LABELS.retry} data-testid={retryId} onClick={props.retry} />
         </div>
       )}
       {props.state === 'unknown' && (

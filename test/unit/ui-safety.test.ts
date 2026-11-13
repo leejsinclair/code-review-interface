@@ -22,6 +22,12 @@ test('no HTML injection (SC-008)', () => {
   for (const f of files) assert.doesNotMatch(f.code, /dangerouslySetInnerHTML|innerHTML|insertAdjacentHTML|outerHTML/, f.file);
 });
 
+// The only strings allowed to say "approved": they report the signed-in reviewer's OWN recorded approval on
+// the platform (dashboard "Approved by you"), never a verdict from this tool about the PR (FR-016).
+// Feature 005 adds the reviewer's own decision text ("You approved on <commit>"), also labelled as theirs.
+// The dashboard filter "Hide pull requests I approved" is the same kind: it is about the reviewer's own approvals.
+const OWN_APPROVAL_STRINGS = new Set(["'Approved by you'", "'Approved'", "'You approved'", "'Hide pull requests I approved'"]);
+
 test('no interface string says ready, safe or approved (SC-007)', () => {
   const word = /\b(ready|safe|approved)\b/i;
   for (const f of files) {
@@ -29,6 +35,7 @@ test('no interface string says ready, safe or approved (SC-007)', () => {
     const jsxText = [...f.code.matchAll(/>([^<>{}\n]+)</g)].map((m) => m[1]!);
     for (const s of [...literals, ...jsxText]) {
       if (/^\s*(import|export)\b/.test(s) || /^['"`][a-z-]+['"`]$/.test(s)) continue;
+      if (f.file === 'labels.ts' && OWN_APPROVAL_STRINGS.has(s)) continue;
       assert.doesNotMatch(s, word, `${f.file}: ${s}`);
     }
   }

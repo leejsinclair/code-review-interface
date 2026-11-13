@@ -1,14 +1,12 @@
 // Claims list (FR-016 to FR-019, FR-022, FR-045): each claim with its Evidence or Inference label,
-// documented intent grouped apart from inferred intent, and each reference opening the code at its
-// commit, the issue, or the PR description. Also the small pieces shown with every answer and
+// documented intent grouped apart from inferred intent, and each reference opening the file in the Files view
+// (or the code page when the diff can't show it), the issue, or the PR description. Also the small pieces shown with every answer and
 // summary: the warning, the context version and the restrictions not enforced. Every claim and
 // reference string is rendered as a text node (R7).
 
 import type { Claim, GenerationWarning, Ref, RestrictionId } from '../../contracts/http.ts';
-import { useContext } from 'preact/hooks';
 import { CLAIM_LABELS, INTENT_LABELS, INTENT_ORDER } from '../labels.ts';
-import { ReviewContext } from '../state/review-context.ts';
-import { codeHref } from '../state/routes.ts';
+import { diffHref } from '../state/routes.ts';
 import { Badge } from './badge.tsx';
 
 const sessionHash = (sessionId: string, rest: string): string => `#/sessions/${encodeURIComponent(sessionId)}${rest}`;
@@ -16,7 +14,7 @@ const sessionHash = (sessionId: string, rest: string): string => `#/sessions/${e
 /** Where a reference opens (contracts/ui.md routes). */
 export function refHref(sessionId: string, snapshotId: string, ref: Ref): string {
   if (ref.kind === 'code') {
-    return codeHref(sessionId, { snapshot: snapshotId, side: ref.side, path: ref.path, start: ref.startLine, end: ref.endLine });
+    return diffHref(sessionId, { snapshot: snapshotId, side: ref.side, path: ref.path, start: ref.startLine, end: ref.endLine });
   }
   if (ref.kind === 'issue') return sessionHash(sessionId, `/issues/${encodeURIComponent(ref.platform)}/${encodeURIComponent(ref.key)}`);
   return sessionHash(sessionId, '/description');
@@ -33,7 +31,6 @@ function refText(ref: Ref): string {
 
 function ClaimItem(props: { sessionId: string; snapshotId: string; claim: Claim }) {
   const { claim } = props;
-  const ctx = useContext(ReviewContext);
   const downgraded = claim.labelledByProvider !== claim.label;
   return (
     <li data-testid="claim" data-label={claim.label} {...(claim.intent === undefined ? {} : { 'data-intent': claim.intent })} class="claim">
@@ -49,11 +46,6 @@ function ClaimItem(props: { sessionId: string; snapshotId: string; claim: Claim 
                 data-testid="claim-ref"
                 data-kind={ref.kind}
                 href={refHref(props.sessionId, props.snapshotId, ref)}
-                onClick={(e) => {
-                  if (ref.kind !== 'code' || e.button !== 0 || e.metaKey || e.ctrlKey || e.shiftKey) return;
-                  e.preventDefault();
-                  ctx.openEvidence({ snapshot: props.snapshotId, side: ref.side, path: ref.path, start: ref.startLine, end: ref.endLine }, (e.currentTarget as HTMLElement).id);
-                }}
               >
                 {refText(ref)}
               </a>

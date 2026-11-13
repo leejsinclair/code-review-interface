@@ -5,9 +5,14 @@
 
 import { useEffect, useRef, useState } from 'preact/hooks';
 import type { PullGroup, PullSummary, SessionSummary, Workspace } from '../../contracts/http.ts';
-import { createSession, getWorkspace, listPullGroups, listSessions } from '../api.ts';
+import { createSession, getConfig, getPlatforms, getWorkspace, listCachedPullGroups, listPullGroups, listSessions } from '../api.ts';
+import { CircleCheck, Clock, ExternalLink, Play, StepForward } from 'lucide-preact';
 import { AsyncRegion } from '../components/async-region.tsx';
-import { ACTION_LABELS, DASHBOARD_LABELS, homeEmptyState } from '../labels.ts';
+import { IconButton } from '../components/icon-button.tsx';
+import { SessionQueue } from '../components/session-queue.tsx';
+import { ACTION_LABELS, DASHBOARD_LABELS, PR_FLAG_LABELS, homeEmptyState, openOnPlatform } from '../labels.ts';
+import { groupId, groupPullsByIssue } from '../state/issue-groups.ts';
+import { ageDays, isStale, STALE_DAYS } from '../state/pull-buckets.ts';
 import { readDashboard, writeDashboard } from '../state/view-state.ts';
 
 const open = (sessionId: string): void => {
@@ -27,6 +32,49 @@ export function mergePulls(groups: readonly PullGroup[]): PullSummary[] {
 const matches = (pr: PullSummary, text: string): boolean =>
   [pr.repository, `#${pr.number}`, String(pr.number), pr.title, pr.author, pr.sourceBranch, pr.targetBranch].some((v) => v.toLowerCase().includes(text));
 
+/** One pull request row, shared by the current, approved and older lists. */
+function PullRow(props: { pr: PullSummary; now: number; starting: string | null; platformLabel: string; onStart: (pr: PullSummary) => void }) {
+  const { pr, now, starting } = props;
+  const key = `${pr.repository}-${pr.number}`;
+  const days = ageDays(pr, now);
+  const resume = pr.sessionId !== undefined;
+  return (
+    <li data-testid={`pr-item-${key}`} aria-busy={starting === key ? 'true' : undefined}>
+      <span class="muted">{`${pr.repository} `}</span>
+      <strong>{`#${pr.number} ${pr.title}`}</strong>
+      <span class="muted">{` ${pr.author} · ${pr.sourceBranch} → ${pr.targetBranch} · `}</span>
+      <time dateTime={pr.updatedAt}>{new Date(pr.updatedAt).toLocaleString()}</time>
+      <span class="pr-flags">
+        {pr.approvedByMe === true && (
+          <span class="badge" data-kind="approved" data-testid="pr-approved">
+            <CircleCheck size={14} aria-hidden="true" focusable="false" />
+            {PR_FLAG_LABELS.approved}
+          </span>
+        )}
+        {isStale(pr, now) && (
+          <span class="badge" data-kind="stale" data-testid="pr-stale" title={`No activity for ${days} days (stale after ${STALE_DAYS})`}>
+            <Clock size={14} aria-hidden="true" focusable="false" />
+            {PR_FLAG_LABELS.stale}
+          </span>
+        )}
+      </span>{' '}
+      {pr.webUrl !== undefined && (
+        <a class="icon-button" href={pr.webUrl} target="_blank" rel="noopener noreferrer" aria-label={props.platformLabel} title={props.platformLabel} data-testid="pr-open-on-platform">
+          <ExternalLink size={16} aria-hidden="true" focusable="false" />
+        </a>
+      )}{' '}
+      <IconButton
+        icon={resume ? StepForward : Play}
+        label={resume ? ACTION_LABELS.resumeReview : ACTION_LABELS.startReview}
+        data-testid={resume ? 'resume-review' : 'start-review'}
+        {...(resume ? { class: 'in-progress' } : {})}
+        disabled={starting !== null}
+        onClick={() => props.onStart(pr)}
+      />
+    </li>
+  );
+}
+
 type Loaded<T> = { state: 'loading' } | { state: 'failed'; reason: string } | { state: 'loaded'; value: T };
 
 export function HomeScreen() {
@@ -34,15 +82,27 @@ export function HomeScreen() {
   const [sessions, setSessions] = useState<Loaded<SessionSummary[]>>({ state: 'loading' });
   const [workspace, setWorkspace] = useState<Loaded<Workspace>>({ state: 'loading' });
   const [groups, setGroups] = useState<PullGroup[] | null>(null);
+  const [refreshing, setRefreshing] = useState(false);
+  const [refreshFailed, setRefreshFailed] = useState(false);
   const [retrying, setRetrying] = useState<string[]>([]);
   const [text, setText] = useState(saved.current.text);
+  const [hideApproved, setHideApproved] = useState(saved.current.hideApproved);
   const [repository, setRepository] = useState<string | null>(saved.current.repository);
   const [starting, setStarting] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [collapsed, setCollapsed] = useState<string[]>(saved.current.collapsedGroups);
+  const [projectKeys, setProjectKeys] = useState<string[]>([]);
+  const [collapsedLanes, setCollapsedLanes] = useState<string[]>(saved.current.collapsedLanes);
+  const [platformNames, setPlatformNames] = useState<Record<string, string>>({});
+  const now = useRef(Date.now()).current;
   const restored = useRef(false);
 
   const loadSessions = (): void => {
     setSessions({ state: 'loading' });
+    reloadSessions();
+  };
+  /** Re-reads the sessions in place (no loading state), so the list does not flash. */
+  const reloadSessions = (): void => {
     listSessions().then(
       (value) => setSessions({ state: 'loaded', value }),
       (e: unknown) => setSessions({ state: 'failed', reason: reasonOf(e, 'The session list did not load.') }),
@@ -54,18 +114,49 @@ export function HomeScreen() {
     let timer: ReturnType<typeof setTimeout> | undefined;
     setWorkspace({ state: 'loading' });
     setGroups(null);
+    setRefreshing(false);
+    setRefreshFailed(false);
+    let fresh = false;
+    let showingCached = false;
+    let scanned = false;
     const tick = (): void => {
       getWorkspace().then(
         (value) => {
           if (cancelled) return;
           setWorkspace({ state: 'loaded', value });
           if (value.discovery.state === 'scanning') {
+            scanned = true;
             timer = setTimeout(tick, 1000);
             return;
           }
+          // Sessions read while discovery ran were marked read only; read them again now the clones are known.
+          if (scanned) reloadSessions();
+          // Show the last known list at once while the fresh one loads behind it.
+          const cachedShown = listCachedPullGroups().then(
+            (cached) => {
+              if (cancelled || fresh || cached.length === 0) return;
+              showingCached = true;
+              setGroups(cached);
+              setRefreshing(true);
+            },
+            () => undefined,
+          );
           listPullGroups().then(
-            (found) => !cancelled && setGroups(found),
-            (e: unknown) => !cancelled && setWorkspace({ state: 'failed', reason: reasonOf(e, 'The open pull requests did not load.') }),
+            (found) => {
+              if (cancelled) return;
+              fresh = true;
+              setGroups(found);
+              setRefreshing(false);
+            },
+            async (e: unknown) => {
+              // The cached answer may still be on its way; settle it first so its rows are kept, not dropped.
+              await cachedShown;
+              if (cancelled) return;
+              fresh = true;
+              setRefreshing(false);
+              if (showingCached) setRefreshFailed(true);
+              else setWorkspace({ state: 'failed', reason: reasonOf(e, 'The open pull requests did not load.') });
+            },
           );
         },
         (e: unknown) => !cancelled && setWorkspace({ state: 'failed', reason: reasonOf(e, 'The base folder could not be read.') }),
@@ -80,6 +171,16 @@ export function HomeScreen() {
 
   useEffect(() => {
     loadSessions();
+    // The configured issue tracker projects narrow which keys count; if they cannot be read, any key counts.
+    getConfig().then(
+      (config) => setProjectKeys(config?.issueTracker.projectKeys ?? []),
+      () => undefined,
+    );
+    // Display names ("Bitbucket") for the external links; without them the platform id is shown.
+    getPlatforms().then(
+      (p) => setPlatformNames(Object.fromEntries(p.descriptors.map((d) => [d.id, d.displayName]))),
+      () => undefined,
+    );
     return loadAll();
   }, []);
 
@@ -151,6 +252,10 @@ export function HomeScreen() {
     setRepository(next);
     writeDashboard({ repository: next });
   };
+  const setHideApprovedFilter = (value: boolean): void => {
+    setHideApproved(value);
+    writeDashboard({ hideApproved: value });
+  };
   const clearFilters = (): void => {
     setText('');
     setRepository(null);
@@ -160,10 +265,16 @@ export function HomeScreen() {
   const baseFolder = workspace.state === 'loaded' ? workspace.value.baseFolder : '';
   const all = groups === null ? [] : mergePulls(groups);
   const needle = text.trim().toLowerCase();
-  const rows = all.filter((pr) => (repository === null || pr.repository === repository) && (needle === '' || matches(pr, needle)));
+  const matched = all.filter((pr) => (repository === null || pr.repository === repository) && (needle === '' || matches(pr, needle)));
+  const rows = hideApproved ? matched.filter((pr) => pr.approvedByMe !== true) : matched;
+  const approvedHidden = matched.length - rows.length;
+  const issueGroups = groupPullsByIssue(rows, projectKeys);
   const failedGroups = (groups ?? []).filter((g) => g.status === 'failed');
   const skipped = workspace.state === 'loaded' ? workspace.value.skipped.length : 0;
-  const sessionList = sessions.state === 'loaded' ? sessions.value : [];
+  // Merged or closed pull requests are finished: they drop off the list.
+  const sessionList = sessions.state === 'loaded' ? sessions.value.filter((s) => s.prStatus === 'open') : [];
+  const platformName = (platform: string): string => platformNames[platform] ?? platform;
+  const pullPlatformLabel = openOnPlatform(workspace.state === 'loaded' ? platformName(workspace.value.platform) : 'the platform');
 
   return (
     <div class="stack dashboard">
@@ -182,29 +293,28 @@ export function HomeScreen() {
                 ? { state: 'empty' as const, explanation: 'You have not started a review yet.', nextStep: 'Pick a pull request below.' }
                 : { state: 'loaded' as const })}
         >
-          <ul class="list" data-testid="session-list">
-            {sessionList.map((s) => (
-              <li key={s.sessionId} data-testid={`session-item-${s.sessionId}`}>
-                <span class="muted">{`${s.repository} `}</span>
-                <a href={`#/sessions/${encodeURIComponent(s.sessionId)}`}>{`#${s.prNumber} ${s.title}`}</a>{' '}
-                <span class="chip" data-testid="session-status" data-status={s.prStatus}>
-                  {s.prStatus}
-                </span>
-                {s.statusNote !== undefined && <span class="muted">{` ${s.statusNote}`}</span>}{' '}
-                {!s.repositoryAvailable && (
-                  <span data-testid={`session-read-only-${s.sessionId}`}>
-                    <a href={`#/sessions/${encodeURIComponent(s.sessionId)}`}>Open (read only)</a>
-                    <span class="muted">{` ${s.repositoryReason ?? ''}`}</span>
-                  </span>
-                )}
-              </li>
-            ))}
-          </ul>
+          <SessionQueue
+            sessions={sessionList}
+            pulls={all}
+            now={now}
+            platformName={platformName}
+            collapsed={collapsedLanes}
+            onCollapsedChange={(next) => {
+              setCollapsedLanes(next);
+              writeDashboard({ collapsedLanes: next });
+            }}
+          />
         </AsyncRegion>
       </section>
 
       <section class="panel stack" aria-labelledby="home-pulls">
         <h2 id="home-pulls">{DASHBOARD_LABELS.openPullRequests}</h2>
+        {refreshing && (
+          <p class="muted" role="status" data-testid="pulls-refreshing">{DASHBOARD_LABELS.refreshing}</p>
+        )}
+        {refreshFailed && (
+          <p class="muted" data-testid="pulls-refresh-failed">{DASHBOARD_LABELS.refreshFailed}</p>
+        )}
         {error !== null && (
           <p class="error" role="alert">
             {error}
@@ -256,7 +366,14 @@ export function HomeScreen() {
                   </option>
                 ))}
               </select>
+            </label>{' '}
+            <label>
+              <input type="checkbox" data-testid="dashboard-hide-approved" checked={hideApproved} onChange={(e) => setHideApprovedFilter((e.currentTarget as HTMLInputElement).checked)} />{' '}
+              {DASHBOARD_LABELS.hideApproved}
             </label>
+            {approvedHidden > 0 && (
+              <span class="muted" data-testid="dashboard-approved-hidden">{` ${approvedHidden} hidden`}</span>
+            )}
           </div>
         )}
         {groups !== null && groups.length > 0 && all.length === 0 && failedGroups.length < groups.length && (
@@ -270,22 +387,35 @@ export function HomeScreen() {
             </button>
           </p>
         )}
-        <ul class="list" data-testid="pr-list">
-          {rows.map((pr) => {
-            const key = `${pr.repository}-${pr.number}`;
-            return (
-              <li key={key} data-testid={`pr-item-${key}`} aria-busy={starting === key ? 'true' : undefined}>
-                <span class="muted">{`${pr.repository} `}</span>
-                <strong>{`#${pr.number} ${pr.title}`}</strong>
-                <span class="muted">{` ${pr.author} · ${pr.sourceBranch} → ${pr.targetBranch} · `}</span>
-                <time dateTime={pr.updatedAt}>{new Date(pr.updatedAt).toLocaleString()}</time>{' '}
-                <button class="button" type="button" data-testid={pr.sessionId === undefined ? 'start-review' : 'resume-review'} disabled={starting !== null} onClick={() => void start(pr)}>
-                  {pr.sessionId === undefined ? ACTION_LABELS.startReview : ACTION_LABELS.resumeReview}
-                </button>
-              </li>
-            );
-          })}
-        </ul>
+        {(groups ?? []).filter((g) => g.approvalsNote !== undefined).map((g) => (
+          <p key={g.repository} class="muted" data-testid={`approvals-note-${g.repository}`}>{`${g.repository}: ${g.approvalsNote}`}</p>
+        ))}
+        {issueGroups.map((g) => {
+          const id = groupId(g);
+          const isOpen = !collapsed.includes(id);
+          return (
+            <details
+              key={id}
+              class="pr-group"
+              data-testid={`pr-group-${id}`}
+              open={isOpen}
+              onToggle={(e) => {
+                const nowOpen = (e.currentTarget as HTMLDetailsElement).open;
+                if (nowOpen === isOpen) return;
+                const next = nowOpen ? collapsed.filter((c) => c !== id) : [...collapsed, id];
+                setCollapsed(next);
+                writeDashboard({ collapsedGroups: next });
+              }}
+            >
+              <summary>{`${g.key ?? DASHBOARD_LABELS.noIssueKey} (${g.pulls.length})`}</summary>
+              <ul class="list" data-testid="pr-list">
+                {g.pulls.map((pr) => (
+                  <PullRow key={`${pr.repository}-${pr.number}`} pr={pr} now={now} starting={starting} platformLabel={pullPlatformLabel} onStart={(p) => void start(p)} />
+                ))}
+              </ul>
+            </details>
+          );
+        })}
       </section>
     </div>
   );

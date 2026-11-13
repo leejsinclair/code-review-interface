@@ -2,12 +2,10 @@
 // without a shell, so a screen opened on its own still subscribes, announces and navigates.
 
 import { createContext } from 'preact';
-import type { Scope, Side, SessionDetail } from '../../contracts/http.ts';
+import type { Scope, SessionDetail } from '../../contracts/http.ts';
 import { subscribeSession, type SessionEventHandlers, type SessionStreamOptions } from '../api.ts';
 import { createAnnouncer } from './announcer.ts';
-import { askHref, codeHref, parseRoute } from './routes.ts';
-
-export type EvidenceTarget = { snapshot: string; side: Side; path: string; start?: number; end?: number };
+import { askHref, parseRoute } from './routes.ts';
 
 export interface ReviewContextValue {
   session?: SessionDetail;
@@ -15,7 +13,6 @@ export interface ReviewContextValue {
   subscribe(handlers: SessionEventHandlers & Pick<SessionStreamOptions, 'onQuestions' | 'onSummaries'>): () => void;
   announce(text: string): void;
   openAsk(scope: Scope, openerId?: string): void;
-  openEvidence(target: EvidenceTarget, openerId?: string): void;
 }
 
 const currentSessionId = (): string | undefined => {
@@ -46,9 +43,5 @@ export const ReviewContext = createContext<ReviewContextValue>({
   openAsk(scope) {
     const id = currentSessionId();
     if (id !== undefined) location.hash = askHref(id, scope);
-  },
-  openEvidence(target) {
-    const id = currentSessionId();
-    if (id !== undefined) location.hash = codeHref(id, target);
   },
 });

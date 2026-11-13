@@ -2,14 +2,16 @@
 // validated on read, written through typed setters. Imports nothing from api.ts, so nothing here
 // can reach the server (X.7). Blocked storage behaves as an empty store backed by memory.
 
-import type { AnswerFor, Category, Ref, Scope, Side } from '../../contracts/http.ts';
+import type { AnswerFor, Category, RiskClass, Scope, Side } from '../../contracts/http.ts';
 
 /** The server accepts questions up to 10,000 characters, so a draft is never cut shorter than that. */
 export const DRAFT_MAX = 10_000;
 export const SCROLL_MAX_ENTRIES = 50;
 export const DASHBOARD_TEXT_MAX = 200;
-
-export type Panel = null | { kind: 'ask' } | { kind: 'evidence'; ref: Ref };
+export const COLLAPSED_GROUPS_MAX = 500;
+export const COLLAPSED_LANES_MAX = 10;
+/** Files marked viewed in one tab; far above any real pull request. */
+export const VIEWED_MAX = 5000;
 
 export type SessionViewState = {
   draft: string;
@@ -17,18 +19,34 @@ export type SessionViewState = {
   answerFor: AnswerFor;
   scope: Scope;
   scroll: Record<string, number>;
-  panel: Panel;
   lastDiffPath?: string;
+  /** Whether the Files view's file list is collapsed. */
+  fileListCollapsed?: boolean;
+  /** Whether Markdown files open as a rendered preview rather than the diff. */
+  markdownPreview?: boolean;
+  /** How the changed files are ordered, in this tab only (FR-032). */
+  fileOrder: 'diff' | 'risk';
+  /** The review scope: 'auto' fits the line budget, otherwise the lowest class shown (FR-032). */
+  riskScope: 'auto' | RiskClass;
+  /** Paths the reviewer has marked viewed, in this tab only. */
+  viewed: string[];
 };
 
 export type DashboardViewState = {
   text: string;
   repository: string | null;
   scroll: number;
+  /** Issue groups the reviewer has collapsed (issue key, or "none"); groups are open by default. */
+  collapsedGroups: string[];
+  /** Whether pull requests the reviewer has approved are left out of the list; on by default. */
+  hideApproved: boolean;
+  /** Review queue lanes the reviewer has collapsed; only "approved" is collapsed by default. */
+  collapsedLanes: string[];
 };
 
 const CATEGORIES: readonly Category[] = ['what', 'why', 'how', 'whatif', 'risk', 'requirement'];
 const SIDES: readonly Side[] = ['head', 'base'];
+const RISK_CLASSES: readonly RiskClass[] = ['critical', 'elevated', 'normal', 'low'];
 
 const memory = new Map<string, string>();
 
@@ -71,7 +89,7 @@ const isObj = (x: unknown): x is Record<string, unknown> => typeof x === 'object
 const isInt = (x: unknown, min: number): x is number => typeof x === 'number' && Number.isInteger(x) && x >= min;
 const isStr = (x: unknown): x is string => typeof x === 'string';
 
-function cleanScope(x: unknown): Scope {
+function cleanAskScope(x: unknown): Scope {
   if (isObj(x)) {
     if (x.type === 'pr') return { type: 'pr' };
     if (x.type === 'file' && isStr(x.path)) return { type: 'file', path: x.path };
@@ -87,31 +105,13 @@ function cleanScope(x: unknown): Scope {
   return { type: 'pr' };
 }
 
-function cleanRef(x: unknown): Ref | null {
-  if (!isObj(x) || typeof x.resolved !== 'boolean') return null;
-  const reason = isStr(x.unresolvedReason) ? { unresolvedReason: x.unresolvedReason } : {};
-  if (x.kind === 'pr') return { kind: 'pr', resolved: x.resolved, ...reason };
-  if (x.kind === 'issue' && isStr(x.platform) && isStr(x.key)) {
-    return { kind: 'issue', platform: x.platform, key: x.key, resolved: x.resolved, ...reason };
-  }
-  if (
-    x.kind === 'code' && isStr(x.path) && SIDES.includes(x.side as Side) &&
-    isInt(x.startLine, 1) && isInt(x.endLine, 1) && x.startLine <= x.endLine
-  ) {
-    return { kind: 'code', path: x.path, side: x.side as Side, startLine: x.startLine, endLine: x.endLine, resolved: x.resolved, ...reason };
-  }
-  return null;
+function cleanRiskScope(x: unknown): 'auto' | RiskClass {
+  return RISK_CLASSES.find((c) => c === x) ?? 'auto';
 }
 
-function cleanPanel(x: unknown): Panel {
-  if (isObj(x)) {
-    if (x.kind === 'ask') return { kind: 'ask' };
-    if (x.kind === 'evidence') {
-      const ref = cleanRef(x.ref);
-      if (ref) return { kind: 'evidence', ref };
-    }
-  }
-  return null;
+function cleanViewed(x: unknown): string[] {
+  if (!Array.isArray(x)) return [];
+  return [...new Set(x.filter(isStr))].slice(0, VIEWED_MAX);
 }
 
 function cleanScroll(x: unknown): Record<string, number> {
@@ -130,7 +130,7 @@ function capScroll(s: Record<string, number>): Record<string, number> {
 }
 
 function defaultsSession(): SessionViewState {
-  return { draft: '', category: 'what', answerFor: 'technical', scope: { type: 'pr' }, scroll: {}, panel: null };
+  return { draft: '', category: 'what', answerFor: 'technical', scope: { type: 'pr' }, scroll: {}, fileOrder: 'risk', riskScope: 'auto', viewed: [] };
 }
 
 function parseSession(x: unknown): SessionViewState {
@@ -140,11 +140,15 @@ function parseSession(x: unknown): SessionViewState {
     draft: isStr(x.draft) ? x.draft.slice(0, DRAFT_MAX) : d.draft,
     category: CATEGORIES.includes(x.category as Category) ? (x.category as Category) : d.category,
     answerFor: x.answerFor === 'technical' || x.answerFor === 'business' ? x.answerFor : d.answerFor,
-    scope: cleanScope(x.scope),
+    scope: cleanAskScope(x.scope),
     scroll: cleanScroll(x.scroll),
-    panel: cleanPanel(x.panel),
+    fileOrder: x.fileOrder === 'diff' ? 'diff' : 'risk',
+    riskScope: cleanRiskScope(x.riskScope),
+    viewed: cleanViewed(x.viewed),
   };
   if (isStr(x.lastDiffPath)) out.lastDiffPath = x.lastDiffPath;
+  if (x.fileListCollapsed === true) out.fileListCollapsed = true;
+  if (x.markdownPreview === true) out.markdownPreview = true;
   return out;
 }
 
@@ -165,8 +169,12 @@ export function writeSession(id: string, patch: Partial<SessionViewState>): void
     answerFor: 'answerFor' in patch ? patch.answerFor : cur.answerFor,
     scope: 'scope' in patch ? patch.scope : cur.scope,
     scroll: 'scroll' in patch ? { ...cur.scroll, ...patch.scroll } : cur.scroll,
-    panel: 'panel' in patch ? patch.panel : cur.panel,
     lastDiffPath: 'lastDiffPath' in patch ? patch.lastDiffPath : cur.lastDiffPath,
+    fileListCollapsed: 'fileListCollapsed' in patch ? patch.fileListCollapsed : cur.fileListCollapsed,
+    markdownPreview: 'markdownPreview' in patch ? patch.markdownPreview : cur.markdownPreview,
+    fileOrder: 'fileOrder' in patch ? patch.fileOrder : cur.fileOrder,
+    riskScope: 'riskScope' in patch ? patch.riskScope : cur.riskScope,
+    viewed: 'viewed' in patch ? patch.viewed : cur.viewed,
   });
   save(sessionKey(id), { v: 1, ...merged });
 }
@@ -176,12 +184,15 @@ export function clearSession(id: string): void {
 }
 
 function parseDashboard(x: unknown): DashboardViewState {
-  const d: DashboardViewState = { text: '', repository: null, scroll: 0 };
+  const d: DashboardViewState = { text: '', repository: null, scroll: 0, collapsedGroups: [], hideApproved: true, collapsedLanes: ['approved'] };
   if (!isObj(x) || x.v !== 1) return d;
   return {
     text: isStr(x.text) ? x.text.trim().slice(0, DASHBOARD_TEXT_MAX) : d.text,
     repository: isStr(x.repository) ? x.repository : null,
     scroll: isInt(x.scroll, 0) ? x.scroll : 0,
+    collapsedGroups: Array.isArray(x.collapsedGroups) ? [...new Set(x.collapsedGroups.filter(isStr))].slice(0, COLLAPSED_GROUPS_MAX) : [],
+    hideApproved: x.hideApproved !== false,
+    collapsedLanes: Array.isArray(x.collapsedLanes) ? [...new Set(x.collapsedLanes.filter(isStr))].slice(0, COLLAPSED_LANES_MAX) : d.collapsedLanes,
   };
 }
 
@@ -200,5 +211,8 @@ function pick(p: Partial<DashboardViewState>): Partial<DashboardViewState> {
   if ('text' in p) o.text = p.text;
   if ('repository' in p) o.repository = p.repository;
   if ('scroll' in p) o.scroll = p.scroll;
+  if ('collapsedGroups' in p) o.collapsedGroups = p.collapsedGroups;
+  if ('hideApproved' in p) o.hideApproved = p.hideApproved;
+  if ('collapsedLanes' in p) o.collapsedLanes = p.collapsedLanes;
   return o;
 }

@@ -2,19 +2,18 @@
 // the session with its state, streamed text while in progress, labelled claims, assumptions, follow-ups and
 // provenance. Queued and running questions can be cancelled. All PR and AI text is rendered as text nodes (R7).
 
-import { useContext, useEffect, useMemo, useState } from 'preact/hooks';
+import { useState } from 'preact/hooks';
 import type { Question } from '../../contracts/http.ts';
-import { askQuestion, cancelQuestion, listQuestions } from '../api.ts';
+import { askQuestion, cancelQuestion } from '../api.ts';
 import { AskComposer, scopeText } from '../components/ask-composer.tsx';
 import { AsyncRegion } from '../components/async-region.tsx';
 import { Badge } from '../components/badge.tsx';
 import { AnswerWarning, ClaimsList, ContextVersion, RestrictionsNotEnforced } from '../components/claims.tsx';
 import { AUDIENCE_LABELS, CATEGORY_LABELS } from '../labels.ts';
-import { createAnnouncer } from '../state/announcer.ts';
-import { ReviewContext } from '../state/review-context.ts';
+import { useQuestions } from '../state/use-questions.ts';
 import { scopeFromQuery } from '../state/routes.ts';
 
-function QuestionItem(props: { sessionId: string; question: Question; onFollowUp(q: Question, text: string): void; onCancel(q: Question): void }) {
+export function QuestionItem(props: { sessionId: string; question: Question; onFollowUp(q: Question, text: string): void; onCancel(q: Question): void }) {
   const { sessionId, question: q } = props;
   const a = q.answer;
   const open = q.state === 'queued' || q.state === 'in_progress';
@@ -76,58 +75,26 @@ function QuestionItem(props: { sessionId: string; question: Question; onFollowUp
 
 export function AskScreen(props: { sessionId: string; query: URLSearchParams }) {
   const { sessionId } = props;
-  const ctx = useContext(ReviewContext);
   const explicit = props.query.size > 0 ? scopeFromQuery(props.query) : undefined;
-  const [questions, setQuestions] = useState<Question[] | null>(null);
+  const { questions, error: loadError, reload, retry } = useQuestions(sessionId);
   const [error, setError] = useState<string | null>(null);
-  const [attempt, setAttempt] = useState(0);
-  const announcer = useMemo(() => createAnnouncer(ctx.announce, { intervalMs: 2000 }), [ctx.announce]);
-
-  const reload = (): void => {
-    listQuestions(sessionId)
-      .then((list) => {
-        setQuestions(list);
-        setError(null);
-      })
-      .catch((e: unknown) => setError(e instanceof Error ? e.message : 'Could not load the questions.'));
-  };
-
-  useEffect(() => {
-    reload();
-    return ctx.subscribe({
-      question: (q) => {
-        if (q.state === 'completed') announcer.done();
-        reload();
-      },
-      'answer-delta': (delta) => {
-        setQuestions((list) =>
-          (list ?? []).map((q) => {
-            if (q.questionId !== delta.questionId || q.answer === undefined) return q;
-            const rawText = `${q.answer.rawText ?? ''}${delta.text}`;
-            announcer.stream(rawText);
-            return { ...q, answer: { ...q.answer, rawText } };
-          }),
-        );
-      },
-      onQuestions: setQuestions,
-    });
-  }, [sessionId, attempt]);
+  const shownError = error ?? loadError;
 
   const submitFollowUp = (q: Question, text: string): void => {
     askQuestion(sessionId, { scope: q.scope, category: q.category, text, answerFor: q.answerFor, followsQuestionId: q.questionId })
-      .then(reload)
+      .then(() => (setError(null), reload()))
       .catch((e: unknown) => setError(e instanceof Error ? e.message : 'The question was refused.'));
   };
   const cancel = (q: Question): void => {
     cancelQuestion(sessionId, q.questionId)
-      .then(reload)
+      .then(() => (setError(null), reload()))
       .catch((e: unknown) => setError(e instanceof Error ? e.message : 'Could not cancel.'));
   };
 
   const state =
     questions === null
-      ? error !== null
-        ? ({ state: 'failed', reason: error, retry: () => setAttempt((n) => n + 1) } as const)
+      ? shownError !== null
+        ? ({ state: 'failed', reason: shownError, retry } as const)
         : ({ state: 'loading' } as const)
       : questions.length === 0
         ? ({ state: 'empty', explanation: 'No questions yet.', nextStep: 'Ask one above.' } as const)

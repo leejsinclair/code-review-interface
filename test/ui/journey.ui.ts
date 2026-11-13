@@ -6,7 +6,7 @@ import { useBrowser } from '../helpers/browser.ts';
 
 const ANSWER = { claims: [{ text: 'It scales values.', label: 'evidence', refs: [{ kind: 'code', path: 'src/app.js', side: 'head', startLine: 45, endLine: 50 }] }], unsupportedAssumptions: [], suggestedFollowUps: [] };
 
-test('keyboard-only: Overview → Files → select → Ask → evidence → back keeps draft, choice and scope', async (t) => {
+test('keyboard-only: Files → select → Ask in the notes → reload keeps draft, choice and scope', async (t) => {
   const b = await useBrowser(t, { fake: { scenario: 'structured', answer: ANSWER } });
   const { sessionId } = await b.bench.startSession();
   const bodies: string[] = [];
@@ -21,8 +21,9 @@ test('keyboard-only: Overview → Files → select → Ask → evidence → back
   await page.getByTestId('ask-about-selection').focus();
   await page.keyboard.press('Enter');
 
+  // Ask about selection moves focus to the notes form; there is no other page to go to.
+  await page.waitForFunction(() => document.activeElement?.id === 'notes-question-input');
   const input = page.getByLabel('Your question');
-  await input.waitFor();
   await input.fill('SECRETDRAFT why?');
   await page.getByTestId('answer-for-business').focus();
   await page.keyboard.press('Space');
@@ -31,7 +32,6 @@ test('keyboard-only: Overview → Files → select → Ask → evidence → back
   assert.equal(await page.getByTestId('answer-for-business').isChecked(), true);
   assert.match((await page.getByTestId('scope-indicator').textContent()) ?? '', /lines/);
 
-  await page.goBack();
   await page.getByTestId('diff-line-head-40').waitFor();
   assert.equal(await page.getByTestId('scope-indicator').textContent(), scope);
   assert.equal(bodies.some((x) => x.includes('SECRETDRAFT') && !x.includes('/questions')), false, 'the draft is only ever sent as a question');

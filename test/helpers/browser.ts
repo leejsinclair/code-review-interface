@@ -19,7 +19,10 @@ type AfterHook = Parameters<typeof startWorkbench>[0];
 
 export const AXE_TAGS = ['wcag2a', 'wcag2aa', 'wcag21aa', 'wcag22aa'] as const;
 
-export type OpenPageOptions = { width?: number; height?: number; colorScheme?: 'light' | 'dark'; reducedMotion?: 'reduce' | 'no-preference' };
+export type OpenPageOptions = { width?: number; height?: number; colorScheme?: 'light' | 'dark'; reducedMotion?: 'reduce' | 'no-preference'; now?: string };
+
+/** The page's clock is pinned so age-based dashboard grouping (stale, older) does not drift as the fixtures age. */
+export const PINNED_NOW = '2026-11-10T12:00:00Z';
 
 export interface BrowserHarness {
   bench: Workbench;
@@ -50,6 +53,7 @@ export async function useBrowser(t: AfterHook, options: WorkbenchOptions = {}): 
       colorScheme: opts.colorScheme ?? 'light',
       reducedMotion: opts.reducedMotion ?? 'no-preference',
     });
+    await context.clock.setFixedTime(new Date(opts.now ?? PINNED_NOW));
     await context.addCookies([{ name: SESSION_COOKIE, value: client.cookie, url: client.origin }]);
     const page = await context.newPage();
     await page.goto(`${client.origin}/${hash}`);

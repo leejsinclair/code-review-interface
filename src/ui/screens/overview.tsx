@@ -1,26 +1,29 @@
 // Review session overview (`#/sessions/:sessionId`, FR-025, FR-027, FR-045): the summary, the completeness rows, the
-// filterable file list with per-file explanations on request, referenced pull requests and the review-focus
+// Specification panel (feature 006; the file list lives on the Diff screen), referenced pull requests and the review-focus
 // placeholder. The review shell owns the PR header, Close, Delete and the `POST /open` call. Every PR and issue
 // string is rendered as text.
 
-import { useContext, useEffect, useState } from 'preact/hooks';
-import type { SnapshotDetail } from '../../contracts/http.ts';
-import { getSnapshot } from '../api.ts';
+import { useContext } from 'preact/hooks';
+import { CommentThread } from '../components/comment-thread.tsx';
 import { CompletenessList } from '../components/completeness.tsx';
-import { FileList } from '../components/file-list.tsx';
-import { FileExplanation, SummariesPanel, SummariesProvider } from '../components/summaries.tsx';
-import { REVIEW_FOCUS } from '../labels.ts';
+import { DecisionPanel } from '../components/decision-panel.tsx';
+import { SpecContext } from '../components/spec-context.tsx';
+import { SummariesPanel, SummariesProvider } from '../components/summaries.tsx';
+import { ReviewFocus } from '../components/review-focus.tsx';
 import { ReviewContext } from '../state/review-context.ts';
+import { threadsOf, useReviewComments } from '../state/use-review-comments.ts';
+import { useReviewDecision } from '../state/use-review-decision.ts';
+import { useRisk } from '../state/use-risk.ts';
+import { useSpecContext } from '../state/use-spec-context.ts';
 
 export function OverviewScreen(props: { sessionId: string }) {
   const { sessionId } = props;
   const { session: detail } = useContext(ReviewContext);
-  const [snapshot, setSnapshot] = useState<SnapshotDetail | null>(null);
   const latestId = detail?.snapshots.at(-1)?.snapshotId;
-
-  useEffect(() => {
-    if (latestId !== undefined) getSnapshot(sessionId, latestId).then(setSnapshot).catch(() => undefined);
-  }, [sessionId, latestId]);
+  const risk = useRisk(sessionId, latestId, { announceAi: true });
+  const reviewComments = useReviewComments(sessionId);
+  const decision = useReviewDecision(sessionId);
+  const spec = useSpecContext(sessionId, latestId);
 
   if (detail === undefined) return <p class="muted">Opening the session…</p>;
 
@@ -45,15 +48,28 @@ export function OverviewScreen(props: { sessionId: string }) {
       <SummariesProvider sessionId={sessionId} detail={detail}>
         <SummariesPanel sessionId={sessionId} detail={detail} />
         <CompletenessList rows={detail.completeness} sessionId={sessionId} />
-        <section class="panel">
-          <h2>Changed files</h2>
-          <FileList sessionId={sessionId} files={snapshot?.files ?? []} explanation={(f) => <FileExplanation sessionId={sessionId} path={f.path} />} />
-        </section>
+        <SpecContext sessionId={sessionId} snapshotId={latestId} spec={spec} />
         {referenced}
-        <section class="panel" data-testid="review-focus">
-          <h2>{REVIEW_FOCUS.heading}</h2>
-          <p>{REVIEW_FOCUS.body}</p>
-        </section>
+        <ReviewFocus sessionId={sessionId} risk={risk} />
+        {latestId !== undefined && (
+          <>
+            <DecisionPanel sessionId={sessionId} expectedHead={detail.snapshots.at(-1)?.headCommit ?? ''} onCommented={() => void reviewComments.reload()} />
+            <section class="panel" aria-labelledby="pr-comments-heading">
+              <h2 id="pr-comments-heading">Pull request comments</h2>
+              {reviewComments.error !== null && <p class="muted">{reviewComments.error}</p>}
+              {threadsOf(reviewComments.comments.filter((c) => c.anchor === null)).map((thread) => (
+                <CommentThread
+                  key={thread[0]?.id}
+                  sessionId={sessionId}
+                  expectedHead={detail.snapshots.at(-1)?.headCommit ?? ''}
+                  comments={thread}
+                  {...(decision.state?.capability.reply.allowed === false ? { disabledReason: decision.state.capability.reply.reason ?? '' } : {})}
+                  onChanged={() => void reviewComments.reload()}
+                />
+              ))}
+            </section>
+          </>
+        )}
       </SummariesProvider>
     </div>
   );

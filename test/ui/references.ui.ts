@@ -40,6 +40,7 @@ test('badges, six highlighted lines, one-line link, long lines, range past the e
     // The past-the-end citation cannot be verified, so the server labels it inference too.
     assert.equal(await page.locator('.badge[data-label="inference"]').count(), 2);
     const href = (await page.getByTestId('claim-ref').first().getAttribute('href')) ?? '';
+    assert.match(href, /\/diff\?path=/);
     assert.match(href, /start=45/);
     assert.match(href, /end=50/);
     await checkA11y(page);

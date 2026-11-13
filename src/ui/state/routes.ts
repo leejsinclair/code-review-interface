@@ -4,12 +4,15 @@ import type { PlatformId, Scope, Side } from '../../contracts/http.ts';
 
 export type LineRange = { start: number; end: number };
 
+/** A cited range the Files view selects and scrolls to; it falls back to the code page when the diff can't show it. */
+export type DiffFocus = { snapshot: string; side: Side; start: number; end: number };
+
 export type Route =
   | { name: 'dashboard' }
   | { name: 'setup' }
   | { name: 'signin'; return?: string }
   | { name: 'overview'; sessionId: string }
-  | { name: 'diff'; sessionId: string; path?: string }
+  | { name: 'diff'; sessionId: string; path?: string; focus?: DiffFocus }
   | { name: 'code'; sessionId: string; snapshot: string; side: Side; path: string; range?: LineRange }
   | { name: 'description'; sessionId: string }
   | { name: 'issue'; sessionId: string; platform: PlatformId; key: string }
@@ -66,7 +69,14 @@ export function parseRoute(hash: string): Route {
     switch (section) {
       case 'diff': {
         const path = query.get('path');
-        return path === null ? { name: 'diff', sessionId } : { name: 'diff', sessionId, path };
+        if (path === null) return { name: 'diff', sessionId };
+        const snapshot = query.get('snapshot');
+        const side = query.get('side');
+        const range = rangeFrom(query);
+        if (snapshot !== null && (side === 'head' || side === 'base') && range !== undefined) {
+          return { name: 'diff', sessionId, path, focus: { snapshot, side, ...range } };
+        }
+        return { name: 'diff', sessionId, path };
       }
       case 'description':
         return { name: 'description', sessionId };
@@ -105,6 +115,7 @@ export function buildRoute(route: Route): string {
     case 'overview':
       return sessionBase(route.sessionId);
     case 'diff':
+      if (route.path !== undefined && route.focus !== undefined) return diffHref(route.sessionId, { path: route.path, ...route.focus });
       return `${sessionBase(route.sessionId)}/diff${route.path === undefined ? '' : `?path=${encodeURIComponent(route.path)}`}`;
     case 'description':
       return `${sessionBase(route.sessionId)}/description`;
@@ -123,7 +134,8 @@ export function buildRoute(route: Route): string {
 export function routeKey(route: Route): string {
   switch (route.name) {
     case 'diff':
-      return route.path === undefined ? 'diff' : `diff?path=${route.path}`;
+      if (route.path === undefined) return 'diff';
+      return route.focus === undefined ? `diff?path=${route.path}` : `diff?path=${route.path}&focus=${route.focus.side}:${route.focus.start}-${route.focus.end}`;
     case 'code':
       return `code?snapshot=${route.snapshot}&side=${route.side}&path=${route.path}`;
     case 'issue':
@@ -170,6 +182,12 @@ export function codeHref(sessionId: string, target: { snapshot: string; side: Si
     query.set('end', String(target.end ?? target.start));
   }
   return `${sessionBase(sessionId)}/code?${query.toString()}`;
+}
+
+/** A Files-view link that selects a cited range. */
+export function diffHref(sessionId: string, target: DiffFocus & { path: string }): string {
+  const query = new URLSearchParams({ path: target.path, snapshot: target.snapshot, side: target.side, start: String(target.start), end: String(target.end) });
+  return `${sessionBase(sessionId)}/diff?${query.toString()}`;
 }
 
 /** A sign-in `return` value is kept only when it parses to an app route other than sign-in or set-up. */

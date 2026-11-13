@@ -3,9 +3,16 @@
 
 import type { CompletenessRow } from '../../contracts/http.ts';
 import { buildRoute } from '../state/routes.ts';
+import { SPEC_LABELS } from '../labels.ts';
 import { Badge } from './badge.tsx';
 
-const ROW_LABELS: Record<CompletenessRow['source'], string> = { pr: 'PR', repository: 'Repository', issue: 'Issue' };
+const ROW_LABELS: Record<CompletenessRow['source'], string> = {
+  pr: 'PR',
+  repository: 'Repository',
+  issue: 'Issue',
+  specification: SPEC_LABELS.completenessSpecification,
+  'tdd-evidence': SPEC_LABELS.completenessTdd,
+};
 
 function Row(props: { row: CompletenessRow; sessionId: string }) {
   const { row, sessionId } = props;

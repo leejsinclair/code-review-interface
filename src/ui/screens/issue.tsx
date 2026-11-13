@@ -1,11 +1,11 @@
 // Issue page (`#/sessions/:sessionId/issues/:platform/:key`, FR-028), under Sources: the stored title and
 // plain-text description of an issue fetched for the session, as text nodes only (FR-042).
-// `IssueView` is shared with the Evidence panel.
+// `IssueView` is an issue's page.
 
 import { AsyncRegion } from '../components/async-region.tsx';
 import { SourcesNav, useSessionDetail } from '../components/sources-nav.tsx';
 
-export function IssueView(props: { sessionId: string; platform: string; issueKey: string; embedded?: boolean }) {
+export function IssueView(props: { sessionId: string; platform: string; issueKey: string }) {
   const { detail, error, retry } = useSessionDetail(props.sessionId);
   const issue = detail?.issues.find((i) => i.platform === props.platform && i.key === props.issueKey);
   const state =
@@ -20,8 +20,7 @@ export function IssueView(props: { sessionId: string; platform: string; issueKey
     <AsyncRegion region="issue" label="the issue" {...state}>
       {issue !== undefined && (
         <div class="stack" data-testid="issue-view">
-          {props.embedded === true && <h3>{issue.title !== undefined ? `${issue.key} ${issue.title}` : issue.key}</h3>}
-          {props.embedded !== true && issue.title !== undefined && <p>{issue.title}</p>}
+          {issue.title !== undefined && <p>{issue.title}</p>}
           {issue.reason !== undefined && <p class="notice">{`${issue.status}: ${issue.reason}`}</p>}
           <pre class="text-block">{issue.descriptionText ?? ''}</pre>
         </div>

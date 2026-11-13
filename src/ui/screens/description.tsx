@@ -4,8 +4,8 @@
 import { AsyncRegion } from '../components/async-region.tsx';
 import { SourcesNav, useSessionDetail } from '../components/sources-nav.tsx';
 
-/** The description text with its heading. `embedded` is for the Evidence panel, where the panel owns the h2. */
-export function DescriptionView(props: { sessionId: string; embedded?: boolean }) {
+/** The description text with its heading. */
+export function DescriptionView(props: { sessionId: string }) {
   const { detail, error, retry } = useSessionDetail(props.sessionId);
   const state =
     error !== null && detail === null ? ({ state: 'failed', reason: error, retry } as const) : detail === null ? ({ state: 'loading' } as const) : ({ state: 'loaded' } as const);
@@ -13,7 +13,7 @@ export function DescriptionView(props: { sessionId: string; embedded?: boolean }
     <AsyncRegion region="description" label="the description" {...state}>
       {detail !== null && (
         <div class="stack" data-testid="pr-description">
-          {props.embedded === true ? <h3>{`#${detail.prNumber} ${detail.title}`}</h3> : <p class="muted">{`#${detail.prNumber} ${detail.title}`}</p>}
+          <p class="muted">{`#${detail.prNumber} ${detail.title}`}</p>
           <pre class="text-block">{detail.description === '' ? 'The PR has no description.' : detail.description}</pre>
         </div>
       )}
