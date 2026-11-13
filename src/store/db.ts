@@ -10,8 +10,8 @@ import { dirname, join } from 'node:path';
 import { DatabaseSync } from 'node:sqlite';
 import { resolveAppDataDir } from '../appdata.ts';
 
-/** The schema version this module writes; bump with a migration when schema.sql changes. */
-export const SCHEMA_VERSION = 1;
+/** The schema version this module writes; bump it whenever schema.sql changes (3: write_record, feature 005; 4: spec_* tables, feature 006). */
+export const SCHEMA_VERSION = 4;
 
 const SCHEMA_URL = new URL('./schema.sql', import.meta.url);
 

@@ -13,6 +13,7 @@
 // owners (stored prompt, stream chunk, claim) the input carries only the owner key.
 
 import type { DatabaseSync, SQLInputValue, StatementSync } from 'node:sqlite';
+import type { LineRange, RiskClass } from '../contracts/http.ts';
 import type { PlatformId } from '../contracts/shared.ts';
 
 // ---------------------------------------------------------------------------
@@ -319,6 +320,187 @@ export interface ClaimWithReferences extends Claim {
 // ---------------------------------------------------------------------------
 // The store
 
+// ---------------------------------------------------------------------------
+// Risk records (feature 004; data-model.md). Rule results, AI results and overrides are separate kinds.
+
+export type RiskRuleFileStatus = 'absent' | 'used' | 'partly-ignored' | 'ignored';
+
+export interface RiskRulesetRecord {
+  snapshotId: string;
+  rulesetVersion: string;
+  ruleFileStatus: RiskRuleFileStatus;
+  ruleFileNotice: Array<{ entry: string; reason: string }>;
+  classifiedAt: string;
+}
+
+export interface RiskReasonRecord {
+  ordinal: number;
+  ruleId: string;
+  ruleClass: RiskClass;
+  applied: boolean;
+  matchedOn: 'path' | 'lines' | 'path+lines';
+  text: string;
+  lines: LineRange[];
+}
+
+export interface RiskClassificationRecord {
+  id: string;
+  snapshotId: string;
+  path: string;
+  ruleClass: RiskClass;
+  mechanical: boolean;
+  notFullyAnalysed: string | null;
+  changeFingerprint: string;
+  reasons: RiskReasonRecord[];
+}
+
+export type RiskIgnoredReason = 'not-higher' | 'no-resolvable-line' | 'unknown-file' | 'not-assessable';
+
+export interface RiskAssessmentItem {
+  path: string;
+  proposedClass: 'normal' | 'elevated' | 'critical';
+  applied: boolean;
+  ignoredReason: RiskIgnoredReason | null;
+  reasons: string[];
+  lines: Array<LineRange & { resolved: boolean }>;
+}
+
+export interface RiskRunRecord {
+  id: string;
+  snapshotId: string;
+  requestedAt: string;
+  finishedAt: string;
+  provider: string;
+  outcome: 'completed' | 'cancelled' | 'failed';
+  cancelReason: 'user' | 'restart' | 'superseded' | null;
+  failureReason: string | null;
+  contextVersion: string | null;
+  excludedFiles: Array<{ path: string; reason: string }>;
+  restrictionsNotEnforced: string[];
+  items: RiskAssessmentItem[];
+}
+
+export interface ClassOverrideRecord {
+  id: string;
+  sessionId: string;
+  snapshotId: string;
+  path: string;
+  class: RiskClass;
+  replacedClass: RiskClass;
+  calculatedClass: RiskClass;
+  reason: string;
+  changeFingerprint: string;
+  /** Set only when a Critical-calculated class was taken below Critical (FR-020); audit data only. */
+  reviewer: { handle: string; name: string } | null;
+  createdAt: string;
+}
+
+export type WriteRecordState = 'pending' | 'posted' | 'failed';
+export type WriteRecordAction = 'comment' | 'reply_comment' | 'edit_comment' | 'delete_comment' | 'approve' | 'request_changes' | 'withdraw_decision';
+
+/** One step of a platform write; rows of one action share `intentId`. Append-only. */
+export interface WriteRecordRow {
+  intentId: string;
+  sessionId: string;
+  state: WriteRecordState;
+  action: WriteRecordAction;
+  actor: string | null;
+  destination: unknown;
+  headSha: string;
+  body: string | null;
+  platformId: string | null;
+  errorCode: string | null;
+  errorMessage: string | null;
+  createdAt: string;
+}
+
+/** A specification lookup with the sources and documents it found (feature 006; every record is append-only). */
+export type SpecLookupRecord = {
+  id: string;
+  snapshotId: string;
+  lookedAt: string;
+  trigger: 'snapshot' | 'refresh';
+  keys: string[];
+  searched: Array<{ repository: string; role: 'own' | 'enclosing'; heads: string[] }>;
+  enclosingNote: 'found' | 'not-inside-project' | null;
+  outcome: 'found' | 'partial' | 'not-found' | 'no-key' | 'failed';
+  reason: string | null;
+};
+
+export type SpecCopyRecord = { repository: string; branch: string; commitSha: string; folder: string };
+
+export type SpecSourceRecord = SpecCopyRecord & {
+  id: string;
+  key: string;
+  ruleUsed: 'own-repository-first' | 'matching-branch' | 'develop' | 'most-recent-commit' | 'only-match';
+  otherCopies: SpecCopyRecord[];
+  developCopyExists: boolean;
+  matchesKey: boolean;
+};
+
+export type SpecDocumentRecord = {
+  id: string;
+  key: string;
+  kind: 'specification' | 'tdd-evidence';
+  status: 'found' | 'missing';
+  sourceId: string | null;
+  filePath: string | null;
+  commitSha: string | null;
+  content: string | null;
+  contentSha256: string | null;
+  otherFiles: string[];
+  missingReason: string | null;
+};
+
+export type SpecLookupInput = { lookup: SpecLookupRecord; sources: SpecSourceRecord[]; documents: SpecDocumentRecord[] };
+export type SpecLookupWithParts = SpecLookupInput;
+
+export type SpecAlignmentRowRecord = {
+  ordinal: number;
+  criterionRef: string | null;
+  criterionText: string;
+  implementationState: 'implementation-and-test' | 'implementation' | 'requires-verification' | 'not-found';
+  testShown: 'shown' | 'none' | 'no-evidence-available';
+  testMismatch: boolean;
+  note: string;
+  unverified: boolean;
+  citations: unknown[];
+};
+
+export type SpecAlignmentItemRecord = {
+  ordinal: number;
+  kind: 'uncovered-criterion' | 'test-may-not-test-right-thing' | 'implemented-not-requested' | 'requested-not-implemented';
+  rowOrdinal: number | null;
+  text: string;
+  unverified: boolean;
+  citations: unknown[];
+};
+
+export type SpecAlignmentRunRecord = {
+  id: string;
+  snapshotId: string;
+  lookupId: string;
+  specDocumentId: string;
+  tddDocumentId: string | null;
+  requestedAt: string;
+  finishedAt: string;
+  provider: string;
+  contextVersion: string | null;
+  outcome: 'completed' | 'cancelled' | 'failed';
+  cancelReason: 'user' | 'restart' | 'superseded' | null;
+  failureReason: string | null;
+  specSummary: string | null;
+  tddSummary: string | null;
+  verdict: 'sufficient' | 'incomplete' | 'cannot-judge' | null;
+  verdictText: string | null;
+  leftOut: Array<{ document: string; part: string; reason: string }>;
+  restrictionsNotEnforced: string[];
+  warning: string | null;
+  rows: SpecAlignmentRowRecord[];
+  items: SpecAlignmentItemRecord[];
+};
+
+
 export interface ReviewStore {
   /** Runs `fn` atomically (nested calls use savepoints); `fn` must be synchronous. */
   transaction<T>(fn: () => T): T;
@@ -341,6 +523,13 @@ export interface ReviewStore {
   appendReference(reference: Reference): void;
   /** Removes the session and everything under it, in one transaction. */
   deleteSession(id: string): void;
+
+  /** Appends one write_record row (insert only; the table refuses update and delete). */
+  insertWriteRecord(row: WriteRecordRow): void;
+  /** A session's write records in insert order, optionally for one intent. */
+  listWriteRecords(sessionId: string, intentId?: string): WriteRecordRow[];
+  /** Closes every pending intent with no result in the session with a failed 'abandoned' row; returns how many. */
+  closeAbandonedWrites(sessionId: string, closedAt: string): number;
 
   readSession(id: string): ReviewSession | null;
   findSessionByPr(pr: PrRef): ReviewSession | null;
@@ -378,6 +567,30 @@ export interface ReviewStore {
   listClaims(owner: ClaimOwner): Claim[];
   listReferences(claimId: string): Reference[];
   listClaimsWithReferences(owner: ClaimOwner): ClaimWithReferences[];
+
+  /** One snapshot's rule results: the ruleset row, every file's class and its reasons, in one transaction. */
+  appendRiskClassification(input: { ruleset: RiskRulesetRecord; files: RiskClassificationRecord[] }): void;
+  readRiskRuleset(snapshotId: string): RiskRulesetRecord | null;
+  /** In the order the files were classified (diff order). */
+  readRiskClassifications(snapshotId: string): RiskClassificationRecord[];
+  /** An AI assessment attempt, once it ends, with its items, in one transaction. */
+  appendRiskRun(run: RiskRunRecord): void;
+  /** The latest run of any outcome. */
+  readLatestRiskRun(snapshotId: string): RiskRunRecord | null;
+  readLatestCompletedRiskRun(snapshotId: string): RiskRunRecord | null;
+  /** A lookup with its sources and documents, in one transaction; a refused record leaves nothing behind. */
+  appendSpecLookup(input: SpecLookupInput): void;
+  /** An alignment attempt once it ends, with its rows and items. Its documents must be found rows of its own lookup. */
+  appendSpecAlignmentRun(run: SpecAlignmentRunRecord): void;
+  readLatestSpecLookup(snapshotId: string): SpecLookupWithParts | null;
+  /** One stored document and the snapshot it belongs to, or null. */
+  readSpecDocument(documentId: string): (SpecDocumentRecord & { snapshotId: string; lookupId: string }) | null;
+  /** The latest run of any outcome, with its rows and items. */
+  readLatestSpecAlignmentRun(snapshotId: string): SpecAlignmentRunRecord | null;
+  appendClassOverride(record: ClassOverrideRecord): void;
+  /** One file's records, oldest first. There is no query by reviewer or across files (FR-025, FR-040). */
+  readOverrideHistory(sessionId: string, path: string): ClassOverrideRecord[];
+  readLatestOverride(sessionId: string, path: string): ClassOverrideRecord | null;
 }
 
 // ---------------------------------------------------------------------------
@@ -390,6 +603,13 @@ const strOrNull = (value: unknown): string | null => (value === null || value ==
 const num = (value: unknown): number => Number(value);
 const numOrNull = (value: unknown): number | null => (value === null || value === undefined ? null : Number(value));
 const bool = (value: unknown): boolean => Number(value) === 1;
+const toSpecDocument = (x: Record<string, unknown>): SpecDocumentRecord => ({
+  id: String(x['id']), key: String(x['key']), kind: String(x['kind']) as SpecDocumentRecord['kind'],
+  status: String(x['status']) as SpecDocumentRecord['status'], sourceId: strOrNull(x['source_id']),
+  filePath: strOrNull(x['file_path']), commitSha: strOrNull(x['commit_sha']), content: strOrNull(x['content']),
+  contentSha256: strOrNull(x['content_sha256']), otherFiles: JSON.parse(String(x['other_files'])) as string[],
+  missingReason: strOrNull(x['missing_reason']),
+});
 const bit = (value: boolean): number => (value ? 1 : 0);
 const json = <T>(value: unknown): T => JSON.parse(String(value)) as T;
 const jsonOrNull = <T>(value: unknown): T | null => (value === null || value === undefined ? null : json<T>(value));
@@ -482,6 +702,20 @@ const toEvidence = (r: Row): Evidence => ({
   reason: strOrNull(r['reason']),
   lastGoodId: strOrNull(r['last_good_id']),
   payload: jsonOrNull<IssuePayload>(r['payload']),
+});
+
+const toOverride = (r: Row): ClassOverrideRecord => ({
+  id: str(r['id']),
+  sessionId: str(r['session_id']),
+  snapshotId: str(r['snapshot_id']),
+  path: str(r['path']),
+  class: str(r['class']) as RiskClass,
+  replacedClass: str(r['replaced_class']) as RiskClass,
+  calculatedClass: str(r['calculated_class']) as RiskClass,
+  reason: str(r['reason']),
+  changeFingerprint: str(r['change_fingerprint']),
+  reviewer: r['reviewer_handle'] === null ? null : { handle: str(r['reviewer_handle']), name: str(r['reviewer_name']) },
+  createdAt: str(r['created_at']),
 });
 
 const toSummaryRun = (r: Row): SummaryRun => ({
@@ -650,6 +884,28 @@ export function createReviewStore(db: DatabaseSync): ReviewStore {
   };
   const all = <T>(sql: string, params: Record<string, SQLInputValue>, map: (row: Row) => T): T[] =>
     (prepare(sql).all(params) as Row[]).map(map);
+
+  const toRiskRun = (r: Row): RiskRunRecord => ({
+    id: str(r['id']),
+    snapshotId: str(r['snapshot_id']),
+    requestedAt: str(r['requested_at']),
+    finishedAt: str(r['finished_at']),
+    provider: str(r['provider']),
+    outcome: str(r['outcome']) as RiskRunRecord['outcome'],
+    cancelReason: strOrNull(r['cancel_reason']) as RiskRunRecord['cancelReason'],
+    failureReason: strOrNull(r['failure_reason']),
+    contextVersion: strOrNull(r['context_version']),
+    excludedFiles: json<Array<{ path: string; reason: string }>>(r['excluded_files']),
+    restrictionsNotEnforced: json<string[]>(r['restrictions_not_enforced']),
+    items: all('SELECT * FROM risk_assessment_item WHERE run_id = :id ORDER BY rowid', { id: str(r['id']) }, (i) => ({
+      path: str(i['path']),
+      proposedClass: str(i['proposed_class']) as RiskAssessmentItem['proposedClass'],
+      applied: bool(i['applied']),
+      ignoredReason: strOrNull(i['ignored_reason']) as RiskIgnoredReason | null,
+      reasons: json<string[]>(i['reasons']),
+      lines: json<RiskAssessmentItem['lines']>(i['lines']),
+    })),
+  });
 
   let savepoints = 0;
   function transaction<T>(fn: () => T): T {
@@ -985,6 +1241,65 @@ export function createReviewStore(db: DatabaseSync): ReviewStore {
       });
     },
 
+    insertWriteRecord(r) {
+      run(
+        `INSERT INTO write_record (intent_id, session_id, state, action, actor, destination, head_sha, body,
+           platform_id, error_code, error_message, created_at)
+         VALUES (:intentId, :sessionId, :state, :action, :actor, :destination, :headSha, :body,
+           :platformId, :errorCode, :errorMessage, :createdAt)`,
+        {
+          intentId: r.intentId, sessionId: r.sessionId, state: r.state, action: r.action, actor: r.actor,
+          destination: JSON.stringify(r.destination), headSha: r.headSha, body: r.body, platformId: r.platformId,
+          errorCode: r.errorCode, errorMessage: r.errorMessage, createdAt: r.createdAt,
+        },
+      );
+    },
+
+    listWriteRecords(sessionId, intentId) {
+      const map = (w: Row): WriteRecordRow => ({
+        intentId: str(w['intent_id']),
+        sessionId: str(w['session_id']),
+        state: str(w['state']) as WriteRecordState,
+        action: str(w['action']) as WriteRecordAction,
+        actor: strOrNull(w['actor']),
+        destination: JSON.parse(str(w['destination'])) as unknown,
+        headSha: str(w['head_sha']),
+        body: strOrNull(w['body']),
+        platformId: strOrNull(w['platform_id']),
+        errorCode: strOrNull(w['error_code']),
+        errorMessage: strOrNull(w['error_message']),
+        createdAt: str(w['created_at']),
+      });
+      return intentId === undefined
+        ? all('SELECT * FROM write_record WHERE session_id = :sessionId ORDER BY id', { sessionId }, map)
+        : all('SELECT * FROM write_record WHERE session_id = :sessionId AND intent_id = :intentId ORDER BY id', { sessionId, intentId }, map);
+    },
+
+    closeAbandonedWrites(sessionId, closedAt) {
+      return transaction(() => {
+        const open = all(
+          `SELECT * FROM write_record p WHERE p.session_id = :sessionId AND p.state = 'pending'
+             AND NOT EXISTS (SELECT 1 FROM write_record t WHERE t.intent_id = p.intent_id AND t.state IN ('posted', 'failed'))
+           GROUP BY p.intent_id HAVING p.id = max(p.id) ORDER BY p.id`,
+          { sessionId },
+          (w) => w,
+        );
+        for (const w of open) {
+          run(
+            `INSERT INTO write_record (intent_id, session_id, state, action, actor, destination, head_sha, body,
+               platform_id, error_code, error_message, created_at)
+             VALUES (:intentId, :sessionId, 'failed', :action, :actor, :destination, :headSha, :body,
+               NULL, 'abandoned', 'The write was interrupted before a result was recorded.', :createdAt)`,
+            {
+              intentId: str(w['intent_id']), sessionId, action: str(w['action']), actor: strOrNull(w['actor']),
+              destination: str(w['destination']), headSha: str(w['head_sha']), body: strOrNull(w['body']), createdAt: closedAt,
+            },
+          );
+        }
+        return open.length;
+      });
+    },
+
     // -- Sessions
 
     readSession(id) {
@@ -1186,6 +1501,327 @@ export function createReviewStore(db: DatabaseSync): ReviewStore {
 
     listClaimsWithReferences(owner) {
       return store.listClaims(owner).map((claim) => ({ ...claim, references: store.listReferences(claim.id) }));
+    },
+    // -- Risk records (feature 004)
+
+    appendRiskClassification({ ruleset, files }) {
+      transaction(() => {
+        run(
+          `INSERT INTO risk_ruleset (snapshot_id, ruleset_version, rule_file_status, rule_file_notice, classified_at)
+           VALUES (:snapshotId, :version, :status, :notice, :classifiedAt)`,
+          {
+            snapshotId: ruleset.snapshotId,
+            version: ruleset.rulesetVersion,
+            status: ruleset.ruleFileStatus,
+            notice: JSON.stringify(ruleset.ruleFileNotice),
+            classifiedAt: ruleset.classifiedAt,
+          },
+        );
+        for (const f of files) {
+          run(
+            `INSERT INTO risk_classification (id, snapshot_id, path, rule_class, mechanical, not_fully_analysed, change_fingerprint)
+             VALUES (:id, :snapshotId, :path, :ruleClass, :mechanical, :notFullyAnalysed, :fingerprint)`,
+            {
+              id: f.id,
+              snapshotId: f.snapshotId,
+              path: f.path,
+              ruleClass: f.ruleClass,
+              mechanical: bit(f.mechanical),
+              notFullyAnalysed: f.notFullyAnalysed,
+              fingerprint: f.changeFingerprint,
+            },
+          );
+          for (const r of f.reasons) {
+            run(
+              `INSERT INTO risk_reason (classification_id, ordinal, rule_id, rule_class, applied, matched_on, text, lines)
+               VALUES (:classificationId, :ordinal, :ruleId, :ruleClass, :applied, :matchedOn, :text, :lines)`,
+              {
+                classificationId: f.id,
+                ordinal: r.ordinal,
+                ruleId: r.ruleId,
+                ruleClass: r.ruleClass,
+                applied: bit(r.applied),
+                matchedOn: r.matchedOn,
+                text: r.text,
+                lines: JSON.stringify(r.lines),
+              },
+            );
+          }
+        }
+      });
+    },
+
+    readRiskRuleset(snapshotId) {
+      return one('SELECT * FROM risk_ruleset WHERE snapshot_id = :snapshotId', { snapshotId }, (r) => ({
+        snapshotId: str(r['snapshot_id']),
+        rulesetVersion: str(r['ruleset_version']),
+        ruleFileStatus: str(r['rule_file_status']) as RiskRuleFileStatus,
+        ruleFileNotice: json<Array<{ entry: string; reason: string }>>(r['rule_file_notice']),
+        classifiedAt: str(r['classified_at']),
+      }));
+    },
+
+    readRiskClassifications(snapshotId) {
+      return all('SELECT * FROM risk_classification WHERE snapshot_id = :snapshotId ORDER BY rowid', { snapshotId }, (r) => ({
+        id: str(r['id']),
+        snapshotId: str(r['snapshot_id']),
+        path: str(r['path']),
+        ruleClass: str(r['rule_class']) as RiskClass,
+        mechanical: bool(r['mechanical']),
+        notFullyAnalysed: strOrNull(r['not_fully_analysed']),
+        changeFingerprint: str(r['change_fingerprint']),
+        reasons: all('SELECT * FROM risk_reason WHERE classification_id = :id ORDER BY ordinal', { id: str(r['id']) }, (q) => ({
+          ordinal: num(q['ordinal']),
+          ruleId: str(q['rule_id']),
+          ruleClass: str(q['rule_class']) as RiskClass,
+          applied: bool(q['applied']),
+          matchedOn: str(q['matched_on']) as RiskReasonRecord['matchedOn'],
+          text: str(q['text']),
+          lines: json<LineRange[]>(q['lines']),
+        })),
+      }));
+    },
+
+    appendRiskRun(runRecord) {
+      transaction(() => {
+        run(
+          `INSERT INTO risk_run (id, snapshot_id, requested_at, finished_at, provider, outcome, cancel_reason, failure_reason,
+             context_version, excluded_files, restrictions_not_enforced)
+           VALUES (:id, :snapshotId, :requestedAt, :finishedAt, :provider, :outcome, :cancelReason, :failureReason,
+             :contextVersion, :excludedFiles, :restrictions)`,
+          {
+            id: runRecord.id,
+            snapshotId: runRecord.snapshotId,
+            requestedAt: runRecord.requestedAt,
+            finishedAt: runRecord.finishedAt,
+            provider: runRecord.provider,
+            outcome: runRecord.outcome,
+            cancelReason: runRecord.cancelReason,
+            failureReason: runRecord.failureReason,
+            contextVersion: runRecord.contextVersion,
+            excludedFiles: JSON.stringify(runRecord.excludedFiles),
+            restrictions: JSON.stringify(runRecord.restrictionsNotEnforced),
+          },
+        );
+        for (const item of runRecord.items) {
+          run(
+            `INSERT INTO risk_assessment_item (run_id, path, proposed_class, applied, ignored_reason, reasons, lines)
+             VALUES (:runId, :path, :proposedClass, :applied, :ignoredReason, :reasons, :lines)`,
+            {
+              runId: runRecord.id,
+              path: item.path,
+              proposedClass: item.proposedClass,
+              applied: bit(item.applied),
+              ignoredReason: item.ignoredReason,
+              reasons: JSON.stringify(item.reasons),
+              lines: JSON.stringify(item.lines),
+            },
+          );
+        }
+      });
+    },
+
+    readLatestRiskRun(snapshotId) {
+      return one('SELECT * FROM risk_run WHERE snapshot_id = :snapshotId ORDER BY finished_at DESC, rowid DESC LIMIT 1', { snapshotId }, toRiskRun);
+    },
+
+    readLatestCompletedRiskRun(snapshotId) {
+      return one(
+        "SELECT * FROM risk_run WHERE snapshot_id = :snapshotId AND outcome = 'completed' ORDER BY finished_at DESC, rowid DESC LIMIT 1",
+        { snapshotId },
+        toRiskRun,
+      );
+    },
+
+    appendSpecLookup({ lookup, sources, documents }) {
+      transaction(() => {
+        run(
+          `INSERT INTO spec_lookup (id, snapshot_id, looked_at, trigger, keys, searched, enclosing_note, outcome, reason)
+           VALUES (:id, :snapshotId, :lookedAt, :trigger, :keys, :searched, :enclosingNote, :outcome, :reason)`,
+          {
+            id: lookup.id, snapshotId: lookup.snapshotId, lookedAt: lookup.lookedAt, trigger: lookup.trigger,
+            keys: JSON.stringify(lookup.keys), searched: JSON.stringify(lookup.searched),
+            enclosingNote: lookup.enclosingNote, outcome: lookup.outcome, reason: lookup.reason,
+          },
+        );
+        for (const src of sources) {
+          run(
+            `INSERT INTO spec_source (id, lookup_id, key, repository, branch, commit_sha, folder, rule_used, other_copies,
+               develop_copy_exists, matches_key)
+             VALUES (:id, :lookupId, :key, :repository, :branch, :commitSha, :folder, :ruleUsed, :otherCopies, :develop, :matches)`,
+            {
+              id: src.id, lookupId: lookup.id, key: src.key, repository: src.repository, branch: src.branch,
+              commitSha: src.commitSha, folder: src.folder, ruleUsed: src.ruleUsed, otherCopies: JSON.stringify(src.otherCopies),
+              develop: bit(src.developCopyExists), matches: bit(src.matchesKey),
+            },
+          );
+        }
+        for (const doc of documents) {
+          run(
+            `INSERT INTO spec_document (id, lookup_id, key, kind, status, source_id, file_path, commit_sha, content,
+               content_sha256, other_files, missing_reason)
+             VALUES (:id, :lookupId, :key, :kind, :status, :sourceId, :filePath, :commitSha, :content, :sha, :otherFiles, :missing)`,
+            {
+              id: doc.id, lookupId: lookup.id, key: doc.key, kind: doc.kind, status: doc.status, sourceId: doc.sourceId,
+              filePath: doc.filePath, commitSha: doc.commitSha, content: doc.content, sha: doc.contentSha256,
+              otherFiles: JSON.stringify(doc.otherFiles), missing: doc.missingReason,
+            },
+          );
+        }
+      });
+    },
+
+    appendSpecAlignmentRun(r) {
+      transaction(() => {
+        const found = (id: string | null, kind: string): void => {
+          if (id === null) return;
+          const row = one(
+            "SELECT 1 AS ok FROM spec_document WHERE id = :id AND lookup_id = :lookupId AND kind = :kind AND status = 'found'",
+            { id, lookupId: r.lookupId, kind },
+            (x) => x,
+          );
+          if (row === null) throw new Error(`the ${kind} document is not a found document of lookup ${r.lookupId}`);
+        };
+        if (one('SELECT 1 AS ok FROM spec_lookup WHERE id = :id AND snapshot_id = :snapshotId', { id: r.lookupId, snapshotId: r.snapshotId }, (x) => x) === null) {
+          throw new Error(`lookup ${r.lookupId} does not belong to snapshot ${r.snapshotId}`);
+        }
+        if (r.outcome !== 'completed' && (r.rows.length > 0 || r.items.length > 0)) throw new Error('only a completed run has rows and items');
+        found(r.specDocumentId, 'specification');
+        found(r.tddDocumentId, 'tdd-evidence');
+        run(
+          `INSERT INTO spec_alignment_run (id, snapshot_id, lookup_id, spec_document_id, tdd_document_id, requested_at,
+             finished_at, provider, context_version, outcome, cancel_reason, failure_reason, spec_summary, tdd_summary,
+             verdict, verdict_text, left_out, restrictions_not_enforced, warning)
+           VALUES (:id, :snapshotId, :lookupId, :specDocumentId, :tddDocumentId, :requestedAt, :finishedAt, :provider,
+             :contextVersion, :outcome, :cancelReason, :failureReason, :specSummary, :tddSummary, :verdict, :verdictText,
+             :leftOut, :restrictions, :warning)`,
+          {
+            id: r.id, snapshotId: r.snapshotId, lookupId: r.lookupId, specDocumentId: r.specDocumentId,
+            tddDocumentId: r.tddDocumentId, requestedAt: r.requestedAt, finishedAt: r.finishedAt, provider: r.provider,
+            contextVersion: r.contextVersion, outcome: r.outcome, cancelReason: r.cancelReason, failureReason: r.failureReason,
+            specSummary: r.specSummary, tddSummary: r.tddSummary, verdict: r.verdict, verdictText: r.verdictText,
+            leftOut: JSON.stringify(r.leftOut), restrictions: JSON.stringify(r.restrictionsNotEnforced), warning: r.warning,
+          },
+        );
+        for (const row of r.rows) {
+          run(
+            `INSERT INTO spec_alignment_row (run_id, ordinal, criterion_ref, criterion_text, implementation_state, test_shown,
+               test_mismatch, note, unverified, citations)
+             VALUES (:runId, :ordinal, :ref, :text, :state, :shown, :mismatch, :note, :unverified, :citations)`,
+            {
+              runId: r.id, ordinal: row.ordinal, ref: row.criterionRef, text: row.criterionText, state: row.implementationState,
+              shown: row.testShown, mismatch: bit(row.testMismatch), note: row.note, unverified: bit(row.unverified),
+              citations: JSON.stringify(row.citations),
+            },
+          );
+        }
+        for (const item of r.items) {
+          run(
+            `INSERT INTO spec_alignment_item (run_id, ordinal, kind, row_ordinal, text, unverified, citations)
+             VALUES (:runId, :ordinal, :kind, :rowOrdinal, :text, :unverified, :citations)`,
+            {
+              runId: r.id, ordinal: item.ordinal, kind: item.kind, rowOrdinal: item.rowOrdinal, text: item.text,
+              unverified: bit(item.unverified), citations: JSON.stringify(item.citations),
+            },
+          );
+        }
+      });
+    },
+
+    readLatestSpecLookup(snapshotId) {
+      const lookup = one(
+        'SELECT * FROM spec_lookup WHERE snapshot_id = :snapshotId ORDER BY looked_at DESC, rowid DESC LIMIT 1',
+        { snapshotId },
+        (x): SpecLookupRecord => ({
+          id: str(x['id']), snapshotId: str(x['snapshot_id']), lookedAt: str(x['looked_at']),
+          trigger: str(x['trigger']) as SpecLookupRecord['trigger'], keys: json<string[]>(x['keys']),
+          searched: json<SpecLookupRecord['searched']>(x['searched']),
+          enclosingNote: x['enclosing_note'] === null ? null : (str(x['enclosing_note']) as 'found' | 'not-inside-project'),
+          outcome: str(x['outcome']) as SpecLookupRecord['outcome'], reason: x['reason'] === null ? null : str(x['reason']),
+        }),
+      );
+      if (lookup === null) return null;
+      const copy = (c: Record<string, string>): SpecCopyRecord => ({ repository: c['repository'] ?? '', branch: c['branch'] ?? '', commitSha: c['commit_sha'] ?? c['commitSha'] ?? '', folder: c['folder'] ?? '' });
+      const sources = all('SELECT * FROM spec_source WHERE lookup_id = :id ORDER BY rowid', { id: lookup.id }, (x): SpecSourceRecord => ({
+        id: str(x['id']), key: str(x['key']), repository: str(x['repository']), branch: str(x['branch']),
+        commitSha: str(x['commit_sha']), folder: str(x['folder']), ruleUsed: str(x['rule_used']) as SpecSourceRecord['ruleUsed'],
+        otherCopies: json<Array<Record<string, string>>>(x['other_copies']).map(copy),
+        developCopyExists: Number(x['develop_copy_exists']) === 1, matchesKey: Number(x['matches_key']) === 1,
+      }));
+      const documents = all('SELECT * FROM spec_document WHERE lookup_id = :id ORDER BY rowid', { id: lookup.id }, toSpecDocument);
+      return { lookup, sources, documents };
+    },
+
+    readSpecDocument(documentId) {
+      return one(
+        `SELECT d.*, l.snapshot_id AS snapshot_id FROM spec_document d JOIN spec_lookup l ON l.id = d.lookup_id WHERE d.id = :id`,
+        { id: documentId },
+        (x) => ({ ...toSpecDocument(x), snapshotId: str(x['snapshot_id']), lookupId: str(x['lookup_id']) }),
+      );
+    },
+
+    readLatestSpecAlignmentRun(snapshotId) {
+      const head = one('SELECT * FROM spec_alignment_run WHERE snapshot_id = :snapshotId ORDER BY finished_at DESC, rowid DESC LIMIT 1', { snapshotId }, (x) => x);
+      if (head === null) return null;
+      const id = str(head['id']);
+      const opt = (v: unknown): string | null => (v === null ? null : str(v));
+      return {
+        id, snapshotId: str(head['snapshot_id']), lookupId: str(head['lookup_id']), specDocumentId: str(head['spec_document_id']),
+        tddDocumentId: opt(head['tdd_document_id']), requestedAt: str(head['requested_at']), finishedAt: str(head['finished_at']),
+        provider: str(head['provider']), contextVersion: opt(head['context_version']),
+        outcome: str(head['outcome']) as SpecAlignmentRunRecord['outcome'],
+        cancelReason: opt(head['cancel_reason']) as SpecAlignmentRunRecord['cancelReason'], failureReason: opt(head['failure_reason']),
+        specSummary: opt(head['spec_summary']), tddSummary: opt(head['tdd_summary']),
+        verdict: opt(head['verdict']) as SpecAlignmentRunRecord['verdict'], verdictText: opt(head['verdict_text']),
+        leftOut: json<SpecAlignmentRunRecord['leftOut']>(head['left_out']),
+        restrictionsNotEnforced: json<string[]>(head['restrictions_not_enforced']), warning: opt(head['warning']),
+        rows: all('SELECT * FROM spec_alignment_row WHERE run_id = :id ORDER BY ordinal', { id }, (x): SpecAlignmentRowRecord => ({
+          ordinal: Number(x['ordinal']), criterionRef: opt(x['criterion_ref']), criterionText: str(x['criterion_text']),
+          implementationState: str(x['implementation_state']) as SpecAlignmentRowRecord['implementationState'],
+          testShown: str(x['test_shown']) as SpecAlignmentRowRecord['testShown'], testMismatch: Number(x['test_mismatch']) === 1,
+          note: str(x['note']), unverified: Number(x['unverified']) === 1, citations: json<unknown[]>(x['citations']),
+        })),
+        items: all('SELECT * FROM spec_alignment_item WHERE run_id = :id ORDER BY ordinal', { id }, (x): SpecAlignmentItemRecord => ({
+          ordinal: Number(x['ordinal']), kind: str(x['kind']) as SpecAlignmentItemRecord['kind'],
+          rowOrdinal: x['row_ordinal'] === null ? null : Number(x['row_ordinal']), text: str(x['text']),
+          unverified: Number(x['unverified']) === 1, citations: json<unknown[]>(x['citations']),
+        })),
+      };
+    },
+
+    appendClassOverride(o) {
+      run(
+        `INSERT INTO class_override (id, session_id, snapshot_id, path, class, replaced_class, calculated_class, reason,
+           change_fingerprint, reviewer_handle, reviewer_name, created_at)
+         VALUES (:id, :sessionId, :snapshotId, :path, :class, :replacedClass, :calculatedClass, :reason,
+           :fingerprint, :handle, :name, :createdAt)`,
+        {
+          id: o.id,
+          sessionId: o.sessionId,
+          snapshotId: o.snapshotId,
+          path: o.path,
+          class: o.class,
+          replacedClass: o.replacedClass,
+          calculatedClass: o.calculatedClass,
+          reason: o.reason,
+          fingerprint: o.changeFingerprint,
+          handle: o.reviewer?.handle ?? null,
+          name: o.reviewer?.name ?? null,
+          createdAt: o.createdAt,
+        },
+      );
+    },
+
+    readOverrideHistory(sessionId, path) {
+      return all('SELECT * FROM class_override WHERE session_id = :sessionId AND path = :path ORDER BY created_at, rowid', { sessionId, path }, toOverride);
+    },
+
+    readLatestOverride(sessionId, path) {
+      return one(
+        'SELECT * FROM class_override WHERE session_id = :sessionId AND path = :path ORDER BY created_at DESC, rowid DESC LIMIT 1',
+        { sessionId, path },
+        toOverride,
+      );
     },
   };
 

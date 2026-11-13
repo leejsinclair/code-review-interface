@@ -69,6 +69,9 @@ const ALLOWED_SUBCOMMANDS = new Set([
   'update-ref',
   'for-each-ref',
   'rev-parse',
+  'ls-remote',
+  'ls-tree',
+  'log',
 ]);
 const REQUIRED_SUBCOMMANDS = [
   'remote',
@@ -87,6 +90,8 @@ const HARDENED = [
   'submodule.recurse=false',
 ];
 const PREFIX = 'refs/prwb/';
+const HEX40 = 'a'.repeat(40);
+const HEX64 = 'b'.repeat(64);
 const SAMPLE_URL = 'https://example.test/team/repo.git';
 
 interface Call {
@@ -115,6 +120,8 @@ function sampleParams(template: readonly string[]): Record<string, string> {
   for (const name of template.flatMap(placeholders)) {
     if (/url/i.test(name)) params[name] = SAMPLE_URL;
     else if (/side/i.test(name)) params[name] = 'head';
+    else if (/commit/i.test(name)) params[name] = HEX40;
+    else if (/path/i.test(name)) params[name] = 'specs/ENG-1-x/spec.md';
     else params[name] = 'abc123';
   }
   return params;
@@ -346,4 +353,58 @@ test('VO-067 the default runner runs real git with an argument array', async (t)
   const stdout = String(result.stdout);
   assert.match(stdout, /\(fetch\)/, `remote -v printed no remotes: ${stdout}`);
   assert.ok(stdout.includes(dirname(sandbox.platform)), `remote -v did not list the platform remote: ${stdout}`);
+});
+
+// Feature 006 (T005, contracts/git-commands.md): three read-only commands added for the specification lookup.
+// Required of `src/repo/git.ts` (T015): `listRemoteHeads`, `listTreePaths` and `lastCommitTouching` in GIT_COMMANDS,
+// and the runner refusing a `{commit}` that is not 40 or 64 hex characters and a `{path}` that is not under
+// `specs/` or has a `..` segment, before git runs.
+
+test('006 the table holds listRemoteHeads, listTreePaths and lastCommitTouching, none with a forbidden verb', async () => {
+  const { GIT_COMMANDS } = await loadGit();
+  const table = GIT_COMMANDS as Readonly<Record<string, { readonly args: readonly string[] }>>;
+  assert.deepEqual([...(table.listRemoteHeads?.args ?? [])], ['ls-remote', '--heads', '{url}']);
+  assert.deepEqual([...(table.listTreePaths?.args ?? [])], ['ls-tree', '-r', '--name-only', '{commit}', '--', 'specs/']);
+  assert.deepEqual([...(table.lastCommitTouching?.args ?? [])], ['log', '-1', '--format=%H', '{commit}', '--', '{path}']);
+  for (const name of ['listRemoteHeads', 'listTreePaths', 'lastCommitTouching']) {
+    for (const arg of table[name]?.args ?? []) {
+      assert.ok(!FORBIDDEN.has(arg), `${name}: argument ${arg} names a forbidden command`);
+      assert.ok(arg !== '-c' && !arg.startsWith('--config'), `${name}: sets git config itself`);
+    }
+  }
+});
+
+test('006 the new commands run with an argument array and the hardened options', async () => {
+  const { createGit } = await loadGit();
+  const calls: Call[] = [];
+  const git = createGit({ hooksPath: '/app-data/empty-hooks', execFile: fakeExecFile(calls) });
+  const cwd = '/reviewer/clone';
+  await git.run('listRemoteHeads', { url: SAMPLE_URL }, { cwd });
+  await git.run('listTreePaths', { commit: HEX40 }, { cwd });
+  await git.run('lastCommitTouching', { commit: HEX64, path: 'specs/ENG-1-x/spec.md' }, { cwd });
+  assert.equal(calls.length, 3);
+  for (const call of calls) {
+    assert.equal(call.file, 'git');
+    for (const option of HARDENED) assert.ok(call.args.includes(option), `missing ${option}`);
+    assert.ok(!call.options.shell, 'ran through a shell');
+  }
+  assert.ok(calls[2]?.args.join(' ').endsWith(`log -1 --format=%H ${HEX64} -- specs/ENG-1-x/spec.md`));
+});
+
+test('006 a bad commit or a .. path is refused before git runs', async () => {
+  const { createGit } = await loadGit();
+  const calls: Call[] = [];
+  const git = createGit({ hooksPath: '/app-data/empty-hooks', execFile: fakeExecFile(calls) });
+  const cwd = '/reviewer/clone';
+  const goodPath = 'specs/ENG-1-x/spec.md';
+
+  for (const commit of ['abc123', 'main', '--all', `${HEX40}0`, 'z'.repeat(40), `${HEX40}\n--output=x`, '']) {
+    await assert.rejects(git.run('listTreePaths', { commit }, { cwd }), `listTreePaths accepted commit ${commit}`);
+    await assert.rejects(git.run('lastCommitTouching', { commit, path: goodPath }, { cwd }), `lastCommitTouching accepted commit ${commit}`);
+  }
+  for (const path of ['specs/../secrets', '../specs/x', 'specs/a/../../b', 'README.md', '/etc/passwd', 'specs', '-p', '']) {
+    await assert.rejects(git.run('lastCommitTouching', { commit: HEX40, path }, { cwd }), `lastCommitTouching accepted path ${path}`);
+  }
+  await assert.rejects(git.run('listRemoteHeads', { url: '--upload-pack=touch /tmp/prwb-pwned' }, { cwd }), 'accepted an option as the url');
+  assert.equal(calls.length, 0, `git ran for a refused call: ${calls.map((c) => c.args.join(' ')).join(' | ')}`);
 });

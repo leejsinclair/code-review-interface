@@ -7,26 +7,36 @@
 
 import { execFile } from 'node:child_process';
 import { randomBytes } from 'node:crypto';
-import { realpathSync } from 'node:fs';
+import { readFileSync, realpathSync } from 'node:fs';
+import { join } from 'node:path';
 import { createAiProvider, registeredAiProviders } from './adapters/ai-registry.ts';
 import type { NetworkFetch } from './adapters/read-only-http.ts';
-import { adapterDeps, createSourceControl, registeredPlatforms } from './adapters/registry.ts';
+import { adapterDeps, createIssueTracker, createSourceControl, registeredPlatforms, type TrackerSettings } from './adapters/registry.ts';
 import { ensureAppData } from './appdata.ts';
-import { loadConfig } from './config.ts';
+import { CONFIG_FILE_NAME, loadConfig, validateConfig } from './config.ts';
 import { createInterrogation } from './core/interrogation.ts';
 import { createLanes } from './core/lanes.ts';
+import { createSpecContextService, type SpecContextEnvironment } from './core/spec-context.ts';
+import { createRiskService } from './core/risk-service.ts';
 import { sweepWorkspaces } from './core/recovery.ts';
 import { createSummaries } from './core/summaries.ts';
 import { createWorkspace } from './core/workspace.ts';
 import { recoverInterruptedWork } from './core/work-recovery.ts';
 import { createCredentials, type KeyringModuleLike } from './credentials.ts';
+import { withEnvFallback } from './credentials-env.ts';
+import { envCredential } from './adapters/env-credentials.ts';
 import { createLogger, registerSecret } from './log.ts';
 import { createGit } from './repo/git.ts';
 import { createRepositoryManager } from './repo/manager.ts';
 import { createEventHub } from './server/events.ts';
+import { createPullCache } from './core/pull-cache.ts';
+import { createReviewActionsLookup, createReviewerLookup } from './server/reviewer.ts';
 import { startServer } from './server/http.ts';
 import { configPlatforms, createContextRoutes } from './server/routes/context.ts';
 import { createInterrogationRoutes } from './server/routes/interrogation.ts';
+import { createReviewActionsRoutes } from './server/routes/review-actions.ts';
+import { createRiskRoutes } from './server/routes/risk.ts';
+import { createSpecContextRoutes } from './server/routes/spec-context.ts';
 import { openDatabase } from './store/db.ts';
 import { createReviewStore } from './store/review-store.ts';
 
@@ -62,14 +72,24 @@ export async function startWorkbench(options: WorkbenchOptions = {}): Promise<Ru
 
   const db = openDatabase(paths.db);
   const store = createReviewStore(db);
-  const keyring = options.keyring ?? ((await import('@napi-rs/keyring')) as KeyringModuleLike);
+  // A `.env` in the working directory (devcontainers have no OS keychain) feeds the credential fallback.
+  try {
+    process.loadEnvFile('.env');
+  } catch {
+    // No .env file: nothing to load.
+  }
+  const realKeyring = options.keyring ?? ((await import('@napi-rs/keyring').catch(() => null)) as KeyringModuleLike | null);
+  const keyring = options.keyring ?? withEnvFallback(realKeyring, envCredential);
   const credentials = createCredentials({ keyring, registerSecret });
   const git = createGit({ hooksPath: paths.emptyHooks });
   const manager = createRepositoryManager({ git, workspacesDir: paths.workspaces });
   // The workspace finds the clones under the base folder; discovery starts now and again on every save (FR-056).
+  const events = createEventHub();
   const workspace = createWorkspace({
     manager,
     appDataDir: paths.dir,
+    // Open review pages re-read the session, so Refresh enables once the clone is found.
+    onSettled: () => void events.broadcast('session', { reason: 'repository-availability' }),
     matcherFor: ({ platform, baseUrl }) => {
       const repository = { platform, id: '' };
       const sourceControl = createSourceControl(platform, adapterDeps(platform, network, (request) => request), {
@@ -95,14 +115,50 @@ export async function startWorkbench(options: WorkbenchOptions = {}): Promise<Ru
   await sweepWorkspaces({ manager, workspacesDir: paths.workspaces });
   recoverInterruptedWork({ store });
 
-  const events = createEventHub();
   const lanes = createLanes();
   const aiProviders = registeredAiProviders();
   const provider = createAiProvider(aiProviders[0]!, { providerHome: paths.providerHome });
   const core = { store, lanes, provider, events, git, workspacePath: manager.workspacePath, environmentFor };
   const interrogation = createInterrogation(core);
   const summaries = createSummaries(core);
+  const risk = createRiskService({ store, events, appDataDir: paths.dir, ai: core, currentUser: createReviewerLookup({ appDataDir: paths.dir, store, credentials, network }) });
+
+  // The spec-context service: documents for the linked issues, aligned to the diff (T025).
+  const specContextEnvironment = (sessionId: string): SpecContextEnvironment | null => {
+    try {
+      const session = store.readSession(sessionId);
+      if (session === null) return null;
+      const parsed: unknown = JSON.parse(readFileSync(join(paths.dir, CONFIG_FILE_NAME), 'utf8'));
+      const c = validateConfig(parsed, platforms, paths.dir, { checkFolder: false });
+      const repository = { platform: c.workspace.platform, id: session.pr.repo.identifier };
+      const settings: TrackerSettings = { repository };
+      if (c.issueTracker.site !== undefined) settings.site = c.issueTracker.site;
+      if (c.issueTracker.projectKeys !== undefined) settings.projectKeys = c.issueTracker.projectKeys;
+      const tr = c.issueTracker.platform;
+      return {
+        repositoryId: repository.id,
+        clonePath: workspace.cloneFor(repository.id),
+        tracker: createIssueTracker(tr, adapterDeps(tr, network, credentials.authorize(tr)), settings),
+        limits: c.limits,
+      };
+    } catch {
+      return null;
+    }
+  };
+  const specContext = createSpecContextService({
+    store,
+    manager,
+    lanes,
+    provider,
+    events,
+    workspace: { cloneFor: (id) => workspace.cloneFor(id), enclosingOf: (id) => workspace.enclosingOf(id)?.repository.id ?? null },
+    environmentFor: specContextEnvironment,
+    workspacePath: manager.workspacePath,
+    logger,
+  });
+  const pullCache = createPullCache();
   const contextRoutes = createContextRoutes({
+    pullCache,
     appDataDir: paths.dir,
     workspace,
     store,
@@ -111,14 +167,36 @@ export async function startWorkbench(options: WorkbenchOptions = {}): Promise<Ru
     git,
     events,
     aiProviders,
-    onSnapshot: summaries.onSnapshot,
+    onSnapshotStored: (sessionId, snapshotId) => {
+      risk.onSnapshotStored(sessionId, snapshotId);
+      specContext.onSnapshotStored(sessionId, snapshotId);
+    },
+    onSnapshot: (sessionId, snapshotId) => {
+      summaries.onSnapshot(sessionId, snapshotId);
+      risk.onSnapshot(sessionId, snapshotId);
+      specContext.onSnapshot(sessionId, snapshotId);
+    },
+    onRefreshed: specContext.onRefreshed,
+    // The effective class (rules, AI, overrides) of the riskiest file, so Home can put risky reviews first.
+    highestRisk: (sessionId, snapshotId) => {
+      try {
+        const counts = risk.getReport(sessionId, snapshotId)?.counts;
+        if (counts === undefined) return undefined;
+        return (['critical', 'elevated', 'normal', 'low'] as const).find((c) => counts[c] > 0);
+      } catch {
+        return undefined;
+      }
+    },
     onClose: (sessionId) => lanes.close(sessionId),
     afterRunning: (sessionId) => lanes.settledRunning(sessionId),
   });
   const interrogationRoutes = createInterrogationRoutes({ store, git, provider, interrogation, summaries, environmentFor });
+  const riskRoutes = createRiskRoutes({ risk });
+  const specContextRoutes = createSpecContextRoutes({ specContext });
+  const reviewActionsRoutes = createReviewActionsRoutes({ actionsFor: createReviewActionsLookup({ appDataDir: paths.dir, store, credentials, network, pullCache }) });
 
   const launchToken = options.launchToken ?? randomBytes(32).toString('base64url');
-  const server = await startServer({ routes: [contextRoutes, interrogationRoutes], launchToken, logger, events });
+  const server = await startServer({ routes: [contextRoutes, interrogationRoutes, riskRoutes, specContextRoutes, reviewActionsRoutes], launchToken, logger, events });
   // The token stays in the fragment, so the browser never sends it to the server (R3).
   const url = `${server.origin}/launch#${launchToken}`;
 

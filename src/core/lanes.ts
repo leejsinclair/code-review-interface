@@ -1,11 +1,11 @@
-// Per-session work lanes (FR-053, research R17): one summary lane and one question lane per session,
+// Per-session work lanes (FR-053, research R17): one summary, question, risk and alignment lane per session,
 // each running one job at a time, in `seq` order. A queued job can be cancelled before it starts; a
 // refresh cancels every queued job of older snapshots as `superseded` (FR-051); closing a session
 // cancels its queued and running jobs. Lanes are in memory only: what a job did is in the store.
 
 import type { CancelReason } from '../store/review-store.ts';
 
-export type LaneName = 'summary' | 'question';
+export type LaneName = 'summary' | 'question' | 'risk' | 'alignment';
 
 export type LaneJob = {
   id: string;
@@ -49,7 +49,7 @@ export function createLanes(): Lanes {
   const lanesOf = (sessionId: string): Record<LaneName, Lane> => {
     let found = sessions.get(sessionId);
     if (found === undefined) {
-      found = { summary: { queue: [], running: null }, question: { queue: [], running: null } };
+      found = { summary: { queue: [], running: null }, question: { queue: [], running: null }, risk: { queue: [], running: null }, alignment: { queue: [], running: null } };
       sessions.set(sessionId, found);
     }
     return found;
@@ -116,14 +116,14 @@ export function createLanes(): Lanes {
     async settledRunning(sessionId) {
       const lanes = sessions.get(sessionId);
       if (lanes === undefined) return;
-      await Promise.all([lanes.summary.running, lanes.question.running].map((job) => (job === null ? undefined : jobs.get(job.id)?.done)));
+      await Promise.all(Object.values(lanes).map((lane) => lane.running).map((job) => (job === null ? undefined : jobs.get(job.id)?.done)));
     },
 
     cancelQueued(sessionId, reason, keepSnapshotId) {
       const lanes = sessions.get(sessionId);
       if (lanes === undefined) return [];
       const cancelled: string[] = [];
-      for (const lane of [lanes.summary, lanes.question]) {
+      for (const lane of Object.values(lanes)) {
         for (const job of [...lane.queue]) {
           if (job.snapshotId === keepSnapshotId) continue;
           const placed = jobs.get(job.id);
@@ -137,7 +137,7 @@ export function createLanes(): Lanes {
     close(sessionId, reason = 'user') {
       const lanes = sessions.get(sessionId);
       if (lanes === undefined) return;
-      for (const lane of [lanes.summary, lanes.question]) {
+      for (const lane of Object.values(lanes)) {
         for (const job of [...lane.queue]) {
           const placed = jobs.get(job.id);
           if (placed !== undefined) cancelQueuedJob(placed, reason);

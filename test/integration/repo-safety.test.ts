@@ -57,8 +57,15 @@ function fakePlatform(sandbox: GitSandbox) {
     async verifySignIn() {
       return { ok: true, account: 'reviewer' };
     },
+    async currentUser() {
+      return { handle: 'reviewer', displayName: 'Reviewer' };
+    },
     cloneLocations: () => ['code.example.test/acme/widgets'],
+    pullRequestUrl: (_repo, number) => `https://code.example.test/acme/widgets/pull/${number}`,
     repositoryForRemote: (remote: string) => (remote === 'code.example.test/acme/widgets' ? 'acme/widgets' : null),
+    async approvedByMe() {
+      return new Set<number>();
+    },
     async listOpenPullRequests() {
       calls.push('list');
       return [...prs.values()].filter((p) => p.state === 'open').map(strip);
@@ -83,6 +90,16 @@ function fakePlatform(sandbox: GitSandbox) {
       return pr.fromFork
         ? { remoteUrls: [FORK_REMOTE, 'git@code.example.test:contrib/widgets.git'], ref: `refs/heads/${pr.sourceBranch}` }
         : { remoteUrls: [REMOTE, 'git@code.example.test:acme/widgets.git'], ref: `refs/pull/${pr.number}/head` };
+    },
+    async listComments() {
+      return [];
+    },
+    async myDecision() {
+      return null;
+    },
+    async reviewCapability() {
+      const no = { allowed: false, reason: 'not used here' };
+      return { comment: no, line_comment: no, reply: no, edit_comment: no, delete_comment: no, approve: no, request_changes: no, withdraw_decision: no };
     },
     async targetLocation(_repo, info) {
       return { remoteUrls: [REMOTE, 'git@code.example.test:acme/widgets.git'], ref: `refs/heads/${info.targetBranch}` };

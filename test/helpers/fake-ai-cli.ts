@@ -35,6 +35,14 @@ export type FakeConfig = {
   answer?: unknown;
   /** Structured output for a summary run. */
   summary?: unknown;
+  /** Structured output for a risk run: `{ files: [{ path, class, reasons, lines }] }` (default: no opinion). */
+  risk?: unknown;
+  /** Structured output for a spec-alignment run (see `contracts/ai-output.md`); default: no criteria. */
+  alignment?: unknown;
+  /** Scenario for alignment runs only, e.g. `unstructured` or `error-on-start`; other runs use `scenario`. */
+  alignmentScenario?: FakeScenario;
+  /** Scenario for risk runs only, e.g. `unstructured` or `error-on-start`; other runs use `scenario`. */
+  riskScenario?: FakeScenario;
   /** Raw text for the unstructured scenario. */
   text?: string;
   /** Text deltas per run (default 3). */
@@ -55,12 +63,16 @@ export type Invocation = {
 
 export interface FakeAiCli {
   readonly binDir: string;
+  /** Every risk-assessment run so far, in order (the answer and summary runs are in `invocations`). */
+  riskInvocations(): Promise<Invocation[]>;
+  /** Every spec-alignment run so far, in order. */
+  alignmentInvocations(): Promise<Invocation[]>;
   /** Replaces the fake's configuration; read again by every later run. */
   configure(config: FakeConfig): Promise<void>;
-  /** Every `-p` run so far, in order. */
+  /** Every answer and summary `-p` run so far, in order. The risk run each snapshot starts is in `riskInvocations`. */
   invocations(): Promise<Invocation[]>;
-  /** Lets a held run in the `slow` scenario continue: run `n`, or every run. */
-  release(n?: number): Promise<void>;
+  /** Lets a held run in the `slow` scenario continue: run `n`, or every run (including risk runs). A risk run is released by `release('risk')`. */
+  release(n?: number | 'risk' | 'alignment'): Promise<void>;
   /** Waits until at least `count` runs have been recorded. */
   waitForInvocations(count: number, timeoutMs?: number): Promise<Invocation[]>;
 }
@@ -69,10 +81,11 @@ interface AfterHook {
   after(fn: () => unknown): void;
 }
 
-/** Whether a run produced an answer or a summary, read from its `--json-schema` argument. */
-export function invocationKind(invocation: Invocation): 'answer' | 'summary' {
+/** Whether a run produced an answer, a summary or a risk assessment, read from its `--json-schema` argument. */
+export function invocationKind(invocation: Invocation): 'answer' | 'summary' | 'risk' | 'alignment' {
   const at = invocation.argv.indexOf('--json-schema');
-  return at !== -1 && (invocation.argv[at + 1] ?? '').includes('prSummary') ? 'summary' : 'answer';
+  const schema = at === -1 ? '' : (invocation.argv[at + 1] ?? '');
+  return schema.includes('specAlignment') ? 'alignment' : schema.includes('riskAssessment') ? 'risk' : schema.includes('prSummary') ? 'summary' : 'answer';
 }
 
 async function isExecutable(path: string): Promise<boolean> {
@@ -118,24 +131,28 @@ export async function useFakeAiCli(t: AfterHook, config: FakeConfig = {}): Promi
   keepPath(t);
   process.env['PATH'] = [binDir, ...(await pathWithoutCli(process.env['PATH'] ?? ''))].join(delimiter);
 
-  const invocations = async (): Promise<Invocation[]> => {
+  const all = async (): Promise<Array<Invocation & { risk?: boolean; alignment?: boolean }>> => {
     const text = await readFile(recordFile, 'utf8').catch(() => '');
     return text
       .split('\n')
       .filter((line) => line !== '')
-      .map((line) => JSON.parse(line) as Invocation);
+      .map((line) => JSON.parse(line) as Invocation & { risk?: boolean });
   };
+  const invocations = async (): Promise<Invocation[]> => (await all()).filter((i) => i.risk !== true && i.alignment !== true);
 
   const fake: FakeAiCli = {
     binDir,
     configure: (next) => writeFile(configFile, JSON.stringify(next)),
     invocations,
+    riskInvocations: async () => (await all()).filter((i) => i.risk === true),
+    alignmentInvocations: async () => (await all()).filter((i) => i.alignment === true),
     release: (n) => writeFile(join(binDir, n === undefined ? 'release-all' : `release-${n}`), ''),
     async waitForInvocations(count, timeoutMs = 10_000) {
       const deadline = Date.now() + timeoutMs;
       for (;;) {
         const found = await invocations();
-        if (found.length >= count) return found;
+        const alignment = await all().then((runs) => runs.filter((i) => i.alignment === true));
+        if (found.length + alignment.length >= count) return [...found, ...alignment];
         if (Date.now() > deadline) throw new Error(`expected ${count} fake CLI runs, saw ${found.length}`);
         await new Promise((resolve) => setTimeout(resolve, 20));
       }
@@ -199,6 +216,10 @@ export type WorkbenchOptions = {
   /** Drops recorded entries whose URL this returns true for. */
   drop?: (url: string) => boolean;
   extra?: FixtureEntry[];
+  /** Answers a request before the recorded fixtures do; return undefined to fall through (feature 005 fakes). */
+  intercept?: (url: string, init?: RequestInit) => Promise<Response | undefined>;
+  /** The signed-in platform account's login (default alice-dev, the author of PR 1), so a UI test can review PR 1. */
+  reviewer?: string;
   /** Put the reviewer's clone on another branch with stash, staged, unstaged and untracked changes. */
   dirty?: boolean;
   /**
@@ -304,6 +325,15 @@ export async function startWorkbench(t: AfterHook, options: WorkbenchOptions = {
   const { createLanes } = await import('../../src/core/lanes.ts');
   const { createInterrogation } = await import('../../src/core/interrogation.ts');
   const { createSummaries } = await import('../../src/core/summaries.ts');
+  const { createRiskService } = await import('../../src/core/risk-service.ts');
+  const { createRiskRoutes } = await import('../../src/server/routes/risk.ts');
+  const { createSpecContextService } = await import('../../src/core/spec-context.ts');
+  const { createSpecContextRoutes } = await import('../../src/server/routes/spec-context.ts');
+  const { createIssueTracker } = await import('../../src/adapters/registry.ts');
+  const { validateConfig, CONFIG_FILE_NAME } = await import('../../src/config.ts');
+  const { readFileSync } = await import('node:fs');
+  const { createReviewerLookup, createReviewActionsLookup } = await import('../../src/server/reviewer.ts');
+  const { createReviewActionsRoutes } = await import('../../src/server/routes/review-actions.ts');
   const { recoverInterruptedWork } = await import('../../src/core/work-recovery.ts');
 
   const appData = await useTempAppData(t);
@@ -362,8 +392,13 @@ export async function startWorkbench(t: AfterHook, options: WorkbenchOptions = {
   entries.push(...(options.extra ?? []));
   const recorded = recordedFetch([], { entries });
   const fixtureNetwork = async (input: string | URL | Request, init?: RequestInit): Promise<Response> => {
+    const first = await options.intercept?.(input instanceof Request ? input.url : String(input), init ?? (input instanceof Request ? { method: input.method, body: await input.clone().text() } : undefined));
+    if (first !== undefined) return first;
     const response = await recorded.fetch(input, init);
     let text = await response.text();
+    if (options.reviewer !== undefined && new URL(input instanceof Request ? input.url : String(input)).pathname === '/user') {
+      text = text.split('alice-dev').join(options.reviewer);
+    }
     if (sandbox !== null) text = text.split(FIXTURE_HEAD_1).join(sandbox.pr(1).head);
     return new Response(text, { status: response.status, statusText: response.statusText, headers: response.headers });
   };
@@ -372,7 +407,7 @@ export async function startWorkbench(t: AfterHook, options: WorkbenchOptions = {
   const keyring = createFakeKeyring();
   const credentials = createCredentials({ keyring, registerSecret });
   if (live === undefined) {
-    await credentials.save('github', { secret: 'test-github-token', scheme: 'bearer' });
+    await credentials.save('github', { secret: 'test-github-token', scheme: 'bearer', scope: 'write' });
     await credentials.save('jira-cloud', { account: 'alice@acme.example', secret: 'test-jira-token', scheme: 'basic' });
     await saveConfig(
       appData.dir,
@@ -423,7 +458,44 @@ export async function startWorkbench(t: AfterHook, options: WorkbenchOptions = {
     const core = { store, lanes, provider, events, git, workspacePath: manager.workspacePath, environmentFor };
     const interrogation = createInterrogation(core);
     const summaries = createSummaries(core);
+    const risk = createRiskService({ store, events, appDataDir: appData.dir, ai: core, currentUser: createReviewerLookup({ appDataDir: appData.dir, store, credentials, network }) });
+    // The spec-context service: documents for the linked issues, aligned to the diff (T025).
+    const specContextEnvironment = (sessionId: string): any => {
+      try {
+        const session = store.readSession(sessionId);
+        if (session === null) return null;
+        const parsed: unknown = JSON.parse(readFileSync(join(appData.dir, CONFIG_FILE_NAME), 'utf8'));
+        const c = validateConfig(parsed, platforms, appData.dir, { checkFolder: false });
+        const repository = { platform: c.workspace.platform, id: session.pr.repo.identifier };
+        const settings: { repository: { platform: string; id: string }; site?: string; projectKeys?: string[] } = { repository };
+        if (c.issueTracker.site !== undefined) settings.site = c.issueTracker.site;
+        if (c.issueTracker.projectKeys !== undefined) settings.projectKeys = c.issueTracker.projectKeys;
+        const tr = c.issueTracker.platform;
+        return {
+          repositoryId: repository.id,
+          clonePath: workspace.cloneFor(repository.id),
+          tracker: createIssueTracker(tr, adapterDeps(tr, network, credentials.authorize(tr)), settings),
+          limits: c.limits,
+        };
+      } catch {
+        return null;
+      }
+    };
+    const specContext = createSpecContextService({
+      store,
+      manager,
+      lanes,
+      provider,
+      events,
+      workspace: { cloneFor: (id) => workspace.cloneFor(id), enclosingOf: (id) => workspace.enclosingOf(id)?.repository.id ?? null },
+      environmentFor: specContextEnvironment,
+      workspacePath: manager.workspacePath,
+    });
+
+    const { createPullCache } = await import('../../src/core/pull-cache.ts');
+    const pullCache = createPullCache();
     const contextRoutes = createContextRoutes({
+      pullCache,
       appDataDir: appData.dir,
       workspace,
       store,
@@ -432,14 +504,26 @@ export async function startWorkbench(t: AfterHook, options: WorkbenchOptions = {
       git,
       events,
       aiProviders: registeredAiProviders(),
-      onSnapshot: summaries.onSnapshot,
+      onSnapshotStored: (sessionId: string, snapshotId: string) => {
+        risk.onSnapshotStored(sessionId, snapshotId);
+        specContext.onSnapshotStored(sessionId, snapshotId);
+      },
+      onSnapshot: (sessionId: string, snapshotId: string) => {
+        summaries.onSnapshot(sessionId, snapshotId);
+        risk.onSnapshot(sessionId, snapshotId);
+        specContext.onSnapshot(sessionId, snapshotId);
+      },
+      onRefreshed: specContext.onRefreshed,
       onClose: (sessionId: string) => lanes.close(sessionId),
       afterRunning: (sessionId: string) => lanes.settledRunning(sessionId),
     });
     const routes = createInterrogationRoutes({ store, git, provider, interrogation, summaries, environmentFor });
+    const riskRoutes = createRiskRoutes({ risk });
+    const specContextRoutes = createSpecContextRoutes({ specContext });
+    const reviewActionsRoutes = createReviewActionsRoutes({ actionsFor: createReviewActionsLookup({ appDataDir: appData.dir, store, credentials, network, pullCache }) });
     // As src/main.ts does: discovery starts at boot from the saved config.
     workspace.configure((await loadConfig(appData.dir, platforms))?.workspace ?? null);
-    const client = await startTestServer({ routes: [contextRoutes, routes], serverOptions: { events } });
+    const client = await startTestServer({ routes: [contextRoutes, routes, riskRoutes, specContextRoutes, reviewActionsRoutes], serverOptions: { events } });
     return { store, client };
   };
 

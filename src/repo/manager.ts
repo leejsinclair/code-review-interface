@@ -9,7 +9,7 @@
 import { mkdir, readdir, realpath, rm, rmdir, stat } from 'node:fs/promises';
 import { dirname, join } from 'node:path';
 import type { HeadLocation } from '../contracts/source-control.ts';
-import { PRWB_REF_PREFIX, type Git } from './git.ts';
+import { PRWB_REF_PREFIX, readFileAtCommit, type Git } from './git.ts';
 import { diffFingerprint, parseUnifiedDiff, type DiffFile } from './unified-diff.ts';
 
 export const NO_CLONE_REASON = 'no clone at the configured path';
@@ -59,6 +59,27 @@ export interface RepositoryManager {
   listWorktrees(clonePath: string): Promise<string[]>;
   /** Deletes every `refs/prwb/<sessionId>/` ref in the clone. */
   deleteSessionRefs(clonePath: string, sessionId: string): Promise<void>;
+  /** The remote's branch heads (`ls-remote --heads`); `branch` has no `refs/heads/` prefix. Rejects with the first git error line. */
+  listRemoteBranches(clonePath: string, remoteUrl: string): Promise<Array<{ branch: string; commit: string }>>;
+  /** Fetches one branch into `refs/prwb/<sessionId>/<snapshotId>/spec-<n>` and returns that ref and the commit it holds. */
+  fetchSpecRef(input: { clonePath: string; remoteUrl: string; branch: string; sessionId: string; snapshotId: string; n: number }): Promise<{ ref: string; commit: string }>;
+  /** Every path under `specs/` in the commit's tree. */
+  listSpecFiles(clonePath: string, commit: string): Promise<string[]>;
+  /** Reads a file at the last commit that touched it, refusing a file over `maxBytes`, an unsafe path or an unsafe commit. */
+  readSpecFile(input: { clonePath: string; commit: string; path: string; maxBytes: number }): Promise<{ commit: string; committedAt: string; content: string }>;
+}
+
+const COMMIT_PATTERN = /^(?:[0-9a-f]{40}|[0-9a-f]{64})$/;
+const BRANCH_PATTERN = /^[A-Za-z0-9_][A-Za-z0-9_./+@-]*$/;
+
+function checkCommit(commit: string): void {
+  if (!COMMIT_PATTERN.test(commit)) throw new Error('refused: not a full commit id');
+}
+
+function checkSpecPath(path: string): void {
+  if (!path.startsWith('specs/') || path.split('/').some((part) => part === '' || part === '..')) {
+    throw new Error('refused: path is not a file under specs/');
+  }
 }
 
 /** A remote URL as `host/path`, without scheme, user, port or `.git`, case-folded (R10). */
@@ -278,6 +299,49 @@ export function createRepositoryManager(options: { git: Git; workspacesDir: stri
         .split('\n')
         .filter((line) => line.startsWith('worktree '))
         .map((line) => line.slice('worktree '.length));
+    },
+
+    async listRemoteBranches(clonePath, remoteUrl) {
+      let output: string;
+      try {
+        output = await run('listRemoteHeads', { url: remoteUrl }, clonePath);
+      } catch (error) {
+        throw new Error(gitReason(error));
+      }
+      const heads: Array<{ branch: string; commit: string }> = [];
+      for (const line of output.split('\n')) {
+        const m = /^([0-9a-f]{40}|[0-9a-f]{64})\trefs\/heads\/(.+)$/.exec(line.trim());
+        if (m !== null) heads.push({ commit: m[1] ?? '', branch: m[2] ?? '' });
+      }
+      return heads;
+    },
+
+    async fetchSpecRef({ clonePath, remoteUrl, branch, sessionId, snapshotId, n }) {
+      if (!BRANCH_PATTERN.test(branch) || branch.includes('..')) throw new Error('refused: unsafe branch name');
+      const side = `spec-${n}`;
+      try {
+        await run('fetchToPrwbRef', { url: remoteUrl, sourceRef: `refs/heads/${branch}`, sessionId, snapshotId, side }, clonePath);
+        const ref = `${PRWB_REF_PREFIX}${sessionId}/${snapshotId}/${side}`;
+        return { ref, commit: await resolve(clonePath, ref) };
+      } catch (error) {
+        throw new Error(gitReason(error));
+      }
+    },
+
+    async listSpecFiles(clonePath, commit) {
+      checkCommit(commit);
+      return (await run('listTreePaths', { commit }, clonePath)).split('\n').filter((l) => l !== '');
+    },
+
+    async readSpecFile({ clonePath, commit, path, maxBytes }) {
+      checkCommit(commit);
+      checkSpecPath(path);
+      const last = (await run('lastCommitTouching', { commit, path }, clonePath)).trim();
+      if (!COMMIT_PATTERN.test(last)) throw new Error('refused: no commit touches that path');
+      const size = Number((await run('fileSizeAtCommit', { commit: last, path }, clonePath)).trim());
+      if (!Number.isFinite(size) || size > maxBytes) throw new Error(`refused: file is ${size} bytes, over the size limit of ${maxBytes}`);
+      const committedAt = (await run('commitTime', { commit: last }, clonePath)).trim();
+      return { commit: last, committedAt, content: (await readFileAtCommit(git, clonePath, last, path)).toString('utf8') };
     },
 
     async deleteSessionRefs(clonePath, sessionId) {

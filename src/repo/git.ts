@@ -79,6 +79,14 @@ export const GIT_COMMANDS = Object.freeze({
   resolveRevision: { args: ['rev-parse', '--verify', '--quiet', '--end-of-options', '{rev}'] },
   /** Prints the clone's top-level directory, to confirm a path is a work tree. */
   showTopLevel: { args: ['rev-parse', '--show-toplevel'] },
+  /** Lists a remote's branch heads: `<commit>\trefs/heads/<name>`. Network read; writes nothing. */
+  listRemoteHeads: { args: ['ls-remote', '--heads', '{url}'] },
+  /** Lists every file path in a commit's `specs/` tree. */
+  listTreePaths: { args: ['ls-tree', '-r', '--name-only', '{commit}', '--', 'specs/'] },
+  /** Prints the last commit that touched a path. */
+  lastCommitTouching: { args: ['log', '-1', '--format=%H', '{commit}', '--', '{path}'] },
+  /** Prints a commit's committer date (ISO 8601), to rank two copies of a document by recency. */
+  commitTime: { args: ['log', '-1', '--format=%cI', '{commit}'] },
 } satisfies Record<string, GitCommand>) as Readonly<Record<GitCommandName, GitCommand>>;
 
 export type GitCommandName =
@@ -99,7 +107,11 @@ export type GitCommandName =
   | 'listPrwbRefs'
   | 'listSessionPrwbRefs'
   | 'resolveRevision'
-  | 'showTopLevel';
+  | 'showTopLevel'
+  | 'listRemoteHeads'
+  | 'listTreePaths'
+  | 'lastCommitTouching'
+  | 'commitTime';
 
 export type ExecFileLike = (
   file: string,
@@ -215,6 +227,24 @@ function checkPrwbRef(command: string, ref: string, isPattern: boolean): void {
   if (body.endsWith('.')) fail();
 }
 
+const COMMIT = /^(?:[0-9a-f]{40}|[0-9a-f]{64})$/;
+
+/** `{commit}` must be a full hex id and `{path}` a path under `specs/` with no `..` segment (feature 006). */
+function checkSpecParams(command: string, params: Readonly<Record<string, string>>): void {
+  const entry = (GIT_COMMANDS as Readonly<Record<string, GitCommand>>)[command] as GitCommand;
+  const names = new Set(entry.args.flatMap((arg) => [...arg.matchAll(PLACEHOLDER)].map((m) => m[1] ?? '')));
+  const specCommand = command === 'listTreePaths' || command === 'lastCommitTouching' || command === 'commitTime';
+  if (specCommand && names.has('commit') && !COMMIT.test(params['commit'] ?? '')) {
+    throw new GitCommandError(command, 'refuses a commit that is not 40 or 64 hex characters');
+  }
+  if (command === 'lastCommitTouching') {
+    const path = params['path'] ?? '';
+    if (!path.startsWith('specs/') || path.split('/').some((s) => s === '..' || s === '')) {
+      throw new GitCommandError(command, 'refuses a path that is not under specs/ or holds a ".." segment');
+    }
+  }
+}
+
 function defaultExecFile(): ExecFileLike {
   const run = promisify(nodeExecFile);
   return (file, args, options) => run(file, [...args], options);
@@ -234,6 +264,8 @@ export function createGit(options: CreateGitOptions): Git {
         if (value.startsWith('-')) throw new GitCommandError(command, `parameter ${name} must not start with "-"`);
         if (value.includes('\0')) throw new GitCommandError(command, `parameter ${name} holds a NUL character`);
       }
+
+      checkSpecParams(command, params);
 
       const isPattern = entry.args[0] === 'for-each-ref';
       const args = entry.args.map((template) => {

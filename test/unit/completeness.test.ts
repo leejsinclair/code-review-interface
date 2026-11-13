@@ -393,3 +393,86 @@ test('VO-027 readCompleteness takes prompt-limit files from the latest completed
     db.close();
   }
 });
+
+// ---------------------------------------------------------------------------------------------------------
+// T035 (specs/006-spec-context, FR-009, FR-010): the `specification` and `tdd-evidence` rows, derived on read from
+// the latest lookup. `CompletenessInput` gains `spec?: SpecLookupWithParts | null` (absent: no rows, as before;
+// null: no lookup stored, both rows missing) and the two rows follow the issue row.
+// ---------------------------------------------------------------------------------------------------------
+
+type SpecInput = NonNullable<import('../../src/core/completeness.ts').CompletenessInput['spec']>;
+
+function lookup(documents: SpecInput['documents'], over: Partial<SpecInput['lookup']> = {}): SpecInput {
+  return {
+    lookup: {
+      id: 'l1', snapshotId: SNAPSHOT, lookedAt: '2026-11-07T10:00:00.000Z', trigger: 'snapshot', keys: ['ABC-12'], searched: [],
+      enclosingNote: 'found', outcome: 'found', reason: null, ...over,
+    },
+    sources: [],
+    documents,
+  };
+}
+const doc = (key: string, kind: 'specification' | 'tdd-evidence', found: boolean, reason = 'no folder'): SpecInput['documents'][number] => ({
+  id: `${key}-${kind}`, key, kind, status: found ? 'found' : 'missing', sourceId: found ? 's' : null, filePath: found ? `specs/${key}/x.md` : null,
+  commitSha: found ? '1'.repeat(40) : null, content: found ? 'text' : null, contentSha256: found ? 'a'.repeat(64) : null, otherFiles: [], missingReason: found ? null : reason,
+});
+const specRows = (rows: CompletenessRow[]): CompletenessRow[] => rows.filter((r) => r.source === 'specification' || r.source === 'tdd-evidence');
+
+test('no spec input leaves the three rows as they were', async () => {
+  const { deriveCompleteness } = await load();
+  const { completeness } = deriveCompleteness({ status: status(), latest: snapshot(), changedFiles: [], references: [], evidence: [], promptExclusions: [] });
+  assert.deepEqual(completeness.map((r) => r.source), ['pr', 'repository', 'issue']);
+});
+
+test('no stored lookup: both rows are missing, never found', async () => {
+  const { deriveCompleteness } = await load();
+  const { completeness } = deriveCompleteness({ status: status(), latest: snapshot(), changedFiles: [], references: [], evidence: [], promptExclusions: [], spec: null });
+  assert.deepEqual(completeness.map((r) => r.source), ['pr', 'repository', 'issue', 'specification', 'tdd-evidence']);
+  for (const row of specRows(completeness)) {
+    assert.equal(row.status, 'missing');
+    assert.ok((row as { reason?: string }).reason, 'a reason is given');
+  }
+});
+
+test('found documents give found rows; a missing evidence file gives a missing row with its reason', async () => {
+  const { deriveCompleteness } = await load();
+  const both = deriveCompleteness({ status: status(), latest: snapshot(), changedFiles: [], references: [], evidence: [], promptExclusions: [], spec: lookup([doc('ABC-12', 'specification', true), doc('ABC-12', 'tdd-evidence', true)]) });
+  assert.deepEqual(specRows(both.completeness).map((r) => r.status), ['found', 'found']);
+  const noEvidence = deriveCompleteness({ status: status(), latest: snapshot(), changedFiles: [], references: [], evidence: [], promptExclusions: [], spec: lookup([doc('ABC-12', 'specification', true), doc('ABC-12', 'tdd-evidence', false, 'no evidence file')], { outcome: 'partial', reason: 'x' }) });
+  const [spec, tdd] = specRows(noEvidence.completeness) as Array<{ status: string; reason?: string }>;
+  assert.equal(spec?.status, 'found');
+  assert.equal(tdd?.status, 'missing');
+  assert.match(tdd?.reason ?? '', /no evidence file/);
+});
+
+test('no key and a failed read are missing with their reasons', async () => {
+  const { deriveCompleteness } = await load();
+  const noKey = deriveCompleteness({ status: status(), latest: snapshot(), changedFiles: [], references: [], evidence: [], promptExclusions: [], spec: lookup([], { keys: [], outcome: 'no-key', reason: 'No key was found to search with.' }) });
+  assert.match((specRows(noKey.completeness)[0] as { reason?: string }).reason ?? '', /no key/i);
+  const failed = deriveCompleteness({ status: status(), latest: snapshot(), changedFiles: [], references: [], evidence: [], promptExclusions: [], spec: lookup([doc('ABC-12', 'specification', false, 'read failed: fatal: unable to access'), doc('ABC-12', 'tdd-evidence', false, 'read failed: fatal: unable to access')], { outcome: 'failed', reason: 'fatal: unable to access' }) });
+  assert.match((specRows(failed.completeness)[0] as { reason?: string }).reason ?? '', /unable to access/);
+});
+
+test('several keys: the row is missing and names the key whose document is missing', async () => {
+  const { deriveCompleteness } = await load();
+  const { completeness } = deriveCompleteness({
+    status: status(), latest: snapshot(), changedFiles: [], references: [], evidence: [], promptExclusions: [],
+    spec: lookup([doc('ABC-12', 'specification', true), doc('ABC-12', 'tdd-evidence', true), doc('ABC-99', 'specification', false), doc('ABC-99', 'tdd-evidence', true)], { keys: ['ABC-12', 'ABC-99'], outcome: 'partial', reason: 'x' }),
+  });
+  const [spec, tdd] = specRows(completeness) as Array<{ status: string; reason?: string }>;
+  assert.equal(spec?.status, 'missing');
+  assert.match(spec?.reason ?? '', /ABC-99/);
+  assert.equal(tdd?.status, 'found');
+});
+
+test('a head that moved past the snapshot marks found documents stale, with the reason', async () => {
+  const { deriveCompleteness, HEAD_MOVED_REASON } = await load();
+  const { completeness } = deriveCompleteness({
+    status: status({ lastCheckedHead: MOVED }), latest: snapshot(), changedFiles: [], references: [], evidence: [], promptExclusions: [],
+    spec: lookup([doc('ABC-12', 'specification', true), doc('ABC-12', 'tdd-evidence', false, 'no evidence file')], { outcome: 'partial', reason: 'x' }),
+  });
+  const [spec, tdd] = specRows(completeness) as Array<{ status: string; reason?: string }>;
+  assert.equal(spec?.status, 'stale');
+  assert.equal(spec?.reason, HEAD_MOVED_REASON);
+  assert.equal(tdd?.status, 'missing', 'a missing document is never turned into stale');
+});

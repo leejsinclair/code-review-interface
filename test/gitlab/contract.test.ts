@@ -189,7 +189,10 @@ if (gate.skip !== undefined) {
         targetRef: 'refs/heads/main',
       },
       cloneLocation: { input: { platform: SC_ID, id: review.id.toUpperCase() }, location: cloneLocationOf(review.httpUrl) },
+      // GitLab's web page is the project's HTTP clone address without `.git`, then the merge request path.
+      webPage: { number: pull.number, url: `${review.httpUrl.replace(/\.git$/, '')}/-/merge_requests/${pull.number}` },
       account: run.reviewer.username,
+      currentUser: { handle: run.reviewer.username },
       deletedPr: doomed.number,
       unauthorizedRepo: repo,
     },

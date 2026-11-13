@@ -7,7 +7,7 @@
 // is injected: production passes `@napi-rs/keyring`, tests an in-memory fake.
 
 import { APP_DIR_NAME } from './appdata.ts';
-import type { Authorize, PlatformId } from './contracts/shared.ts';
+import { AdapterError, type Authorize, type PlatformId } from './contracts/shared.ts';
 
 /** The keychain service name every entry is stored under. */
 export const CREDENTIAL_SERVICE = APP_DIR_NAME;
@@ -28,7 +28,7 @@ export interface KeyringModuleLike {
 export type AuthScheme = 'basic' | 'bearer';
 
 /** What a sign-in hands over. The secret goes in and never comes back out. */
-export type CredentialInput = { account?: string; secret: string; scheme: AuthScheme };
+export type CredentialInput = { account?: string; secret: string; scheme: AuthScheme; scope?: 'read' | 'write' };
 
 export type CredentialsDeps = {
   keyring: KeyringModuleLike;
@@ -56,6 +56,13 @@ export interface CredentialStore {
    * registered with the log scrubber. Throws CredentialError on an unusable input.
    */
   authorizeWith(input: CredentialInput): Authorize;
+  /** True only for a saved credential whose sign-in was granted write scope. */
+  hasWriteScope(platform: PlatformId): Promise<boolean>;
+  /**
+   * Like authorize(), but throws AdapterError('forbidden') synchronously when the platform has no
+   * credential or one without write scope. Write scope is asked for only on the first write action.
+   */
+  authorizeForWrite(platform: PlatformId): Authorize;
 }
 
 export type CredentialErrorCode = 'invalid_credential' | 'keyring_unavailable';
@@ -71,7 +78,7 @@ export class CredentialError extends Error {
   }
 }
 
-type Stored = { account?: string; secret: string; scheme: AuthScheme };
+type Stored = { account?: string; secret: string; scheme: AuthScheme; scope?: 'write' };
 
 // Header values may not hold control characters; refuse them at save so a header is always buildable.
 const CONTROL = /[\u0000-\u001f\u007f]/;
@@ -86,7 +93,10 @@ function checkInput(input: CredentialInput): Stored {
   if (input === null || typeof input !== 'object') {
     throw new CredentialError('invalid_credential', 'credential must be an object');
   }
-  const { account, secret, scheme } = input;
+  const { account, secret, scheme, scope } = input;
+  if (scope !== undefined && scope !== 'read' && scope !== 'write') {
+    throw new CredentialError('invalid_credential', 'credential scope must be read or write');
+  }
   if (scheme !== 'basic' && scheme !== 'bearer') {
     throw new CredentialError('invalid_credential', 'credential scheme must be basic or bearer');
   }
@@ -99,7 +109,11 @@ function checkInput(input: CredentialInput): Stored {
   if (scheme === 'basic' && (account === undefined || account === '' || account.includes(':'))) {
     throw new CredentialError('invalid_credential', 'basic credentials need an account without ":"');
   }
-  return account === undefined ? { secret, scheme } : { account, secret, scheme };
+  return withScope(account === undefined ? { secret, scheme } : { account, secret, scheme }, scope);
+}
+
+function withScope(stored: Stored, scope: unknown): Stored {
+  return scope === 'write' ? { ...stored, scope: 'write' } : stored;
 }
 
 function basicToken(account: string, secret: string): string {
@@ -126,11 +140,11 @@ function parseStored(text: string): Stored | null {
     return null;
   }
   if (value === null || typeof value !== 'object') return null;
-  const { account, secret, scheme } = value as Record<string, unknown>;
+  const { account, secret, scheme, scope } = value as Record<string, unknown>;
   if (typeof secret !== 'string' || secret === '') return null;
   if (scheme !== 'basic' && scheme !== 'bearer') return null;
   if (account !== undefined && typeof account !== 'string') return null;
-  return account === undefined ? { secret, scheme } : { account, secret, scheme };
+  return withScope(account === undefined ? { secret, scheme } : { account, secret, scheme }, scope);
 }
 
 export function createCredentials(deps: CredentialsDeps): CredentialStore {
@@ -204,6 +218,24 @@ export function createCredentials(deps: CredentialsDeps): CredentialStore {
           return request;
         }
       };
+    },
+
+    async hasWriteScope(platform) {
+      return load(platform)?.scope === 'write';
+    },
+
+    authorizeForWrite(platform) {
+      let stored: Stored | null = null;
+      try {
+        stored = load(platform);
+      } catch {
+        stored = null;
+      }
+      if (stored === null || stored.scope !== 'write') {
+        throw new AdapterError('forbidden', platform, `${platform}: this action needs a sign-in with write access; sign in again and grant write access.`);
+      }
+      const granted = stored;
+      return (request: Request): Request => withHeader(request, granted);
     },
 
     authorizeWith(input) {

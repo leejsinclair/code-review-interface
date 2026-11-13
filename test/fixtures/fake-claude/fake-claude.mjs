@@ -11,6 +11,10 @@
 //     "answer":  { ...answer JSON... },      // structured output for an answer run
 //     "answerFixture": "<name>",             // like "answer", read from <name>.json beside this script
 //     "summary": { ...summary JSON... },     // structured output for a summary run
+//     "risk": { ...risk assessment JSON... }, // structured output for a risk run ({ files: [...] }, default none)
+//     "alignment": { ...spec alignment JSON... }, // structured output for a spec-alignment run (schema name `specAlignment`)
+//     "alignmentScenario": "...",            // like "scenario", for alignment runs only (e.g. "unstructured", "error-on-start")
+//     "riskScenario": "...",                 // like "scenario", for risk runs only (e.g. "unstructured", "error-on-start")
 //     "text": "raw text for the unstructured scenario",
 //     "chunks": 3,                            // text deltas per run
 //     "delayMs": 0                            // pause between deltas
@@ -67,9 +71,13 @@ function record(entry) {
   appendFileSync(join(binDir, 'invocations.jsonl'), `${JSON.stringify(entry)}\n`);
 }
 
+// Risk runs are numbered apart (0), so a test's run numbers for answers and summaries do not depend on how they
+// interleave with the risk run the workbench starts for every snapshot.
 function invocationNumber() {
   try {
-    return readFileSync(join(binDir, 'invocations.jsonl'), 'utf8').split('\n').filter((l) => l !== '').length;
+    return readFileSync(join(binDir, 'invocations.jsonl'), 'utf8')
+      .split('\n')
+      .filter((l) => l !== '' && JSON.parse(l).risk !== true && JSON.parse(l).alignment !== true).length;
   } catch {
     return 0;
   }
@@ -105,7 +113,10 @@ function argValue(name) {
 
 async function main() {
   const cfg = config();
-  const scenario = cfg.scenario ?? 'structured';
+  const schemaArg = argValue('--json-schema') ?? '';
+  const isRisk = schemaArg.includes('riskAssessment');
+  const isAlignment = schemaArg.includes('specAlignment');
+  const scenario = (isRisk ? cfg.riskScenario : isAlignment ? cfg.alignmentScenario : undefined) ?? cfg.scenario ?? 'structured';
 
   if (args[0] === '--version' || args[0] === '-v') {
     process.stdout.write('2.1.319 (Claude Code)\n');
@@ -131,11 +142,10 @@ async function main() {
   } catch {
     cwdEntries = null;
   }
-  const n = invocationNumber() + 1;
-  record({ n, argv: args, env: process.env, cwd: process.cwd(), cwdEntries, stdin });
+  const n = isRisk || isAlignment ? 0 : invocationNumber() + 1;
+  record({ n, risk: isRisk, alignment: isAlignment, argv: args, env: process.env, cwd: process.cwd(), cwdEntries, stdin });
 
-  const schema = argValue('--json-schema') ?? '';
-  const kind = schema.includes('prSummary') ? 'summary' : 'answer';
+  const kind = isRisk ? 'risk' : isAlignment ? 'alignment' : schemaArg.includes('prSummary') ? 'summary' : 'answer';
 
   if (scenario === 'error-on-start') {
     process.stderr.write('Error: the fake provider failed to start\n');
@@ -152,16 +162,21 @@ async function main() {
   if (kind === 'answer' && typeof cfg.answerFixture === 'string') {
     fixtureAnswer = JSON.parse(readFileSync(new URL(`./${cfg.answerFixture}.json`, import.meta.url), 'utf8'));
   }
-  const output = fixtureAnswer ?? cfg[kind] ?? (kind === 'summary'
-    ? { prSummary: [], files: [], functionalImpact: [], technicalImpact: [] }
-    : { claims: [], unsupportedAssumptions: [], suggestedFollowUps: [] });
+  const output = fixtureAnswer ?? cfg[kind] ?? (kind === 'risk'
+    ? { files: [] }
+    : kind === 'alignment'
+      ? { specSummary: '', tddSummary: '', criteria: [], verdict: { outcome: 'cannot-judge', text: '', uncovered: [], mismatched: [] }, deviations: [] }
+      : kind === 'summary'
+      ? { prSummary: [], files: [], functionalImpact: [], technicalImpact: [] }
+      : { claims: [], unsupportedAssumptions: [], suggestedFollowUps: [] });
   const text = scenario === 'unstructured' ? (cfg.text ?? 'This is not structured output.') : JSON.stringify(output);
   const pieces = split(text, cfg.chunks ?? 3);
   for (let i = 0; i < pieces.length; i += 1) {
     delta(pieces[i]);
     if (scenario === 'slow' && i === 0) {
       // A held run also ends when the test's bin directory is gone, so no run outlives its test.
-      while (!existsSync(join(binDir, `release-${n}`)) && !existsSync(join(binDir, 'release-all'))) {
+      const releaseName = isRisk ? 'release-risk' : isAlignment ? 'release-alignment' : `release-${n}`;
+      while (!existsSync(join(binDir, releaseName)) && !existsSync(join(binDir, 'release-all'))) {
         if (!existsSync(binDir)) return 4;
         await sleep(20);
       }

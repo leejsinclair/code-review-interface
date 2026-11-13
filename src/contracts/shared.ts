@@ -21,9 +21,26 @@ export type AdapterErrorCode =
   /** Network failure or 5xx. */
   | 'unavailable'
   /** Pagination stopped at the page cap; reported as a gap. */
-  | 'truncated';
+  | 'truncated'
+  /** A write the platform refused for lack of permission; the message is the platform's own. */
+  | 'forbidden'
+  /** A write the platform refused because the target changed under it. */
+  | 'conflict'
+  /** A write the platform refused as invalid. */
+  | 'rejected'
+  /** A write the platform throttled. */
+  | 'rate_limited';
 
-export const ADAPTER_ERROR_CODES: readonly AdapterErrorCode[] = ['unauthorized', 'not_found', 'unavailable', 'truncated'];
+export const ADAPTER_ERROR_CODES: readonly AdapterErrorCode[] = [
+  'unauthorized',
+  'not_found',
+  'unavailable',
+  'truncated',
+  'forbidden',
+  'conflict',
+  'rejected',
+  'rate_limited',
+];
 
 /** The one error type an adapter raises, carrying a neutral code and the platform it came from. */
 export class AdapterError extends Error {

@@ -18,6 +18,7 @@ import type {
   PrSnapshot,
   ReviewStore,
   SessionStatus,
+  SpecLookupWithParts,
 } from '../store/review-store.ts';
 
 export type CompletenessInput = {
@@ -27,6 +28,8 @@ export type CompletenessInput = {
   references: IssueReference[];
   evidence: Evidence[];
   promptExclusions: ExcludedFile[];
+  /** The latest specification lookup: absent leaves the specification rows out, null means none was stored. */
+  spec?: SpecLookupWithParts | null;
 };
 
 export type Completeness = { completeness: CompletenessRow[]; issues: WireIssueReference[] };
@@ -93,6 +96,26 @@ function issueReference(reference: IssueReference, evidence: Evidence[]): WireIs
   return out;
 }
 
+/** The `specification` and `tdd-evidence` rows, derived from the latest lookup (FR-009). A missing document is never read as found or stale. */
+function specRows(spec: SpecLookupWithParts | null, headMoved: boolean): CompletenessRow[] {
+  const kinds = [['specification', 'specification'], ['tdd-evidence', 'tdd-evidence']] as const;
+  return kinds.map(([kind, source]): CompletenessRow => {
+    if (spec === null) return { source, status: 'missing', reason: 'not looked up yet' };
+    if (spec.lookup.keys.length === 0) return { source, status: 'missing', reason: spec.lookup.reason ?? 'no key was found to search with' };
+    // Keys are also read from text such as requirement ids (FR-12): a key with no folder at all is noise
+    // once another key has one, so it neither marks the row missing nor appears in its reason.
+    const hasFolder = (key: string): boolean => spec.documents.some((d) => d.key === key && d.missingReason !== 'no folder');
+    const real = spec.lookup.keys.some(hasFolder) ? spec.lookup.keys.filter(hasFolder) : spec.lookup.keys;
+    const docs = real.map((key) => spec.documents.find((d) => d.key === key && d.kind === kind));
+    const missing = real.flatMap((key, i) => {
+      const d = docs[i];
+      return d === undefined || d.status === 'missing' ? [`${key}: ${d?.missingReason ?? 'not found'}`] : [];
+    });
+    if (missing.length > 0) return { source, status: 'missing', reason: missing.join('; ') };
+    return headMoved ? { source, status: 'stale', reason: HEAD_MOVED_REASON } : { source, status: 'found' };
+  });
+}
+
 export function deriveCompleteness(input: CompletenessInput): Completeness {
   const { status, latest } = input;
   const issues = input.references.map((r) => issueReference(r, input.evidence));
@@ -114,7 +137,12 @@ export function deriveCompleteness(input: CompletenessInput): Completeness {
           issues: issueOnly,
         };
 
-  return { completeness: [prRow(status, latest), repository, issueRow], issues };
+  const rows = [prRow(status, latest), repository, issueRow];
+  if (input.spec !== undefined) {
+    const headMoved = status.lastCheckedHead !== null && status.lastCheckedHead !== latest.headCommit;
+    rows.push(...specRows(input.spec, headMoved));
+  }
+  return { completeness: rows, issues };
 }
 
 /** The `prompt limit` exclusions of the latest completed summary prompt for a snapshot. */
@@ -138,6 +166,7 @@ export function readCompleteness(store: ReviewStore, sessionId: string): Complet
     references: store.listIssueReferences(latest.id),
     evidence: store.listEvidence(sessionId),
     promptExclusions: latestPromptExclusions(store, latest.id),
+    spec: store.readLatestSpecLookup(latest.id),
   });
 }
 

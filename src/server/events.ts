@@ -18,6 +18,8 @@ export interface EventHub {
   subscribe(sessionId: string, res: ServerResponse): () => void;
   /** Sends one event to every stream open for `sessionId`; returns how many got it. */
   publish(sessionId: string, event: string, data: unknown): number;
+  /** Sends one event to every open stream of every session; returns how many got it. */
+  broadcast(event: string, data: unknown): number;
   /** Number of streams open for `sessionId`. */
   subscriberCount(sessionId: string): number;
   /** Ends every stream open for `sessionId` (the session closed). */
@@ -140,6 +142,15 @@ export function createEventHub(options: EventHubOptions = {}): EventHub {
       const frame = formatEvent(event, data);
       let delivered = 0;
       for (const res of [...set]) if (write(sessionId, res, frame)) delivered += 1;
+      return delivered;
+    },
+
+    broadcast(event, data) {
+      const frame = formatEvent(event, data);
+      let delivered = 0;
+      for (const [sessionId, set] of [...sessions]) {
+        for (const res of [...set]) if (write(sessionId, res, frame)) delivered += 1;
+      }
       return delivered;
     },
 

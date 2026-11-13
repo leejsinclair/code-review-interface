@@ -56,8 +56,15 @@ function fakePlatform(sandbox: GitSandbox) {
     async verifySignIn() {
       return { ok: true, account: 'reviewer' };
     },
+    async currentUser() {
+      return { handle: 'reviewer', displayName: 'Reviewer' };
+    },
     cloneLocations: () => ['code.example.test/acme/widgets'],
+    pullRequestUrl: (_repo, number) => `https://code.example.test/acme/widgets/pull/${number}`,
     repositoryForRemote: (remote: string) => (remote === 'code.example.test/acme/widgets' ? 'acme/widgets' : null),
+    async approvedByMe() {
+      return new Set<number>();
+    },
     async listOpenPullRequests() {
       calls.push('list');
       return [...prs.values()].filter((p) => p.state === 'open').map(strip);
@@ -82,6 +89,16 @@ function fakePlatform(sandbox: GitSandbox) {
       return pr.fromFork
         ? { remoteUrls: [FORK_REMOTE, 'git@code.example.test:contrib/widgets.git'], ref: `refs/heads/${pr.sourceBranch}` }
         : { remoteUrls: [REMOTE, 'git@code.example.test:acme/widgets.git'], ref: `refs/pull/${pr.number}/head` };
+    },
+    async listComments() {
+      return [];
+    },
+    async myDecision() {
+      return null;
+    },
+    async reviewCapability() {
+      const no = { allowed: false, reason: 'not used here' };
+      return { comment: no, line_comment: no, reply: no, edit_comment: no, delete_comment: no, approve: no, request_changes: no, withdraw_decision: no };
     },
     async targetLocation(_repo, info) {
       return { remoteUrls: [REMOTE, 'git@code.example.test:acme/widgets.git'], ref: `refs/heads/${info.targetBranch}` };
@@ -282,4 +299,43 @@ test('VO-028 the sweep removes a workspace directory whose clone no longer knows
   const removed = await sweepWorkspaces({ manager: h.makeManager(), workspacesDir: h.paths.workspaces });
   assert.deepEqual(removed, [stray]);
   assert.equal(existsSync(stray), false);
+});
+
+// Feature 006 (T009, FR-002, research R1): the project repository that encloses a pull request's clone is
+// found from the folders discovery recorded, by path containment alone. Required of `src/core/workspace.ts`
+// (T018): `workspace.enclosingOf(repositoryId): { repository: RepoRef; folder: string } | null`, the matched
+// entry whose folder is the nearest proper path ancestor of the clone of `repositoryId` (case-insensitive id).
+
+test('006 enclosingOf finds the nearest enclosing clone, none for a clone not inside another, with no platform or naming rule', async (t) => {
+  const { createWorkspace } = await import('../../src/core/workspace.ts');
+  const { makeBaseFolder } = await import('../helpers/git-sandbox.ts');
+  const { join } = await import('node:path');
+  const base = await makeBaseFolder();
+  t.after(() => base.cleanup());
+  const deepest = join(base.folders.inner, 'nested', 'deepest');
+  await base.git(base.folders.inner, 'init', '-q', deepest);
+  await base.git(deepest, 'remote', 'add', 'origin', 'https://github.com/acme/deepest.git');
+
+  const workspace = createWorkspace({
+    manager: { readRemotes: async (folder: string) => (await base.git(folder, 'remote', '-v')).split('\n').filter(Boolean).map((l) => l.split(/\s+/)[1] ?? '') },
+    appDataDir: base.appData,
+    matcherFor: () => (remote) => (/^github\.com\/(.+?)(\.git)?$/.exec(remote)?.[1]?.toLowerCase() ?? null),
+  });
+  workspace.configure({ baseFolder: base.base, platform: 'github' });
+  await workspace.settled();
+
+  // inner lives in widgets/vendor/inner: widgets encloses it, whatever either is called
+  const inner = workspace.enclosingOf('acme/inner');
+  assert.equal(inner?.folder, base.folders.widgets);
+  assert.equal(inner?.repository.id, 'acme/widgets');
+  assert.equal(workspace.enclosingOf('ACME/Inner')?.folder, base.folders.widgets, 'the id is case-insensitive');
+
+  // two levels down: the nearest proper ancestor wins, not the outermost
+  assert.equal(workspace.enclosingOf('acme/deepest')?.folder, base.folders.inner);
+
+  // not inside another known clone: none (a sibling or the base folder itself is not an enclosing clone)
+  for (const id of ['acme/widgets', 'acme/gizmos', 'acme/gadgets', 'acme/twins', 'me/widgets-fork']) {
+    assert.equal(workspace.enclosingOf(id), null, `${id} is not inside a known clone`);
+  }
+  assert.equal(workspace.enclosingOf('acme/never-found'), null, 'an unknown repository has no enclosing clone');
 });

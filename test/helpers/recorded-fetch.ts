@@ -11,6 +11,7 @@
 //   }
 //
 // - `method` defaults to GET. URLs match after normalisation (query parameters sorted, fragment dropped).
+// - `request.bodyIncludes`, when given, must appear in the request body; such an entry is tried before the plain ones.
 // - `request.headers.accept`, when given, must also match: a platform that picks a representation by
 //   media type (a pull request as JSON or as a unified diff) is recorded once per representation.
 // - `body` that is a string is sent as-is (for example a unified diff); anything else is sent as JSON,
@@ -31,7 +32,13 @@ import { mkdirSync, readdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
-export type FixtureRequest = { method?: string; url: string; headers?: { accept?: string } };
+export type FixtureRequest = {
+  method?: string;
+  url: string;
+  headers?: { accept?: string };
+  /** When given, the request body must also contain this text (platforms that write several things to one URL). */
+  bodyIncludes?: string;
+};
 
 export type FixtureResponse =
   | { status?: number; statusText?: string; headers?: Record<string, string>; body?: unknown }
@@ -151,7 +158,16 @@ function buildResponse(response: FixtureResponse): Response {
 export function recordedFetch(platforms: string | string[], options: RecordedFetchOptions = {}): RecordedFetch {
   const fixturesDir = options.fixturesDir ?? DEFAULT_FIXTURES_DIR;
   const queues = new Map<string, Recording[]>();
+  const bodyMatched: Array<{ key: string; includes: string; recording: Recording }> = [];
   const add = (entry: FixtureEntry, source: string): void => {
+    if (entry.request.bodyIncludes !== undefined) {
+      bodyMatched.push({
+        key: keyOf(entry.request.method ?? 'GET', entry.request.url),
+        includes: entry.request.bodyIncludes,
+        recording: { response: entry.response, source },
+      });
+      return;
+    }
     const key = keyOf(entry.request.method ?? 'GET', entry.request.url, entry.request.headers?.accept);
     const queue = queues.get(key) ?? [];
     queue.push({ response: entry.response, source });
@@ -175,6 +191,13 @@ export function recordedFetch(platforms: string | string[], options: RecordedFet
       servedFrom: null,
     };
     requests.push(logged);
+
+    const bodyText = bodyMatched.length > 0 ? await request.clone().text() : '';
+    const byBody = bodyMatched.find((m) => m.key === keyOf(logged.method, logged.url) && bodyText.includes(m.includes));
+    if (byBody !== undefined) {
+      logged.servedFrom = byBody.recording.source;
+      return buildResponse(byBody.recording.response);
+    }
 
     const accept = request.headers.get('accept');
     const queue =

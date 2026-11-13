@@ -220,3 +220,75 @@ test('VO-040 a keyring failure surfaces without the secret, and leaves no file h
 
   for (const path of await filesUnder(appData.root)) assertNoSecret(await readFile(path, 'utf8'), path);
 });
+
+// ---- T041 (specs/005-review-actions, R9, X.7, X.8): write scope is lazy ----
+//
+// API required from src/credentials.ts (T019), added to CredentialStore and CredentialInput:
+//
+//   CredentialInput gains `scope?: 'read' | 'write'` (default 'read'): what the sign-in was granted.
+//   hasWriteScope(platform): Promise<boolean>   true only for a saved credential with scope 'write'.
+//   authorizeForWrite(platform): Authorize      like authorize(), but throws
+//       AdapterError('forbidden', platform, <message naming a sign-in with write access>) when the
+//       platform has no credential or one without write scope. The message never holds a secret.
+//
+// authorize() (the read path) is unchanged and works with a read-only credential, so a sign-in never
+// asks for write scope and the keyring is not touched for write scope until a write is attempted.
+
+test('T041 a read sign-in does not carry write scope, and reading never needs it', async () => {
+  const keyring = createFakeKeyring();
+  const { store } = await makeStore(keyring);
+  await store.save('github', { account: 'octo-reviewer', secret: GITHUB_TOKEN, scheme: 'bearer' });
+
+  assert.equal(await store.hasWriteScope('github'), false);
+  const request = store.authorize('github')(new Request('https://api.example.test/user'));
+  assert.equal(request.headers.get('authorization'), `Bearer ${GITHUB_TOKEN}`);
+});
+
+test('T041 a write before write scope was granted maps to forbidden and sends nothing', async () => {
+  const { AdapterError } = await import('../../src/contracts/shared.ts');
+  const keyring = createFakeKeyring();
+  const { store } = await makeStore(keyring);
+  await store.save('github', { account: 'octo-reviewer', secret: GITHUB_TOKEN, scheme: 'bearer', scope: 'read' });
+
+  for (const platform of ['github', 'gitlab']) {
+    // 'gitlab' has no credential at all: also forbidden, not a thrown CredentialError.
+    assert.throws(
+      () => store.authorizeForWrite(platform)(new Request('https://api.example.test/x', { method: 'POST' })),
+      (error: unknown) => {
+        assert.ok(error instanceof AdapterError);
+        assert.equal(error.code, 'forbidden');
+        assert.equal(error.platform, platform);
+        assertNoSecret(`${error.message}\n${error.stack ?? ''}`, 'the forbidden error');
+        return true;
+      },
+    );
+  }
+});
+
+test('T041 once write scope is granted the write authorize adds the header, and a later read sign-in does not keep it', async () => {
+  const keyring = createFakeKeyring();
+  const { store } = await makeStore(keyring);
+  await store.save('github', { account: 'octo-reviewer', secret: GITHUB_TOKEN, scheme: 'bearer', scope: 'write' });
+
+  assert.equal(await store.hasWriteScope('github'), true);
+  const request = store.authorizeForWrite('github')(new Request('https://api.example.test/x', { method: 'POST' }));
+  assert.equal(request.headers.get('authorization'), `Bearer ${GITHUB_TOKEN}`);
+
+  await store.save('github', { account: 'octo-reviewer', secret: GITHUB_TOKEN, scheme: 'bearer' });
+  assert.equal(await store.hasWriteScope('github'), false);
+});
+
+test('T041 no token reaches an X.7 location through the write-scope path', async (t) => {
+  const appData = await useTempAppData(t);
+  const keyring = createFakeKeyring();
+  const { store, registered } = await makeStore(keyring);
+  await store.save('github', { account: 'octo-reviewer', secret: GITHUB_TOKEN, scheme: 'bearer', scope: 'write' });
+  await store.hasWriteScope('github');
+  store.authorizeForWrite('github')(new Request('https://api.example.test/x', { method: 'POST' }));
+
+  assert.ok(registered.includes(GITHUB_TOKEN), 'the secret was not registered with the scrubber');
+  assertNoSecret(await store.account('github'), 'account()');
+  assertNoSecret(await store.hasWriteScope('github'), 'hasWriteScope()');
+  assertNoSecret(store, 'the credential store object');
+  for (const path of await filesUnder(appData.root)) assertNoSecret(await readFile(path, 'utf8'), path);
+});

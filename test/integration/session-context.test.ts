@@ -61,8 +61,15 @@ function fakePlatform(sandbox: GitSandbox) {
     async verifySignIn() {
       return { ok: true, account: 'reviewer' };
     },
+    async currentUser() {
+      return { handle: 'reviewer', displayName: 'Reviewer' };
+    },
     cloneLocations: () => ['code.example.test/acme/widgets'],
+    pullRequestUrl: (_repo, number) => `https://code.example.test/acme/widgets/pull/${number}`,
     repositoryForRemote: (remote: string) => (remote === 'code.example.test/acme/widgets' ? 'acme/widgets' : null),
+    async approvedByMe() {
+      return new Set<number>();
+    },
     async listOpenPullRequests() {
       calls.push('list');
       return [...prs.values()].filter((p) => p.state === 'open').map(strip);
@@ -87,6 +94,16 @@ function fakePlatform(sandbox: GitSandbox) {
       return pr.fromFork
         ? { remoteUrls: [FORK_REMOTE, 'git@code.example.test:contrib/widgets.git'], ref: `refs/heads/${pr.sourceBranch}` }
         : { remoteUrls: [REMOTE, 'git@code.example.test:acme/widgets.git'], ref: `refs/pull/${pr.number}/head` };
+    },
+    async listComments() {
+      return [];
+    },
+    async myDecision() {
+      return null;
+    },
+    async reviewCapability() {
+      const no = { allowed: false, reason: 'not used here' };
+      return { comment: no, line_comment: no, reply: no, edit_comment: no, delete_comment: no, approve: no, request_changes: no, withdraw_decision: no };
     },
     async targetLocation(_repo, info) {
       return { remoteUrls: [REMOTE, 'git@code.example.test:acme/widgets.git'], ref: `refs/heads/${info.targetBranch}` };
@@ -164,6 +181,8 @@ async function harness(t: { after(fn: () => unknown): void }, options: HarnessOp
   const platform = fakePlatform(sandbox);
   const clonePath = options.clonePath?.(sandbox) ?? sandbox.clone;
   const snapshotsTaken: string[] = [];
+  const snapshotsStored: string[] = [];
+  const storedHook: { fail: boolean } = { fail: false };
   const closed: string[] = [];
   const sessions = createSessions({
     store,
@@ -176,6 +195,12 @@ async function harness(t: { after(fn: () => unknown): void }, options: HarnessOp
       limits: { ...DEFAULT_LIMITS },
     }),
     onSnapshot: (_sessionId: string, snapshotId: string) => snapshotsTaken.push(snapshotId),
+    onSnapshotStored: (_sessionId: string, snapshotId: string) => {
+      // The snapshot's rows are already committed when the hook runs.
+      assert.ok(store.readSnapshot(snapshotId), 'the snapshot is stored before the hook');
+      snapshotsStored.push(snapshotId);
+      if (storedHook.fail) throw new Error('classifier failed');
+    },
     onClose: (sessionId: string) => closed.push(sessionId),
   });
 
@@ -189,7 +214,7 @@ async function harness(t: { after(fn: () => unknown): void }, options: HarnessOp
       .split('\n')
       .filter((line) => line !== '');
 
-  return { appData, paths, sandbox, store, git, manager, makeManager, platform, sessions, snapshotsTaken, closed, worktrees, prwbRefs };
+  return { appData, paths, sandbox, store, git, manager, makeManager, platform, sessions, snapshotsTaken, snapshotsStored, storedHook, closed, worktrees, prwbRefs };
 }
 
 const UTIL_V2 = 'export function add(a, b) {\n  return a + b;\n}\n\nexport function sub(a, b) {\n  return a - b;\n}\n\nexport const version = 2;\n';
@@ -424,4 +449,36 @@ test('VO-077 a refresh with the head unchanged after a failed fetch takes a snap
   assert.deepEqual(refreshed.snapshots.map((s) => s.diffSource), ['platform', 'local']);
   assert.equal(refreshed.completeness.find((r) => r.source === 'repository')?.status, 'found');
   assert.deepEqual(h.snapshotsTaken, [refreshed.snapshots[1]?.snapshotId]);
+});
+
+test('T014 onSnapshotStored runs right after the snapshot is stored, on open and on refresh, with or without a workspace', async (t) => {
+  const h = await harness(t);
+  const pr = await h.sandbox.openPr({ number: 1, branch: 'feature/sub', files: { 'src/util.js': UTIL_V2 } });
+  // No workspace: the head cannot be fetched, yet the snapshot is announced to the hook.
+  h.platform.publish(1, { brokenHead: true });
+  const { detail } = await h.sessions.start({ platform: SOURCE, id: 'acme/widgets' }, 1);
+  assert.deepEqual(h.snapshotsTaken, [], 'no workspace, no workspace-bound announcement');
+  assert.deepEqual(h.snapshotsStored, [detail.snapshots[0]?.snapshotId], 'the stored snapshot is announced');
+
+  h.platform.set(1, { brokenHead: false });
+  const refreshed = await h.sessions.refresh(detail.sessionId);
+  assert.deepEqual(h.snapshotsStored, refreshed.snapshots.map((x) => x.snapshotId), 'the refresh snapshot is announced too');
+
+  await h.sandbox.pushCommit(1, { 'src/util.js': UTIL_V3 });
+  h.platform.publish(1);
+  const again = await h.sessions.refresh(detail.sessionId);
+  assert.equal(h.snapshotsStored.length, 3);
+  assert.equal(h.snapshotsStored[2], again.snapshots[2]?.snapshotId);
+  void pr;
+});
+
+test('T014 a failing onSnapshotStored does not fail snapshot creation (V.4)', async (t) => {
+  const h = await harness(t);
+  await h.sandbox.openPr({ number: 1, branch: 'feature/sub', files: { 'src/util.js': UTIL_V2 } });
+  h.platform.publish(1);
+  h.storedHook.fail = true;
+  const { detail } = await h.sessions.start({ platform: SOURCE, id: 'acme/widgets' }, 1);
+  assert.equal(detail.snapshots.length, 1);
+  assert.equal(h.snapshotsStored.length, 1);
+  assert.equal(h.store.readSnapshot(detail.snapshots[0]?.snapshotId ?? '') !== null, true);
 });

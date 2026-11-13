@@ -35,7 +35,7 @@ export type ProviderCapabilities = {
   unavailableReason?: string;
 };
 
-export type AskOutput = 'answer' | 'summary';
+export type AskOutput = 'answer' | 'summary' | 'risk' | 'alignment';
 
 export type AskRequest = {
   requestId: string;

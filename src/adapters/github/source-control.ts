@@ -3,16 +3,19 @@
 // through `authorize` (R6). A PR head, including a fork's, is fetched from the base repository's
 // `refs/pull/<n>/head` (R10).
 
+import { mapLimited } from '../concurrent.ts';
 import { AdapterError, type AdapterDeps, type AdapterDescriptor, type SignInCheck } from '../../contracts/shared.ts';
 import type {
   ChangedFileInfo,
   ChangedFileStatus,
   CommitInfo,
+  CurrentUser,
   HeadLocation,
   PullRequestInfo,
   RepoRef,
   SourceControlProvider,
 } from '../../contracts/source-control.ts';
+import type { Anchor, Comment, ReviewCapability, ReviewDecision } from '../../contracts/source-control-writer.ts';
 
 export const GITHUB_ID = 'github';
 const API = 'https://api.github.com';
@@ -109,6 +112,38 @@ function locations(repo: RepoRef, ref: string): HeadLocation {
   return { remoteUrls: [`https://github.com/${id}.git`, `git@github.com:${id}.git`], ref };
 }
 
+function toComment(raw: Json): Comment {
+  const user = obj(raw.user);
+  const created = iso(raw.created_at);
+  const updated = iso(raw.updated_at);
+  const id = String(raw.id);
+  const line = raw.line ?? raw.original_line;
+  let anchor: Anchor | null = null;
+  if (typeof raw.path === 'string' && typeof line === 'number') {
+    const start = raw.start_line ?? raw.original_start_line;
+    anchor = {
+      path: raw.path,
+      side: str(raw.side) === 'LEFT' ? 'base' : 'head',
+      startLine: typeof start === 'number' ? start : line,
+      endLine: line,
+      commit: str(raw.commit_id) || str(raw.original_commit_id),
+    };
+  }
+  return {
+    id,
+    threadId: raw.in_reply_to_id === undefined || raw.in_reply_to_id === null ? id : String(raw.in_reply_to_id),
+    author: { id: String(user.id ?? str(user.login)), name: str(user.login) },
+    body: str(raw.body),
+    createdAt: created,
+    editedAt: updated !== created && updated !== '' ? updated : null,
+    anchor,
+    outdated: anchor !== null && raw.line === null,
+    postedByTool: false,
+  };
+}
+
+const ALLOWED: ReviewCapability[keyof ReviewCapability] = { allowed: true };
+
 export function createGithubSourceControl(deps: AdapterDeps): SourceControlProvider {
   const getJson = async (url: string): Promise<unknown> => (await authorisedGet(deps, url, JSON_TYPE)).json();
 
@@ -125,17 +160,33 @@ export function createGithubSourceControl(deps: AdapterDeps): SourceControlProvi
     return items;
   };
 
+  /** One GET of the signed-in user (no cache): the one place this adapter reads `/user`. */
+  const readUser = async (): Promise<CurrentUser> => {
+    const user = obj(await getJson(`${API}/user`));
+    const handle = str(user.login);
+    const name = str(user.name);
+    return { handle, displayName: name === '' ? handle : name };
+  };
+
+  let me: Promise<string> | undefined;
+  const myLogin = (): Promise<string> => (me ??= readUser().then((u) => u.handle.toLowerCase()).catch((error: unknown) => {
+    me = undefined; // a failed lookup is not remembered
+    throw error;
+  }));
+
   return {
     id: GITHUB_ID,
 
     async verifySignIn(): Promise<SignInCheck> {
       try {
-        return { ok: true, account: str(obj(await getJson(`${API}/user`)).login) };
+        return { ok: true, account: (await readUser()).handle };
       } catch (error) {
         if (error instanceof AdapterError) return { ok: false, reason: `the token was not accepted (${error.code})` };
         throw error;
       }
     },
+
+    currentUser: readUser,
 
     cloneLocations: (repo) => [`github.com/${repo.id.toLowerCase()}`],
 
@@ -144,9 +195,72 @@ export function createGithubSourceControl(deps: AdapterDeps): SourceControlProvi
       return match === null ? null : (match[1] ?? null);
     },
 
+    pullRequestUrl: (repo, number) => `https://github.com/${repoPath(repo)}/pull/${number}`,
+
     async listOpenPullRequests(repo) {
       const raw = await getPages(`${API}/repos/${repoPath(repo)}/pulls?state=open&per_page=100`);
       return raw.map(toPullRequest);
+    },
+
+    async approvedByMe(repo, numbers) {
+      const login = await myLogin();
+      const approvedOne = async (number: number): Promise<boolean> => {
+        const reviews = await getPages(`${API}/repos/${repoPath(repo)}/pulls/${number}/reviews?per_page=100`);
+        // Reviews arrive oldest first; comments do not change the verdict, so only my last real one counts.
+        const mine = reviews.filter((r) => str(obj(r.user).login).toLowerCase() === login && str(r.state) !== 'COMMENTED' && str(r.state) !== 'PENDING');
+        return mine.at(-1) !== undefined && str(mine.at(-1)?.state) === 'APPROVED';
+      };
+      const flags = await mapLimited(numbers, 4, async (number) => {
+        try {
+          return await approvedOne(number);
+        } catch {
+          return false; // one PR failing must not hide the others' approvals
+        }
+      });
+      return new Set(numbers.filter((_, i) => flags[i]));
+    },
+
+    async listComments(repo, number) {
+      const base = `${API}/repos/${repoPath(repo)}`;
+      const [review, issue] = await Promise.all([
+        getPages(`${base}/pulls/${number}/comments?per_page=100`),
+        getPages(`${base}/issues/${number}/comments?per_page=100`),
+      ]);
+      return [...review, ...issue].map(toComment);
+    },
+
+    async myDecision(repo, number): Promise<ReviewDecision | null> {
+      const login = await myLogin();
+      const reviews = await getPages(`${API}/repos/${repoPath(repo)}/pulls/${number}/reviews?per_page=100`);
+      const mine = reviews.filter(
+        (r) => str(obj(r.user).login).toLowerCase() === login && ['APPROVED', 'CHANGES_REQUESTED', 'DISMISSED'].includes(str(r.state)),
+      );
+      const last = mine.at(-1);
+      if (last === undefined || str(last.state) === 'DISMISSED') return null;
+      const message = str(last.body);
+      return {
+        kind: str(last.state) === 'APPROVED' ? 'approved' : 'changes_requested',
+        message: message === '' ? null : message,
+        commit: str(last.commit_id).toLowerCase(),
+        decidedAt: iso(last.submitted_at),
+        stale: false, // core compares `commit` with the current head
+        platformId: String(last.id),
+      };
+    },
+
+    async reviewCapability() {
+      // GitHub offers every action; a refusal (forbidden) is the fallback if a token lacks the scope.
+      // No merge, close or other action exists here by design.
+      return {
+        comment: ALLOWED,
+        line_comment: ALLOWED,
+        reply: ALLOWED,
+        edit_comment: ALLOWED,
+        delete_comment: ALLOWED,
+        approve: ALLOWED,
+        request_changes: ALLOWED,
+        withdraw_decision: ALLOWED,
+      };
     },
 
     async getPullRequest(repo, number) {

@@ -16,7 +16,7 @@ import { join } from 'node:path';
 import { createInterface } from 'node:readline';
 import type { AiProvider, AskEvent, AskRequest, ProviderCapabilities } from '../../contracts/ai-provider.ts';
 import { probeCapabilities, providerEnv, type Probe } from './capabilities.ts';
-import { ANSWER_SCHEMA, SUMMARY_SCHEMA } from './schemas.ts';
+import { ALIGNMENT_SCHEMA, ANSWER_SCHEMA, RISK_SCHEMA, SUMMARY_SCHEMA } from './schemas.ts';
 import { parseStreamLine } from './stream.ts';
 
 export const PROVIDER_ID = 'claude-code-cli';
@@ -47,7 +47,7 @@ export function cliArguments(req: AskRequest, addDir: boolean): string[] {
     '--disable-slash-commands',
     '--no-session-persistence',
     ...(addDir ? ['--add-dir', req.workspacePath] : []),
-    '--json-schema', JSON.stringify(req.output === 'answer' ? ANSWER_SCHEMA : SUMMARY_SCHEMA),
+    '--json-schema', JSON.stringify(req.output === 'answer' ? ANSWER_SCHEMA : req.output === 'risk' ? RISK_SCHEMA : req.output === 'alignment' ? ALIGNMENT_SCHEMA : SUMMARY_SCHEMA),
     '--append-system-prompt', req.instructions,
   ];
 }

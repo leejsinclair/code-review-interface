@@ -54,8 +54,14 @@ export type SourceControlExpectations = {
   forkPull: { number: number; headCommit: string; headRemoteUrl: string; headRef: string; targetRemoteUrl: string; targetRef: string };
   /** `cloneLocations(input)` returns `[location]`. */
   cloneLocation: { input: RepoRef; location: string };
+  /** `pullRequestUrl(repo, number)` returns `url`: the page a person opens in a browser. */
+  webPage: { number: number; url: string };
   /** `verifySignIn()` reports this account. */
   account: string;
+  /** `currentUser()` returns this handle; `displayName`, when given, too (a live target may not know it). */
+  currentUser: { handle: string; displayName?: string };
+  /** Open pull requests the signed-in account has approved; when omitted the case only checks the shape. */
+  approvedNumbers?: number[];
   /** A number that rejects with `not_found` under the `deleted-pr` scenario. */
   deletedPr: number;
   /** A repository read under the `unauthorized` scenario. */
@@ -117,6 +123,15 @@ export function runSourceControlContract(target: SourceControlTarget): void {
       assert.ok(pr.title.length > 0);
       assert.ok(pr.sourceBranch.length > 0 && pr.targetBranch.length > 0);
     }
+    onlyAuthorisedGets(target, harness);
+  });
+
+  test(`VO-022 ${id}: approvedByMe reports only open PRs the signed-in account approved, with reads only`, async () => {
+    const harness = await target.create();
+    const approved = await harness.sc.approvedByMe(repo, expected.openNumbers);
+    for (const n of approved) assert.ok(expected.openNumbers.includes(n), `${n} was asked about`);
+    if (expected.approvedNumbers !== undefined) assert.deepEqual([...approved].sort((a, b) => a - b), expected.approvedNumbers);
+    assert.deepEqual([...(await harness.sc.approvedByMe(repo, []))], [], 'nothing asked, nothing approved');
     onlyAuthorisedGets(target, harness);
   });
 
@@ -194,6 +209,12 @@ export function runSourceControlContract(target: SourceControlTarget): void {
     assert.equal(harness.requests.length, 0);
   });
 
+  test(`${id}: pullRequestUrl gives the pull request's web page, without a network call`, async () => {
+    const harness = await target.create();
+    assert.equal(harness.sc.pullRequestUrl(repo, expected.webPage.number), expected.webPage.url);
+    assert.equal(harness.requests.length, 0);
+  });
+
   test(`VO-022 ${id}: a deleted PR rejects with not_found`, async () => {
     const { AdapterError } = await import('../../src/contracts/shared.ts');
     const { sc } = await target.create('deleted-pr');
@@ -220,6 +241,31 @@ export function runSourceControlContract(target: SourceControlTarget): void {
     assert.deepEqual(await harness.sc.verifySignIn(), { ok: true, account: expected.account });
     assert.equal(harness.requests.length, 1);
     onlyAuthorisedGets(target, harness);
+  });
+
+  // Feature 004 (XI.2, XI.3): who the signed-in reviewer is, read once, on the neutral contract. The override
+  // that lowers a Critical class records this identity; the suite never branches on platform.
+  test(`FR-020 ${id}: currentUser returns the signed-in handle and display name with one read-only GET`, async () => {
+    const harness = await target.create();
+    const user = await harness.sc.currentUser();
+    assert.equal(user.handle, expected.currentUser.handle);
+    if (expected.currentUser.displayName === undefined) assert.ok(user.displayName.length > 0, 'a display name, falling back to the handle');
+    else assert.equal(user.displayName, expected.currentUser.displayName);
+    assert.deepEqual(Object.keys(user).sort(), ['displayName', 'handle'], 'handle and display name only');
+    assert.equal(harness.requests.length, 1, 'one GET');
+    onlyAuthorisedGets(target, harness);
+  });
+
+  test(`FR-020 ${id}: currentUser rejects with unauthorized when the credential is refused`, async () => {
+    const { AdapterError } = await import('../../src/contracts/shared.ts');
+    const harness = await target.create('unauthorized');
+    await assert.rejects(harness.sc.currentUser(), (error: unknown) => {
+      assert.ok(error instanceof AdapterError);
+      assert.ok(error.code === 'unauthorized' || error.code === 'unavailable', `code ${error.code}`);
+      assert.equal(error.code, 'unauthorized');
+      return true;
+    });
+    for (const request of harness.requests) assert.equal(request.method, 'GET', 'the transport saw only reads');
   });
 
   const finished = expected.finishedPulls;

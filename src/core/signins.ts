@@ -30,7 +30,7 @@ export class SignInError extends Error {
 export interface SignIns {
   state(platform: PlatformId): Promise<SignInState>;
   list(platforms: readonly PlatformId[]): Promise<SignIn[]>;
-  signIn(platform: PlatformId, body: { account?: string; secret: string }): Promise<SignIn>;
+  signIn(platform: PlatformId, body: { account?: string; secret: string; scope?: 'read' | 'write' }): Promise<SignIn>;
   /** Marks the platform expired when `error` is its rejection of the stored token. */
   noteFailure(error: unknown): void;
 }
@@ -68,7 +68,8 @@ export function createSignIns(deps: SignInsDeps): SignIns {
       if (needsAccount && (account === undefined || account === '')) {
         throw new SignInError('invalid_request', platform, 'account is required for this platform.');
       }
-      const input = needsAccount ? { account, secret: body.secret, scheme: 'basic' as const } : { secret: body.secret, scheme: 'bearer' as const };
+      const scope = body.scope === 'write' ? { scope: 'write' as const } : {};
+      const input = needsAccount ? { account, secret: body.secret, scheme: 'basic' as const, ...scope } : { secret: body.secret, scheme: 'bearer' as const, ...scope };
       let authorize: Authorize;
       try {
         authorize = deps.credentials.authorizeWith(input);
@@ -84,7 +85,12 @@ export function createSignIns(deps: SignInsDeps): SignIns {
         throw new SignInError('signin_rejected', platform, `The sign-in could not be checked: ${reason}.`);
       }
       if (!check.ok) throw new SignInError('signin_rejected', platform, `The sign-in was not accepted: ${check.reason}.`);
-      await deps.credentials.save(platform, input);
+      try {
+        await deps.credentials.save(platform, input);
+      } catch (error) {
+        if (error instanceof CredentialError) throw new SignInError('signin_rejected', platform, `The sign-in was accepted but could not be saved: ${error.message}.`);
+        throw error;
+      }
       expired.delete(platform);
       accounts.set(platform, check.account);
       return { platform, state: 'signed-in', account: check.account };

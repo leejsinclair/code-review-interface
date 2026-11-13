@@ -20,13 +20,15 @@ export class HttpError extends Error {
   readonly code: ErrorCode;
   readonly status: number;
   readonly platform: string | undefined;
+  readonly platformMessage: string | undefined;
 
-  constructor(code: ErrorCode, message: string, options: { platform?: string; cause?: unknown } = {}) {
+  constructor(code: ErrorCode, message: string, options: { platform?: string; platformMessage?: string; cause?: unknown } = {}) {
     super(message, options.cause === undefined ? undefined : { cause: options.cause });
     this.name = 'HttpError';
     this.code = code;
     this.status = ERROR_STATUS[code];
     this.platform = options.platform;
+    this.platformMessage = options.platformMessage;
   }
 }
 
@@ -69,6 +71,7 @@ export function sendError(res: ServerResponse, error: HttpError): void {
   }
   const body: ErrorBody = { error: { code: error.code, message: error.message } };
   if (error.platform !== undefined) body.error.platform = error.platform;
+  if (error.platformMessage !== undefined) body.error.platformMessage = error.platformMessage;
   sendJson(res, error.status, body);
 }
 

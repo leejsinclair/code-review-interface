@@ -15,6 +15,7 @@ import type {
   ChangedFile as WireChangedFile,
   PullGroup,
   PullSummary,
+  RiskClass,
   SessionDetail,
   SessionSummary,
   SnapshotDetail,
@@ -37,6 +38,7 @@ import type {
 import { readCompleteness, readSkippedFiles, skipReason } from './completeness.ts';
 import { issueEvidence, issueId, lookupIssues } from './evidence.ts';
 import { excludedReason, type Limits } from './limits.ts';
+import type { PullCache } from './pull-cache.ts';
 import { collectReferences, type CollectedReference } from './references.ts';
 
 /** One repository's environment (R13): its adapters and the matched clone found under the base folder. */
@@ -59,10 +61,20 @@ export type SessionsDeps = {
   environmentFor: (repo: RepoRef) => SessionEnvironment | Promise<SessionEnvironment>;
   /** The repositories matched under the base folder now (for the dashboard); default none. */
   matched?: () => RepoRef[];
+  /** Remembers each repository's last good pull request list, so Home can show it before a fresh one loads. */
+  pullCache?: PullCache;
   /** Whether the workspace has a clone for the repository now; default available. */
   availability?: (repo: RepoRef) => { available: true } | { available: false; reason: string };
+  /** The pull request's page on the configured platform, or undefined when it cannot be built now. */
+  pullRequestUrl?: (repo: RepoRef, prNumber: number) => string | undefined;
+  /** The highest risk class in a snapshot, or undefined when its files are not classified yet. Never throws. */
+  highestRisk?: (sessionId: string, snapshotId: string) => RiskClass | undefined;
+  /** A snapshot and its changed files were just stored, with or without a workspace (rule-based risk classes, RR-1). */
+  onSnapshotStored?: (sessionId: string, snapshotId: string) => void;
   /** A snapshot with an isolated workspace was taken (its summaries can be queued). */
   onSnapshot?: (sessionId: string, snapshotId: string) => void;
+  /** A refresh found the head unchanged: no snapshot was stored, but the latest one was re-read (best effort, never throws). */
+  onRefreshed?: (sessionId: string, snapshotId: string) => void;
   /** The session was closed or deleted. */
   onClose?: (sessionId: string) => void;
   /** Resolves when the work running for the session now has ended; a refresh keeps older worktrees until then (FR-051). */
@@ -86,7 +98,7 @@ export class SessionError extends Error {
 
 export interface Sessions {
   /** One group per matched repository (or just `repository`); one failing never fails the others (FR-054). */
-  listPulls(repository?: string): Promise<PullGroup[]>;
+  listPulls(repository?: string, options?: { cached?: boolean }): Promise<PullGroup[]>;
   list(): SessionSummary[];
   detail(sessionId: string): SessionDetail;
   snapshot(sessionId: string, snapshotId: string): SnapshotDetail;
@@ -294,6 +306,12 @@ export function createSessions(deps: SessionsDeps): Sessions {
         store.appendEvidence(evidence);
       }
     });
+    // A failure here must not fail snapshot creation (V.4): the file list is useful without risk classes.
+    try {
+      deps.onSnapshotStored?.(g.snapshot.sessionId, g.snapshot.id);
+    } catch {
+      // The risk service reports its own failures.
+    }
   };
 
   /** Creates the snapshot's workspace when its head was fetched; true when one exists. */
@@ -347,6 +365,7 @@ export function createSessions(deps: SessionsDeps): Sessions {
       pr = await env.sourceControl.getPullRequest(env.repository, session.pr.number);
     } catch (error) {
       if (error instanceof AdapterError && error.code === 'not_found') {
+        deps.pullCache?.remove(env.repository.id, session.pr.number);
         next = {
           ...status,
           prStatus: status.prStatus === 'open' ? 'closed' : status.prStatus,
@@ -361,6 +380,7 @@ export function createSessions(deps: SessionsDeps): Sessions {
       }
     }
     if (pr !== null) {
+      if (pr.state !== 'open') deps.pullCache?.remove(env.repository.id, session.pr.number);
       // Once closed or merged a session never returns to open (FR-041).
       const reopened = status.prStatus !== 'open' && pr.state === 'open';
       next = {
@@ -399,6 +419,10 @@ export function createSessions(deps: SessionsDeps): Sessions {
     const availability = deps.availability?.({ platform: session.pr.repo.platform, id: session.pr.repo.identifier }) ?? { available: true as const };
     out.repositoryAvailable = availability.available;
     if (!availability.available) out.repositoryReason = availability.reason;
+    const webUrl = deps.pullRequestUrl?.({ platform: session.pr.repo.platform, id: session.pr.repo.identifier }, session.pr.number);
+    if (webUrl !== undefined) out.webUrl = webUrl;
+    const risk = deps.highestRisk?.(sessionId, latest.id);
+    if (risk !== undefined) out.highestRisk = risk;
     return out;
   };
 
@@ -446,17 +470,40 @@ export function createSessions(deps: SessionsDeps): Sessions {
   };
 
   return {
-    async listPulls(repository) {
+    async listPulls(repository, options) {
       const matched = deps.matched?.() ?? [];
       const wanted = repository?.toLowerCase();
       const repos = wanted === undefined ? matched : matched.filter((r) => r.id.toLowerCase() === wanted);
       if (wanted !== undefined && repos.length === 0) throw new SessionError('not_found', 'No such repository under the base folder.');
+      if (options?.cached === true) {
+        // No platform call: whatever the last fresh list stored, with sessions read live. A repository never listed is left out.
+        const groups: PullGroup[] = [];
+        for (const repo of repos) {
+          const entry = deps.pullCache?.get(repo.id) ?? null;
+          if (entry === null) continue;
+          const pulls = entry.pulls.map((pr): PullSummary => {
+            const session = sessionFor(repo, pr.number);
+            return session === null ? pr : { ...pr, sessionId: session.id };
+          });
+          groups.push({ repository: repo.id, status: 'loaded', pulls, cachedAt: entry.fetchedAt });
+        }
+        return groups;
+      }
       return Promise.all(
         repos.map(async (repo): Promise<PullGroup> => {
           try {
             const env = await deps.environmentFor(repo);
             const prs = await env.sourceControl.listOpenPullRequests(repo);
             const pulls: PullSummary[] = [];
+            // Best effort: whatever goes wrong with the approval lookup, including a 401/403 on an endpoint the
+            // token may not cover, only leaves the flag unset. The list call above already proved the sign-in.
+            let approvalsNote: string | undefined;
+            const approved = await env.sourceControl.approvedByMe(repo, prs.map((p) => p.number)).catch((error: unknown) => {
+              const why = error instanceof Error ? error.message : String(error);
+              console.warn(`approvals: could not check ${repo.id}: ${why}`);
+              approvalsNote = `Your approvals could not be checked (${why}), so approved pull requests may still be listed to review.`;
+              return new Set<number>();
+            });
             for (const pr of prs) {
               const summary: PullSummary = {
                 repository: repo.id,
@@ -466,12 +513,18 @@ export function createSessions(deps: SessionsDeps): Sessions {
                 sourceBranch: pr.sourceBranch,
                 targetBranch: pr.targetBranch,
                 updatedAt: pr.updatedAt,
+                headCommit: pr.headCommit,
+                webUrl: env.sourceControl.pullRequestUrl(repo, pr.number),
               };
+              if (approved.has(pr.number)) summary.approvedByMe = true;
               const session = sessionFor(repo, pr.number);
               if (session !== null) summary.sessionId = session.id;
               pulls.push(summary);
             }
-            return { repository: repo.id, status: 'loaded', pulls };
+            const group: PullGroup = { repository: repo.id, status: 'loaded', pulls, ...(approvalsNote === undefined ? {} : { approvalsNote }) };
+            // A list whose approvals could not be checked is not remembered: it would hide nothing and mislead.
+            if (approvalsNote === undefined) deps.pullCache?.put(group);
+            return group;
           } catch (error) {
             // A rejected sign-in refuses the whole call (signin_required); anything else is this group's failure (V.4).
             if (error instanceof AdapterError && error.code === 'unauthorized') throw error;
@@ -566,6 +619,11 @@ export function createSessions(deps: SessionsDeps): Sessions {
             store.appendEvidence(evidence);
           }
         });
+        try {
+          deps.onRefreshed?.(sessionId, latest.id);
+        } catch {
+          // Best effort: a failing hook never fails the refresh.
+        }
       }
       return detail(sessionId);
     },

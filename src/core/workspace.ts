@@ -4,6 +4,7 @@
 // cannot go stale across restarts. This module names no platform: the caller supplies the remote
 // matcher of the chosen platform's adapter.
 
+import { resolve, sep } from 'node:path';
 import type { Workspace as WireWorkspace, DiscoveryState } from '../contracts/http.ts';
 import type { PlatformId } from '../contracts/shared.ts';
 import type { RepoRef } from '../contracts/source-control.ts';
@@ -17,6 +18,8 @@ export type WorkspaceDeps = {
   appDataDir: string;
   /** The platform's `repositoryForRemote`, built from the settings. */
   matcherFor(settings: WorkspaceSettings): (normalisedRemote: string) => string | null;
+  /** Called when a run ends and its result is in place; not called for a run that was cancelled by a newer one. */
+  onSettled?: () => void;
 };
 
 export type Availability = { available: true } | { available: false; reason: string };
@@ -34,6 +37,8 @@ export interface Workspace {
   matched(): RepoRef[];
   /** The folder of the matched clone, or null. Case-insensitive on the id. */
   cloneFor(repositoryId: string): string | null;
+  /** The matched clone whose folder is the nearest proper path ancestor of the clone of `repositoryId`, or null. Case-insensitive on the id. */
+  enclosingOf(repositoryId: string): { repository: RepoRef; folder: string } | null;
   availability(repo: RepoRef): Availability;
   /** Resolves when the current run has ended. */
   settled(): Promise<void>;
@@ -91,6 +96,11 @@ export function createWorkspace(deps: WorkspaceDeps): Workspace {
       foldersScanned = result.foldersScanned;
       entries = result.entries;
       reason = result.reason;
+      try {
+        deps.onSettled?.();
+      } catch {
+        // A listener must not break the run chain: the next run awaits this one.
+      }
     })();
   };
 
@@ -140,6 +150,22 @@ export function createWorkspace(deps: WorkspaceDeps): Workspace {
     cloneFor(id) {
       const wanted = id.toLowerCase();
       return matchedEntries().find((m) => m.repository.id.toLowerCase() === wanted)?.folder ?? null;
+    },
+    enclosingOf(id) {
+      const own = workspace.cloneFor(id);
+      if (own === null) return null;
+      const child = resolve(own);
+      let best: { repository: RepoRef; folder: string } | null = null;
+      let bestLength = -1;
+      for (const m of matchedEntries()) {
+        const folder = resolve(m.folder);
+        if (folder === child || !child.startsWith(folder.endsWith(sep) ? folder : folder + sep)) continue;
+        if (folder.length > bestLength) {
+          best = { repository: m.repository, folder: m.folder };
+          bestLength = folder.length;
+        }
+      }
+      return best;
     },
     availability(repo) {
       if (workspace.cloneFor(repo.id) !== null) return { available: true };

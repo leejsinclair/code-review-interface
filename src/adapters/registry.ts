@@ -4,10 +4,14 @@
 import type { IssueTracker } from '../contracts/issue-tracker.ts';
 import type { AdapterDeps, AdapterDescriptor, Authorize, PlatformId, SignInCheck } from '../contracts/shared.ts';
 import type { RepoRef, SourceControlProvider } from '../contracts/source-control.ts';
+import type { SourceControlWriter } from '../contracts/source-control-writer.ts';
+import { createBitbucketCloudSourceControlWriter } from './bitbucket/source-control-writer.ts';
 import { BITBUCKET_CLOUD_DESCRIPTOR, BITBUCKET_CLOUD_ID, createBitbucketCloudSourceControl } from './bitbucket/source-control.ts';
 import { createGithubIssuesTracker, GITHUB_ISSUES_DESCRIPTOR, GITHUB_ISSUES_ID } from './github/issues.ts';
+import { createGithubSourceControlWriter } from './github/source-control-writer.ts';
 import { createGithubSourceControl, GITHUB_DESCRIPTOR, GITHUB_ID } from './github/source-control.ts';
 import { createGitlabIssuesTracker, GITLAB_ISSUES_DESCRIPTOR, GITLAB_ISSUES_ID } from './gitlab/issues.ts';
+import { createGitlabSourceControlWriter } from './gitlab/source-control-writer.ts';
 import { createGitlabSourceControl, GITLAB_DESCRIPTOR, GITLAB_ID } from './gitlab/source-control.ts';
 import { createJiraCloudTracker, JIRA_CLOUD_DESCRIPTOR, JIRA_CLOUD_ID } from './jira/issues.ts';
 import { createReadOnlyFetch, type NetworkFetch } from './read-only-http.ts';
@@ -25,6 +29,16 @@ const SOURCE_CONTROL: ReadonlyMap<PlatformId, SourceControlEntry> = new Map<Plat
   [GITHUB_ID, { descriptor: GITHUB_DESCRIPTOR, create: (deps) => createGithubSourceControl(deps) }],
   [BITBUCKET_CLOUD_ID, { descriptor: BITBUCKET_CLOUD_DESCRIPTOR, create: (deps) => createBitbucketCloudSourceControl(deps) }],
   [GITLAB_ID, { descriptor: GITLAB_DESCRIPTOR, create: (deps, settings) => createGitlabSourceControl(deps, settings) }],
+]);
+
+/** What a writer gets: the raw network fetch, because each writer builds its own allowlisted write layer (VIII.3). */
+export type WriterDeps = { fetch: NetworkFetch; authorize: Authorize };
+
+/** Separate from the read map: a platform's writer is reachable only through here (constitution VIII.3). */
+const SOURCE_WRITER: ReadonlyMap<PlatformId, (deps: WriterDeps, settings: SourceControlSettings) => SourceControlWriter> = new Map([
+  [GITHUB_ID, (deps: WriterDeps) => createGithubSourceControlWriter(deps)],
+  [BITBUCKET_CLOUD_ID, (deps: WriterDeps) => createBitbucketCloudSourceControlWriter(deps)],
+  [GITLAB_ID, (deps: WriterDeps, settings: SourceControlSettings) => createGitlabSourceControlWriter(deps, settings)],
 ]);
 
 const TRACKERS: ReadonlyMap<PlatformId, TrackerEntry> = new Map<PlatformId, TrackerEntry>([
@@ -81,6 +95,17 @@ export function createSourceControl(platform: PlatformId, deps: AdapterDeps, set
   const entry = SOURCE_CONTROL.get(platform);
   if (entry === undefined) throw new UnknownPlatformError(platform);
   return entry.create(deps, settings);
+}
+
+/** Writer deps, kept apart from `adapterDeps`: no read-only wrapper, the writer applies its own allowlist. */
+export function writerDeps(network: NetworkFetch, authorize: Authorize): WriterDeps {
+  return { fetch: network, authorize };
+}
+
+export function createSourceControlWriter(platform: PlatformId, deps: WriterDeps, settings: SourceControlSettings): SourceControlWriter {
+  const create = SOURCE_WRITER.get(platform);
+  if (create === undefined) throw new UnknownPlatformError(platform);
+  return create(deps, settings);
 }
 
 export function createIssueTracker(platform: PlatformId, deps: AdapterDeps, settings: TrackerSettings): IssueTracker {

@@ -46,7 +46,19 @@ function fixtureTarget(input: FixtureTargetInput): SourceControlTarget {
     authorization: TOKEN_HEADER,
     async create(scenario = 'default') {
       const recorded = recordedFetch(input.fixtures, { entries: input.entries?.[scenario] ?? [] });
-      const sc = input.factory({ fetch: createReadOnlyFetch({ platform: input.id, fetch: recorded.fetch }), authorize });
+      // A refused credential is refused on the identity call too: the replayer answers it with a 401.
+      const replay: typeof recorded.fetch =
+        scenario === 'unauthorized'
+          ? async (request, init) => {
+              const url = new URL(request instanceof Request ? request.url : String(request));
+              if (url.pathname.endsWith('/user')) {
+                recorded.requests.push({ method: 'GET', url: url.href, host: url.host, headers: {}, servedFrom: 'unauthorized' });
+                return new Response(JSON.stringify({ message: 'Bad credentials' }), { status: 401, headers: { 'content-type': 'application/json' } });
+              }
+              return recorded.fetch(request, init);
+            }
+          : recorded.fetch;
+      const sc = input.factory({ fetch: createReadOnlyFetch({ platform: input.id, fetch: replay }), authorize });
       return { sc, requests: recorded.requests, assertComplete: () => recorded.assertAllRecorded() };
     },
     expected: {
@@ -92,6 +104,7 @@ runSourceControlContract(
     expected: {
       author: 'alice-dev',
       account: 'alice-dev',
+      currentUser: { handle: 'alice-dev', displayName: 'Alice Developer' },
       openNumbers: [1, 2, 3],
       // The base repository's PR ref covers forks (R10).
       forkPull: {
@@ -103,6 +116,7 @@ runSourceControlContract(
         targetRef: 'refs/heads/main',
       },
       cloneLocation: { input: { platform: 'github', id: 'Acme/Widgets' }, location: 'github.com/acme/widgets' },
+      webPage: { number: 7, url: 'https://github.com/acme/widgets/pull/7' },
       deletedPr: 404,
       unauthorizedRepo: { platform: 'github', id: 'acme/private-widgets' },
       finishedPulls: { merged: 4, closed: 5 },
@@ -127,6 +141,7 @@ runSourceControlContract(
     expected: {
       author: 'Alice Developer',
       account: 'Alice Developer',
+      currentUser: { handle: '712020:aa11c000-0000-4000-8000-000000000001', displayName: 'Alice Developer' },
       openNumbers: [1, 3],
       // The fork's own repository and its source branch (R10).
       forkPull: {
@@ -138,6 +153,7 @@ runSourceControlContract(
         targetRef: 'refs/heads/main',
       },
       cloneLocation: { input: { platform: 'bitbucket-cloud', id: 'Acme/Widgets' }, location: 'bitbucket.org/acme/widgets' },
+      webPage: { number: 7, url: 'https://bitbucket.org/acme/widgets/pull-requests/7' },
       deletedPr: 404,
       unauthorizedRepo: { platform: 'bitbucket-cloud', id: 'acme/private-widgets' },
     },

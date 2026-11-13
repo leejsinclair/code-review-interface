@@ -39,6 +39,15 @@ export const STATIC_FILES: Readonly<Record<string, { file: string; type: string 
   '/app.css': { file: 'app.css', type: 'text/css; charset=utf-8' },
 });
 
+/** Lazy-loaded UI chunks (`dist/ui/chunks/<name>.js`, e.g. the Mermaid renderer): a flat, fixed-shape name only. */
+const CHUNK_PATH = /^\/chunks\/[A-Za-z0-9_-]+(?:\.[A-Za-z0-9_-]+)*\.js$/;
+
+function staticEntry(pathname: string): { file: string; type: string } | undefined {
+  const fixed = STATIC_FILES[pathname];
+  if (fixed !== undefined) return fixed;
+  return CHUNK_PATH.test(pathname) ? { file: pathname.slice(1), type: 'text/javascript; charset=utf-8' } : undefined;
+}
+
 export interface ServerOptions {
   routes: readonly AnyRouteModule[];
   /** The per-launch token (R3); registered with the log scrubber. */
@@ -104,7 +113,7 @@ export async function startServer(options: ServerOptions): Promise<RunningServer
       sendError(res, new HttpError('invalid_request', 'Unsupported request target.'));
       return `${method} (bad target)`;
     }
-    const file = method === 'GET' ? STATIC_FILES[target.pathname] : undefined;
+    const file = method === 'GET' ? staticEntry(target.pathname) : undefined;
     if (file !== undefined) {
       await serveStatic(res, uiDir, file);
       return `${method} ${target.pathname}`;

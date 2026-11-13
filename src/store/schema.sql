@@ -512,3 +512,364 @@ WHEN NOT EXISTS (SELECT 1 FROM session_deletion d WHERE d.session_id = IFNULL(
       WHERE c.id = OLD.claim_id)),
   d.session_id))
 BEGIN SELECT RAISE(ABORT, 'reference is deleted only with its whole session'); END;
+
+-- ===========================================================================
+-- Risk-based review focus (specs/004-risk-review-focus/data-model.md). Six append-only tables: rule results
+-- (risk_ruleset, risk_classification, risk_reason), AI results (risk_run, risk_assessment_item) and
+-- Dispositions (class_override) are separate kinds. The effective class is derived, never stored. No existing
+-- table changes.
+
+CREATE TABLE IF NOT EXISTS risk_ruleset (
+  snapshot_id      TEXT PRIMARY KEY NOT NULL REFERENCES pr_snapshot (id) ON DELETE CASCADE,
+  ruleset_version  TEXT NOT NULL CHECK (ruleset_version <> ''),
+  rule_file_status TEXT NOT NULL CHECK (rule_file_status IN ('absent', 'used', 'partly-ignored', 'ignored')),
+  -- JSON array of {entry, reason}; empty when absent or used.
+  rule_file_notice TEXT NOT NULL CHECK (json_valid(rule_file_notice) AND json_type(rule_file_notice) = 'array'),
+  classified_at    TEXT NOT NULL
+) STRICT;
+
+CREATE TABLE IF NOT EXISTS risk_classification (
+  id                 TEXT PRIMARY KEY NOT NULL,
+  snapshot_id        TEXT NOT NULL REFERENCES pr_snapshot (id) ON DELETE CASCADE,
+  path               TEXT NOT NULL,
+  rule_class         TEXT NOT NULL CHECK (rule_class IN ('low', 'normal', 'elevated', 'critical')),
+  mechanical         INTEGER NOT NULL CHECK (mechanical IN (0, 1)),
+  -- NULL, or why the file was not fully analysed (binary, file size, changed lines).
+  not_fully_analysed TEXT,
+  change_fingerprint TEXT NOT NULL,
+  UNIQUE (snapshot_id, path),
+  CHECK (mechanical = 0 OR rule_class = 'low'),
+  CHECK (not_fully_analysed IS NULL OR rule_class <> 'low')
+) STRICT;
+
+CREATE TABLE IF NOT EXISTS risk_reason (
+  classification_id TEXT NOT NULL REFERENCES risk_classification (id) ON DELETE CASCADE,
+  ordinal           INTEGER NOT NULL CHECK (ordinal >= 0),
+  -- R-..., X-..., or DEFAULT for the Normal given when no rule matched.
+  rule_id           TEXT NOT NULL CHECK (rule_id <> ''),
+  rule_class        TEXT NOT NULL CHECK (rule_class IN ('low', 'normal', 'elevated', 'critical')),
+  -- 0 only for a sensitive rule recorded as "would have applied, was not" (comment-only).
+  applied           INTEGER NOT NULL CHECK (applied IN (0, 1)),
+  matched_on        TEXT NOT NULL CHECK (matched_on IN ('path', 'lines', 'path+lines')),
+  text              TEXT NOT NULL CHECK (text <> ''),
+  -- JSON array of {side, startLine, endLine}; empty for a path-only match.
+  lines             TEXT NOT NULL CHECK (json_valid(lines) AND json_type(lines) = 'array'),
+  PRIMARY KEY (classification_id, ordinal),
+  CHECK ((matched_on = 'path') = (json_array_length(lines) = 0))
+) STRICT;
+
+CREATE TABLE IF NOT EXISTS risk_run (
+  id                        TEXT PRIMARY KEY NOT NULL,
+  snapshot_id               TEXT NOT NULL REFERENCES pr_snapshot (id) ON DELETE CASCADE,
+  requested_at              TEXT NOT NULL,
+  finished_at               TEXT NOT NULL,
+  provider                  TEXT NOT NULL CHECK (provider <> ''),
+  outcome                   TEXT NOT NULL CHECK (outcome IN ('completed', 'cancelled', 'failed')),
+  cancel_reason             TEXT CHECK (cancel_reason IS NULL OR cancel_reason IN ('user', 'restart', 'superseded')),
+  failure_reason            TEXT,
+  context_version           TEXT,
+  excluded_files            TEXT NOT NULL CHECK (json_valid(excluded_files) AND json_type(excluded_files) = 'array'),
+  restrictions_not_enforced TEXT NOT NULL CHECK (json_valid(restrictions_not_enforced) AND json_type(restrictions_not_enforced) = 'array'),
+  CHECK ((outcome = 'cancelled') = (cancel_reason IS NOT NULL)),
+  CHECK ((outcome = 'failed') = (failure_reason IS NOT NULL))
+) STRICT;
+
+CREATE TABLE IF NOT EXISTS risk_assessment_item (
+  run_id         TEXT NOT NULL REFERENCES risk_run (id) ON DELETE CASCADE,
+  path           TEXT NOT NULL,
+  -- The model cannot propose low through the output schema.
+  proposed_class TEXT NOT NULL CHECK (proposed_class IN ('normal', 'elevated', 'critical')),
+  applied        INTEGER NOT NULL CHECK (applied IN (0, 1)),
+  ignored_reason TEXT CHECK (ignored_reason IS NULL
+                             OR ignored_reason IN ('not-higher', 'no-resolvable-line', 'unknown-file', 'not-assessable')),
+  reasons        TEXT NOT NULL CHECK (json_valid(reasons) AND json_type(reasons) = 'array'),
+  -- JSON array of {side, startLine, endLine, resolved}.
+  lines          TEXT NOT NULL CHECK (json_valid(lines) AND json_type(lines) = 'array'),
+  PRIMARY KEY (run_id, path),
+  CHECK ((applied = 0) = (ignored_reason IS NOT NULL))
+) STRICT;
+
+CREATE TABLE IF NOT EXISTS class_override (
+  id                 TEXT PRIMARY KEY NOT NULL,
+  session_id         TEXT NOT NULL REFERENCES review_session (id) ON DELETE CASCADE,
+  snapshot_id        TEXT NOT NULL REFERENCES pr_snapshot (id) ON DELETE CASCADE,
+  path               TEXT NOT NULL,
+  class              TEXT NOT NULL CHECK (class IN ('low', 'normal', 'elevated', 'critical')),
+  replaced_class     TEXT NOT NULL CHECK (replaced_class IN ('low', 'normal', 'elevated', 'critical')),
+  -- The file's rule-or-AI class at save time, before any override; decides whether a name is required.
+  calculated_class   TEXT NOT NULL CHECK (calculated_class IN ('low', 'normal', 'elevated', 'critical')),
+  reason             TEXT NOT NULL CHECK (trim(reason) <> ''),
+  change_fingerprint TEXT NOT NULL,
+  reviewer_handle    TEXT,
+  reviewer_name      TEXT,
+  created_at         TEXT NOT NULL,
+  CHECK (class <> replaced_class),
+  CHECK ((reviewer_handle IS NULL) = (reviewer_name IS NULL)),
+  CHECK (reviewer_handle IS NULL OR (trim(reviewer_handle) <> '' AND trim(reviewer_name) <> '')),
+  CHECK ((reviewer_handle IS NOT NULL) = (calculated_class = 'critical' AND class IN ('low', 'normal', 'elevated')))
+) STRICT;
+
+CREATE INDEX IF NOT EXISTS risk_classification_by_snapshot ON risk_classification (snapshot_id);
+CREATE INDEX IF NOT EXISTS risk_run_by_snapshot ON risk_run (snapshot_id, finished_at);
+CREATE INDEX IF NOT EXISTS class_override_by_path ON class_override (session_id, path, created_at);
+CREATE INDEX IF NOT EXISTS class_override_by_snapshot ON class_override (snapshot_id);
+
+-- risk_ruleset
+CREATE TRIGGER IF NOT EXISTS risk_ruleset_no_update BEFORE UPDATE ON risk_ruleset
+BEGIN SELECT RAISE(ABORT, 'risk_ruleset is append-only'); END;
+CREATE TRIGGER IF NOT EXISTS risk_ruleset_no_delete BEFORE DELETE ON risk_ruleset
+WHEN NOT EXISTS (SELECT 1 FROM session_deletion d WHERE d.session_id = IFNULL(
+  (SELECT s.session_id FROM pr_snapshot s WHERE s.id = OLD.snapshot_id),
+  d.session_id))
+BEGIN SELECT RAISE(ABORT, 'risk_ruleset is deleted only with its whole session'); END;
+
+-- risk_classification
+CREATE TRIGGER IF NOT EXISTS risk_classification_no_update BEFORE UPDATE ON risk_classification
+BEGIN SELECT RAISE(ABORT, 'risk_classification is append-only'); END;
+CREATE TRIGGER IF NOT EXISTS risk_classification_no_delete BEFORE DELETE ON risk_classification
+WHEN NOT EXISTS (SELECT 1 FROM session_deletion d WHERE d.session_id = IFNULL(
+  (SELECT s.session_id FROM pr_snapshot s WHERE s.id = OLD.snapshot_id),
+  d.session_id))
+BEGIN SELECT RAISE(ABORT, 'risk_classification is deleted only with its whole session'); END;
+
+-- risk_reason
+CREATE TRIGGER IF NOT EXISTS risk_reason_no_update BEFORE UPDATE ON risk_reason
+BEGIN SELECT RAISE(ABORT, 'risk_reason is append-only'); END;
+CREATE TRIGGER IF NOT EXISTS risk_reason_no_delete BEFORE DELETE ON risk_reason
+WHEN NOT EXISTS (SELECT 1 FROM session_deletion d WHERE d.session_id = IFNULL(
+  (SELECT s.session_id FROM risk_classification c JOIN pr_snapshot s ON s.id = c.snapshot_id
+    WHERE c.id = OLD.classification_id),
+  d.session_id))
+BEGIN SELECT RAISE(ABORT, 'risk_reason is deleted only with its whole session'); END;
+
+-- risk_run
+CREATE TRIGGER IF NOT EXISTS risk_run_no_update BEFORE UPDATE ON risk_run
+BEGIN SELECT RAISE(ABORT, 'risk_run is append-only'); END;
+CREATE TRIGGER IF NOT EXISTS risk_run_no_delete BEFORE DELETE ON risk_run
+WHEN NOT EXISTS (SELECT 1 FROM session_deletion d WHERE d.session_id = IFNULL(
+  (SELECT s.session_id FROM pr_snapshot s WHERE s.id = OLD.snapshot_id),
+  d.session_id))
+BEGIN SELECT RAISE(ABORT, 'risk_run is deleted only with its whole session'); END;
+
+-- risk_assessment_item
+CREATE TRIGGER IF NOT EXISTS risk_assessment_item_no_update BEFORE UPDATE ON risk_assessment_item
+BEGIN SELECT RAISE(ABORT, 'risk_assessment_item is append-only'); END;
+CREATE TRIGGER IF NOT EXISTS risk_assessment_item_no_delete BEFORE DELETE ON risk_assessment_item
+WHEN NOT EXISTS (SELECT 1 FROM session_deletion d WHERE d.session_id = IFNULL(
+  (SELECT s.session_id FROM risk_run r JOIN pr_snapshot s ON s.id = r.snapshot_id
+    WHERE r.id = OLD.run_id),
+  d.session_id))
+BEGIN SELECT RAISE(ABORT, 'risk_assessment_item is deleted only with its whole session'); END;
+
+-- class_override
+CREATE TRIGGER IF NOT EXISTS class_override_no_update BEFORE UPDATE ON class_override
+BEGIN SELECT RAISE(ABORT, 'class_override is append-only'); END;
+CREATE TRIGGER IF NOT EXISTS class_override_no_delete BEFORE DELETE ON class_override
+WHEN NOT EXISTS (SELECT 1 FROM session_deletion d WHERE d.session_id = OLD.session_id)
+BEGIN SELECT RAISE(ABORT, 'class_override is deleted only with its whole session'); END;
+
+-- write_record (insert and read only; one row per step of a platform write, rows of one action share intent_id)
+CREATE TABLE IF NOT EXISTS write_record (
+  id            INTEGER PRIMARY KEY AUTOINCREMENT,
+  intent_id     TEXT NOT NULL,
+  session_id    TEXT NOT NULL REFERENCES review_session (id) ON DELETE CASCADE,
+  state         TEXT NOT NULL CHECK (state IN ('pending', 'posted', 'failed')),
+  action        TEXT NOT NULL CHECK (action IN ('comment', 'reply_comment', 'edit_comment', 'delete_comment', 'approve', 'request_changes', 'withdraw_decision')),
+  actor         TEXT,
+  destination   TEXT NOT NULL,
+  head_sha      TEXT NOT NULL,
+  body          TEXT,
+  platform_id   TEXT,
+  error_code    TEXT,
+  error_message TEXT,
+  created_at    TEXT NOT NULL,
+  CHECK (state <> 'posted' OR (actor IS NOT NULL AND trim(actor) <> ''))
+);
+CREATE INDEX IF NOT EXISTS write_record_by_intent ON write_record (intent_id, id);
+CREATE INDEX IF NOT EXISTS write_record_by_session ON write_record (session_id, id);
+-- Exactly one terminal row per intent.
+CREATE UNIQUE INDEX IF NOT EXISTS write_record_one_terminal ON write_record (intent_id) WHERE state IN ('posted', 'failed');
+CREATE TRIGGER IF NOT EXISTS write_record_no_update BEFORE UPDATE ON write_record
+BEGIN SELECT RAISE(ABORT, 'write_record is append-only'); END;
+CREATE TRIGGER IF NOT EXISTS write_record_no_delete BEFORE DELETE ON write_record
+WHEN NOT EXISTS (SELECT 1 FROM session_deletion d WHERE d.session_id = OLD.session_id)
+BEGIN SELECT RAISE(ABORT, 'write_record is deleted only with its whole session'); END;
+-- One open (pending without a terminal row) intent per PR: a session is one PR.
+CREATE TRIGGER IF NOT EXISTS write_record_one_pending BEFORE INSERT ON write_record
+WHEN NEW.state = 'pending' AND EXISTS (
+  SELECT 1 FROM write_record p
+  WHERE p.session_id = NEW.session_id AND p.state = 'pending' AND p.intent_id <> NEW.intent_id
+    AND NOT EXISTS (SELECT 1 FROM write_record t WHERE t.intent_id = p.intent_id AND t.state IN ('posted', 'failed')))
+BEGIN SELECT RAISE(ABORT, 'another write is pending for this pull request'); END;
+
+-- Feature 006 (specification context): where a pull request's issue-keyed specification was found
+-- (spec_lookup, spec_source, spec_document: Evidence) and the AI's alignment of the change with it
+-- (spec_alignment_run, spec_alignment_row, spec_alignment_item: Assessment). Append-only, as risk_run.
+-- Staleness is derived on read, never stored. Nothing here can hold "Verified".
+
+CREATE TABLE IF NOT EXISTS spec_lookup (
+  id             TEXT PRIMARY KEY NOT NULL,
+  snapshot_id    TEXT NOT NULL REFERENCES pr_snapshot (id) ON DELETE CASCADE,
+  looked_at      TEXT NOT NULL,
+  trigger        TEXT NOT NULL CHECK (trigger IN ('snapshot', 'refresh')),
+  keys           TEXT NOT NULL CHECK (json_valid(keys) AND json_type(keys) = 'array'),
+  -- JSON array of {repository, role, heads}.
+  searched       TEXT NOT NULL CHECK (json_valid(searched) AND json_type(searched) = 'array'),
+  enclosing_note TEXT CHECK (enclosing_note IS NULL OR enclosing_note IN ('found', 'not-inside-project')),
+  outcome        TEXT NOT NULL CHECK (outcome IN ('found', 'partial', 'not-found', 'no-key', 'failed')),
+  reason         TEXT,
+  CHECK ((outcome = 'no-key') = (json_array_length(keys) = 0)),
+  CHECK ((outcome = 'found') = (reason IS NULL))
+) STRICT;
+
+CREATE TABLE IF NOT EXISTS spec_source (
+  id                  TEXT PRIMARY KEY NOT NULL,
+  lookup_id           TEXT NOT NULL REFERENCES spec_lookup (id) ON DELETE CASCADE,
+  key                 TEXT NOT NULL,
+  repository          TEXT NOT NULL,
+  branch              TEXT NOT NULL,
+  commit_sha          TEXT NOT NULL,
+  folder              TEXT NOT NULL,
+  rule_used           TEXT NOT NULL CHECK (rule_used IN ('own-repository-first', 'matching-branch', 'develop', 'most-recent-commit', 'only-match')),
+  -- JSON array of {repository, branch, commit_sha, folder}.
+  other_copies        TEXT NOT NULL CHECK (json_valid(other_copies) AND json_type(other_copies) = 'array'),
+  develop_copy_exists INTEGER NOT NULL CHECK (develop_copy_exists IN (0, 1)),
+  matches_key         INTEGER NOT NULL CHECK (matches_key = 1)
+) STRICT;
+
+CREATE TABLE IF NOT EXISTS spec_document (
+  id             TEXT PRIMARY KEY NOT NULL,
+  lookup_id      TEXT NOT NULL REFERENCES spec_lookup (id) ON DELETE CASCADE,
+  key            TEXT NOT NULL,
+  kind           TEXT NOT NULL CHECK (kind IN ('specification', 'tdd-evidence')),
+  status         TEXT NOT NULL CHECK (status IN ('found', 'missing')),
+  source_id      TEXT REFERENCES spec_source (id) ON DELETE CASCADE,
+  file_path      TEXT,
+  commit_sha     TEXT,
+  content        TEXT,
+  content_sha256 TEXT,
+  other_files    TEXT NOT NULL CHECK (json_valid(other_files) AND json_type(other_files) = 'array'),
+  missing_reason TEXT,
+  UNIQUE (lookup_id, key, kind),
+  CHECK (status <> 'found' OR (source_id IS NOT NULL AND file_path IS NOT NULL AND commit_sha IS NOT NULL
+                               AND content IS NOT NULL AND content_sha256 IS NOT NULL AND missing_reason IS NULL)),
+  CHECK (status <> 'missing' OR (content IS NULL AND commit_sha IS NULL AND source_id IS NULL AND missing_reason IS NOT NULL)),
+  CHECK (file_path IS NULL
+         OR (kind = 'specification' AND file_path LIKE '%spec.md')
+         OR (kind = 'tdd-evidence' AND (file_path = 'tdd-evidence.md' OR file_path LIKE '%/tdd-evidence.md')))
+) STRICT;
+
+CREATE TABLE IF NOT EXISTS spec_alignment_run (
+  id                        TEXT PRIMARY KEY NOT NULL,
+  snapshot_id               TEXT NOT NULL REFERENCES pr_snapshot (id) ON DELETE CASCADE,
+  lookup_id                 TEXT NOT NULL REFERENCES spec_lookup (id) ON DELETE CASCADE,
+  spec_document_id          TEXT NOT NULL REFERENCES spec_document (id) ON DELETE CASCADE,
+  tdd_document_id           TEXT REFERENCES spec_document (id) ON DELETE CASCADE,
+  requested_at              TEXT NOT NULL,
+  finished_at               TEXT NOT NULL,
+  provider                  TEXT NOT NULL CHECK (provider <> ''),
+  context_version           TEXT,
+  outcome                   TEXT NOT NULL CHECK (outcome IN ('completed', 'cancelled', 'failed')),
+  cancel_reason             TEXT CHECK (cancel_reason IS NULL OR cancel_reason IN ('user', 'restart', 'superseded')),
+  failure_reason            TEXT,
+  spec_summary              TEXT,
+  tdd_summary               TEXT,
+  verdict                   TEXT CHECK (verdict IS NULL OR verdict IN ('sufficient', 'incomplete', 'cannot-judge')),
+  verdict_text              TEXT,
+  left_out                  TEXT NOT NULL CHECK (json_valid(left_out) AND json_type(left_out) = 'array'),
+  restrictions_not_enforced TEXT NOT NULL CHECK (json_valid(restrictions_not_enforced) AND json_type(restrictions_not_enforced) = 'array'),
+  warning                   TEXT,
+  CHECK ((outcome = 'cancelled') = (cancel_reason IS NOT NULL)),
+  CHECK ((outcome = 'failed') = (failure_reason IS NOT NULL)),
+  CHECK ((outcome = 'completed') = (verdict IS NOT NULL)),
+  CHECK ((outcome = 'completed') = (verdict_text IS NOT NULL)),
+  CHECK ((outcome = 'completed') = (spec_summary IS NOT NULL)),
+  CHECK (tdd_summary IS NULL OR (outcome = 'completed' AND tdd_document_id IS NOT NULL))
+) STRICT;
+
+CREATE TABLE IF NOT EXISTS spec_alignment_row (
+  run_id               TEXT NOT NULL REFERENCES spec_alignment_run (id) ON DELETE CASCADE,
+  ordinal              INTEGER NOT NULL CHECK (ordinal >= 0),
+  criterion_ref        TEXT,
+  criterion_text       TEXT NOT NULL CHECK (trim(criterion_text) <> ''),
+  implementation_state TEXT NOT NULL CHECK (implementation_state IN ('implementation-and-test', 'implementation', 'requires-verification', 'not-found')),
+  test_shown           TEXT NOT NULL CHECK (test_shown IN ('shown', 'none', 'no-evidence-available')),
+  test_mismatch        INTEGER NOT NULL CHECK (test_mismatch IN (0, 1)),
+  note                 TEXT NOT NULL,
+  unverified           INTEGER NOT NULL CHECK (unverified IN (0, 1)),
+  citations            TEXT NOT NULL CHECK (json_valid(citations) AND json_type(citations) = 'array'),
+  PRIMARY KEY (run_id, ordinal),
+  CHECK (implementation_state <> 'implementation-and-test' OR test_shown = 'shown'),
+  CHECK (test_mismatch = 0 OR test_shown = 'shown')
+) STRICT;
+
+CREATE TABLE IF NOT EXISTS spec_alignment_item (
+  run_id      TEXT NOT NULL REFERENCES spec_alignment_run (id) ON DELETE CASCADE,
+  ordinal     INTEGER NOT NULL CHECK (ordinal >= 0),
+  kind        TEXT NOT NULL CHECK (kind IN ('uncovered-criterion', 'test-may-not-test-right-thing', 'implemented-not-requested', 'requested-not-implemented')),
+  row_ordinal INTEGER,
+  text        TEXT NOT NULL CHECK (trim(text) <> ''),
+  unverified  INTEGER NOT NULL CHECK (unverified IN (0, 1)),
+  citations   TEXT NOT NULL CHECK (json_valid(citations) AND json_type(citations) = 'array'),
+  PRIMARY KEY (run_id, ordinal),
+  FOREIGN KEY (run_id, row_ordinal) REFERENCES spec_alignment_row (run_id, ordinal) ON DELETE CASCADE,
+  CHECK ((kind = 'implemented-not-requested') = (row_ordinal IS NULL))
+) STRICT;
+
+CREATE INDEX IF NOT EXISTS spec_lookup_by_snapshot ON spec_lookup (snapshot_id, looked_at);
+CREATE INDEX IF NOT EXISTS spec_source_by_lookup ON spec_source (lookup_id, key);
+CREATE INDEX IF NOT EXISTS spec_alignment_run_by_snapshot ON spec_alignment_run (snapshot_id, finished_at);
+
+-- spec_lookup
+CREATE TRIGGER IF NOT EXISTS spec_lookup_no_update BEFORE UPDATE ON spec_lookup
+BEGIN SELECT RAISE(ABORT, 'spec_lookup is append-only'); END;
+CREATE TRIGGER IF NOT EXISTS spec_lookup_no_delete BEFORE DELETE ON spec_lookup
+WHEN NOT EXISTS (SELECT 1 FROM session_deletion d WHERE d.session_id = IFNULL(
+  (SELECT s.session_id FROM pr_snapshot s WHERE s.id = OLD.snapshot_id),
+  d.session_id))
+BEGIN SELECT RAISE(ABORT, 'spec_lookup is deleted only with its whole session'); END;
+
+-- spec_source
+CREATE TRIGGER IF NOT EXISTS spec_source_no_update BEFORE UPDATE ON spec_source
+BEGIN SELECT RAISE(ABORT, 'spec_source is append-only'); END;
+CREATE TRIGGER IF NOT EXISTS spec_source_no_delete BEFORE DELETE ON spec_source
+WHEN NOT EXISTS (SELECT 1 FROM session_deletion d WHERE d.session_id = IFNULL(
+  (SELECT s.session_id FROM spec_lookup l JOIN pr_snapshot s ON s.id = l.snapshot_id WHERE l.id = OLD.lookup_id),
+  d.session_id))
+BEGIN SELECT RAISE(ABORT, 'spec_source is deleted only with its whole session'); END;
+
+-- spec_document
+CREATE TRIGGER IF NOT EXISTS spec_document_no_update BEFORE UPDATE ON spec_document
+BEGIN SELECT RAISE(ABORT, 'spec_document is append-only'); END;
+CREATE TRIGGER IF NOT EXISTS spec_document_no_delete BEFORE DELETE ON spec_document
+WHEN NOT EXISTS (SELECT 1 FROM session_deletion d WHERE d.session_id = IFNULL(
+  (SELECT s.session_id FROM spec_lookup l JOIN pr_snapshot s ON s.id = l.snapshot_id WHERE l.id = OLD.lookup_id),
+  d.session_id))
+BEGIN SELECT RAISE(ABORT, 'spec_document is deleted only with its whole session'); END;
+
+-- spec_alignment_run
+CREATE TRIGGER IF NOT EXISTS spec_alignment_run_no_update BEFORE UPDATE ON spec_alignment_run
+BEGIN SELECT RAISE(ABORT, 'spec_alignment_run is append-only'); END;
+CREATE TRIGGER IF NOT EXISTS spec_alignment_run_no_delete BEFORE DELETE ON spec_alignment_run
+WHEN NOT EXISTS (SELECT 1 FROM session_deletion d WHERE d.session_id = IFNULL(
+  (SELECT s.session_id FROM pr_snapshot s WHERE s.id = OLD.snapshot_id),
+  d.session_id))
+BEGIN SELECT RAISE(ABORT, 'spec_alignment_run is deleted only with its whole session'); END;
+
+-- spec_alignment_row
+CREATE TRIGGER IF NOT EXISTS spec_alignment_row_no_update BEFORE UPDATE ON spec_alignment_row
+BEGIN SELECT RAISE(ABORT, 'spec_alignment_row is append-only'); END;
+CREATE TRIGGER IF NOT EXISTS spec_alignment_row_no_delete BEFORE DELETE ON spec_alignment_row
+WHEN NOT EXISTS (SELECT 1 FROM session_deletion d WHERE d.session_id = IFNULL(
+  (SELECT s.session_id FROM spec_alignment_run r JOIN pr_snapshot s ON s.id = r.snapshot_id WHERE r.id = OLD.run_id),
+  d.session_id))
+BEGIN SELECT RAISE(ABORT, 'spec_alignment_row is deleted only with its whole session'); END;
+
+-- spec_alignment_item
+CREATE TRIGGER IF NOT EXISTS spec_alignment_item_no_update BEFORE UPDATE ON spec_alignment_item
+BEGIN SELECT RAISE(ABORT, 'spec_alignment_item is append-only'); END;
+CREATE TRIGGER IF NOT EXISTS spec_alignment_item_no_delete BEFORE DELETE ON spec_alignment_item
+WHEN NOT EXISTS (SELECT 1 FROM session_deletion d WHERE d.session_id = IFNULL(
+  (SELECT s.session_id FROM spec_alignment_run r JOIN pr_snapshot s ON s.id = r.snapshot_id WHERE r.id = OLD.run_id),
+  d.session_id))
+BEGIN SELECT RAISE(ABORT, 'spec_alignment_item is deleted only with its whole session'); END;

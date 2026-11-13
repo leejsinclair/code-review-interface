@@ -4,6 +4,7 @@
 
 import type { AdapterDescriptor, PlatformId } from './shared.ts';
 import type { RestrictionId } from './ai-provider.ts';
+import type { Anchor, Comment, ReviewCapability, ReviewDecision } from './source-control-writer.ts';
 
 export type { PlatformId } from './shared.ts';
 export type { RestrictionId } from './ai-provider.ts';
@@ -29,7 +30,16 @@ export type ErrorCode =
   | 'repository_unavailable'
   | 'provider_unavailable'
   | 'not_cancellable'
-  | 'platform_error';
+  | 'platform_error'
+  // Review actions (feature 005, contracts/http.md)
+  | 'invalid_body'
+  | 'unauthorized'
+  | 'forbidden'
+  | 'conflict'
+  | 'in_flight'
+  | 'rejected'
+  | 'rate_limited'
+  | 'unavailable';
 
 /** HTTP status for each error code (http-api.md section 2). */
 export const ERROR_STATUS: Readonly<Record<ErrorCode, number>> = {
@@ -49,10 +59,19 @@ export const ERROR_STATUS: Readonly<Record<ErrorCode, number>> = {
   provider_unavailable: 503,
   not_cancellable: 409,
   platform_error: 502,
+  invalid_body: 400,
+  unauthorized: 401,
+  forbidden: 403,
+  conflict: 409,
+  in_flight: 409,
+  rejected: 422,
+  rate_limited: 429,
+  unavailable: 502,
 };
 
 /** Body of every non-2xx response. */
-export type ErrorBody = { error: { code: ErrorCode; message: string; platform?: PlatformId } };
+/** `platformMessage` is the platform's own reason for a refused review action, shown as stated. */
+export type ErrorBody = { error: { code: ErrorCode; message: string; platform?: PlatformId; platformMessage?: string } };
 
 // ---------------------------------------------------------------- 3. Shared types
 
@@ -142,7 +161,7 @@ export type SignInState = 'signed-in' | 'signed-out' | 'expired';
 export type SignIn = { platform: PlatformId; state: SignInState; account?: string };
 
 /** Body of `PUT /api/signins/:platform`. `account` is the email or user name where the platform needs one. */
-export type SignInBody = { account?: string; secret: string };
+export type SignInBody = { account?: string; secret: string; /** 'write' records that the token may post review actions (feature 005). */ scope?: 'read' | 'write' };
 
 export type ProviderStatus = {
   id: ProviderId;
@@ -181,8 +200,14 @@ export type PullSummary = {
   targetBranch: string;
   /** ISO 8601. */
   updatedAt: string;
+  /** True when the signed-in reviewer has approved this pull request and it is not yet merged. */
+  approvedByMe?: boolean;
   /** Present when a session exists. */
   sessionId?: string;
+  /** The pull request's head commit on the platform (may be abbreviated on Bitbucket list rows). */
+  headCommit?: string;
+  /** The pull request's page on the platform, opened in a new browser tab. */
+  webUrl?: string;
 };
 
 export type PullGroup = {
@@ -192,6 +217,10 @@ export type PullGroup = {
   reason?: string;
   /** Empty when 'failed'. */
   pulls: PullSummary[];
+  /** Set when the signed-in reviewer's approvals could not be checked, so approved pull requests may be listed as to review. */
+  approvalsNote?: string;
+  /** ISO 8601. Set only when this group is the last known list, served before a fresh one loads. */
+  cachedAt?: string;
 };
 
 export type SessionSummary = {
@@ -210,6 +239,10 @@ export type SessionSummary = {
   /** False when no clone is found under the base folder (FR-057). */
   repositoryAvailable: boolean;
   repositoryReason?: string;
+  /** The pull request's page on the platform, opened in a new browser tab. */
+  webUrl?: string;
+  /** The highest risk class of any file in the latest snapshot; absent until the files are classified. */
+  highestRisk?: RiskClass;
 };
 
 export type IssueOrigin = 'branch' | 'title' | 'description';
@@ -235,7 +268,9 @@ export type CompletenessRow =
   | { source: 'pr'; status: CompletenessStatus; reason?: string }
   | { source: 'repository'; status: 'found' | 'missing'; reason?: string; skippedFiles: SkippedFile[] }
   /** 'missing' when there is no reference; otherwise each issue carries its own status. */
-  | { source: 'issue'; status: CompletenessStatus; reason?: string; issues: IssueReference[] };
+  | { source: 'issue'; status: CompletenessStatus; reason?: string; issues: IssueReference[] }
+  | { source: 'specification'; status: CompletenessStatus; reason?: string }
+  | { source: 'tdd-evidence'; status: CompletenessStatus; reason?: string };
 
 export type DiffSource = 'local' | 'platform';
 
@@ -420,6 +455,8 @@ export type SessionEvents = {
   'answer-delta': AnswerDeltaEventData;
   summary: SummaryEventData;
   'summary-delta': SummaryDeltaEventData;
+  risk: RiskEventData;
+  'spec-context': SpecContextEventData;
 };
 
 export type SessionEventName = keyof SessionEvents;
@@ -431,4 +468,300 @@ export const SESSION_EVENT_NAMES: readonly SessionEventName[] = [
   'answer-delta',
   'summary',
   'summary-delta',
+  'risk',
+  'spec-context',
 ];
+
+// ---------------------------------------------------------------- 10. Risk-based review focus (feature 004)
+// Class names are lower case on the wire; the UI maps them to words in `labels.ts`. No type below carries
+// a score, a percentage or a rank (FR-002).
+
+export type RiskClass = 'low' | 'normal' | 'elevated' | 'critical';
+export type RiskOrigin = 'rule' | 'ai' | 'override' | 'default';
+export type LineRange = { side: Side; startLine: number; endLine: number };
+
+export type RiskReason = {
+  origin: 'rule' | 'ai' | 'default';
+  /** Present when origin is 'rule'; never for 'ai' or 'default'. */
+  ruleId?: string;
+  /** The class this reason alone sets. */
+  class: RiskClass;
+  /** False: a sensitive rule that would have applied and was not (comment-only). */
+  applied: boolean;
+  matchedOn: 'path' | 'lines' | 'path+lines' | 'ai';
+  /** Plain text only. */
+  text: string;
+  /** Empty when matchedOn is 'path'. */
+  lines: LineRange[];
+};
+
+export type OverrideRecord = {
+  id: string;
+  path: string;
+  class: RiskClass;
+  replacedClass: RiskClass;
+  calculatedClass: RiskClass;
+  reason: string;
+  createdAt: string;
+  snapshotId: string;
+  /** Present only when it took a Critical-calculated file below Critical. */
+  reviewer?: { handle: string; displayName: string };
+};
+
+export type MechanicalKind = 'lockfile' | 'generated' | 'comment-only' | 'rename-only';
+
+export type RiskAiFileState =
+  | 'applied'
+  | 'not-higher'
+  | 'no-resolvable-line'
+  | 'unknown-file'
+  | 'no-opinion'
+  | 'not-assessed'
+  | 'pending'
+  | 'unavailable';
+
+export type RiskFile = {
+  path: string;
+  ruleClass: RiskClass;
+  /** After a valid AI raise. */
+  assessedClass: RiskClass;
+  /** After an override that applies. */
+  effectiveClass: RiskClass;
+  effectiveOrigin: RiskOrigin;
+  /** Candidate for reduced review; never "approved". */
+  mechanical: boolean;
+  mechanicalKind?: MechanicalKind;
+  /** The reason the file was not fully analysed. */
+  notFullyAnalysed?: string;
+  /** Rule reasons first, then the AI's applied reason, in display order. */
+  reasons: RiskReason[];
+  ai: {
+    state: RiskAiFileState;
+    notAssessedReason?: string;
+    proposedClass?: RiskClass;
+    reasons?: string[];
+    lines?: Array<LineRange & { resolved: boolean }>;
+  };
+  /** The latest record; applies=false means lapsed. */
+  override?: { record: OverrideRecord; applies: boolean };
+};
+
+export type RiskRuleFileStatus = 'absent' | 'used' | 'partly-ignored' | 'ignored';
+
+export type RiskReport = {
+  snapshotId: string;
+  headCommit: string;
+  /** Changes whenever any field below can. */
+  revision: number;
+  ruleset: { version: string; ruleFile: RiskRuleFileStatus; notice: Array<{ entry: string; reason: string }> };
+  ai: {
+    state: 'pending' | 'running' | 'completed' | 'failed' | 'cancelled' | 'none';
+    provider?: string;
+    contextVersion?: string;
+    finishedAt?: string;
+    /** Why the assessment is missing or failed. */
+    reason?: string;
+    /** Items with applied=false and a reason. */
+    ignoredCount: number;
+    /** The run belongs to an older snapshot. */
+    olderHead?: boolean;
+  };
+  /** Counts, never a score. */
+  counts: Record<RiskClass, number> & { mechanical: number; notFullyAnalysed: number; overrides: number };
+  /** In diff order. */
+  files: RiskFile[];
+  canOverride: { allowed: boolean; reason?: string };
+};
+
+export type RiskReviewer = { ok: true; handle: string; displayName: string } | { ok: false; reason: string; fix: string };
+
+export type OverrideBody = { snapshotId: string; path: string; class: RiskClass; reason: string };
+export type OverrideHistory = { records: OverrideRecord[] };
+
+export type RiskCause = 'classified' | 'ai' | 'override';
+/** The risk event carries paths and a revision, never a class. */
+export type RiskEventData = { snapshotId: string; revision: number; changedPaths: string[]; cause: RiskCause };
+
+// ---------------------------------------------------------------- 11. Review actions (feature 005)
+// contracts/http.md: one POST performs one action at once; there is no preview, confirm or drafts route.
+
+export type ReviewAction =
+  | {
+      kind: 'comment';
+      destination: 'pull_request' | 'line' | 'reply' | 'edit' | 'delete';
+      body?: string;
+      anchor?: Anchor;
+      threadId?: string;
+      commentId?: string;
+    }
+  /** The message is optional (FR-003). */
+  | { kind: 'approve'; body?: string }
+  /** The message is required (FR-004). */
+  | { kind: 'request_changes'; body: string }
+  /** FR-009. */
+  | { kind: 'withdraw_decision' };
+
+/** Body of `POST /api/sessions/:sessionId/review-actions`. `requestId` is a new uuid per click; a repeat posts nothing. */
+export type ReviewActionBody = {
+  action: ReviewAction;
+  /** The head commit the reviewer was viewing. */
+  expectedHead: string;
+  requestId: string;
+};
+
+export type ReviewActionRecord = { id: string; postedAt: string; headSha: string };
+
+export type ReviewActionResult = {
+  comment?: Comment;
+  decision?: ReviewDecision | null;
+  record: ReviewActionRecord;
+};
+
+/** Same shape as `RiskReport['canOverride']`. */
+export type CanReview = { allowed: boolean; reason?: string };
+
+/** Response of `GET /review-actions/decision`. */
+export type ReviewDecisionState = {
+  decision: ReviewDecision | null;
+  canReview: CanReview;
+  capability: ReviewCapability;
+};
+
+/** One row of `GET /review-actions/comments`. */
+export type ReviewCommentItem = Comment & { editable: boolean };
+export type ReviewComments = { comments: ReviewCommentItem[] };
+
+// --- Spec context (specs/006-spec-context, contracts/http-api.md) ---
+
+export type SpecDocumentKind = 'specification' | 'tdd-evidence';
+export type SpecDocumentStatus = 'found' | 'missing' | 'stale';
+export type SpecRule = 'own-repository-first' | 'matching-branch-over-develop' | 'most-recent-commit' | 'only-candidate';
+
+export type SpecCopy = {
+  repository: string;
+  branch: string;
+  commit: string;
+  folder: string;
+};
+
+export type SpecSource = {
+  /** The issue key that matched, as written on the pull request. */
+  key: string;
+  used: SpecCopy;
+  rule: SpecRule;
+  others: SpecCopy[];
+};
+
+export type SpecDocument = {
+  documentId: string;
+  kind: SpecDocumentKind;
+  status: SpecDocumentStatus;
+  fileName?: string;
+  otherSpecFiles: string[];
+  source?: SpecSource;
+  sha256?: string;
+  reason?: string;
+};
+
+export type SpecKeyResult = {
+  key: string;
+  /** One 'specification' and one 'tdd-evidence', in that order. */
+  documents: SpecDocument[];
+};
+
+export type SpecLookupGap =
+  | { kind: 'no-key'; message: string }
+  | { kind: 'no-enclosing-repository'; message: string }
+  | { kind: 'read-failed'; message: string };
+
+/** The only label on assessment statements (FR-014); never 'verified'. */
+export type SpecState = 'inferred';
+export type CitationStatus = 'resolved' | 'unverified';
+
+export type SpecCitation =
+  | { type: 'spec' | 'tdd'; documentId: string; startLine: number; endLine: number; quote?: string }
+  | { type: 'code'; path: string; side: 'head' | 'base'; startLine: number; endLine: number };
+
+export type SpecStatement = {
+  label: 'Inferred';
+  /** Plain text only. */
+  text: string;
+  citations: SpecCitation[];
+  citationStatus: CitationStatus;
+};
+
+export type ImplementationState =
+  | 'Implementation and test identified'
+  | 'Implementation identified'
+  | 'Requires verification'
+  | 'Not found';
+
+/** 'no-evidence-available' when tdd-evidence.md is missing, never 'no-test-shown' (US4-AS2). */
+export type TestEvidence = 'test-shown' | 'no-test-shown' | 'no-evidence-available';
+
+export type AlignmentRow = {
+  criterionId: string;
+  criterion: string;
+  state: ImplementationState;
+  test: TestEvidence;
+  testMismatch: boolean;
+  statement: SpecStatement;
+};
+
+export type SufficiencyVerdict = {
+  outcome: 'sufficient' | 'incomplete' | 'cannot-judge';
+  statement: SpecStatement;
+  uncovered: string[];
+  mismatched: SpecStatement[];
+  notJudged?: string;
+};
+
+export type ScopeDeviations = {
+  implementedNotRequested: SpecStatement[];
+  requestedNotImplemented: SpecStatement[];
+  noneFound: boolean;
+};
+
+export type SpecAlignment = {
+  runId: string;
+  state: 'pending' | 'running' | 'completed' | 'failed' | 'cancelled';
+  provider?: string;
+  contextVersion?: string;
+  finishedAt?: string;
+  headCommit: string;
+  stale: boolean;
+  staleReason?: string;
+  reason?: string;
+  leftOut: string[];
+  summaries?: { specification?: string; tddEvidence?: string };
+  rows: AlignmentRow[];
+  verdict?: SufficiencyVerdict;
+  deviations?: ScopeDeviations;
+  warning?: 'unparseable-output';
+};
+
+/** Response of `GET /api/sessions/:sessionId/snapshots/:snapshotId/spec-context`. No score or percentage (FR-015). */
+export type SpecContextReport = {
+  snapshotId: string;
+  headCommit: string;
+  /** Changes whenever any other field can. */
+  revision: number;
+  status: 'searching' | 'ready' | 'none' | 'failed';
+  searched: Array<{ repository: string; branches: string[] }>;
+  gaps: SpecLookupGap[];
+  keys: SpecKeyResult[];
+  stale: boolean;
+  staleReason?: string;
+  alignment?: SpecAlignment;
+  canRetry: { allowed: boolean; reason?: string };
+};
+
+/** Response of `POST .../spec-context/retry` (202). */
+export type SpecContextRetryResult = { runId: string };
+
+/** Data of the SSE event `spec-context`; carries no document text. */
+export type SpecContextEventData = {
+  snapshotId: string;
+  revision: number;
+  cause: 'lookup' | 'documents' | 'alignment' | 'stale';
+};

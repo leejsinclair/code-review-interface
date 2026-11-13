@@ -23,10 +23,11 @@ import {
 import type { NetworkFetch } from '../../adapters/read-only-http.ts';
 import { appDataPaths } from '../../appdata.ts';
 import { ConfigError, loadConfig, saveConfig, type Config, type RegisteredPlatforms } from '../../config.ts';
-import type { Platforms, PullGroup, SessionDetail, SessionSummary, SignIn, SnapshotDetail, Workspace as WireWorkspace } from '../../contracts/http.ts';
+import type { Platforms, PullGroup, RiskClass, SessionDetail, SessionSummary, SignIn, SnapshotDetail, Workspace as WireWorkspace } from '../../contracts/http.ts';
 import { AdapterError, type PlatformId } from '../../contracts/shared.ts';
 import type { RepoRef } from '../../contracts/source-control.ts';
 import type { CredentialStore } from '../../credentials.ts';
+import type { PullCache } from '../../core/pull-cache.ts';
 import { createSessions, SessionError, type SessionEnvironment } from '../../core/sessions.ts';
 import type { Workspace } from '../../core/workspace.ts';
 import { createSignIns, SignInError } from '../../core/signins.ts';
@@ -38,6 +39,7 @@ import {
   defineRoutes,
   HttpError,
   optionalString,
+  requireEnum,
   requireObject,
   requirePositiveInt,
   requireString,
@@ -64,9 +66,17 @@ export type ContextRouteDeps = {
   events?: EventHub;
   /** Registered AI provider ids, listed by `/api/platforms`. */
   aiProviders?: readonly string[];
+  /** A snapshot and its files were just stored (rule-based risk classes). */
+  onSnapshotStored?: (sessionId: string, snapshotId: string) => void;
   onSnapshot?: (sessionId: string, snapshotId: string) => void;
+  /** A refresh found the head unchanged and re-read the latest snapshot. */
+  onRefreshed?: (sessionId: string, snapshotId: string) => void;
   onClose?: (sessionId: string) => void;
   afterRunning?: (sessionId: string) => Promise<void>;
+  /** The last good pull request list per repository, shared with the review actions so an approval updates it. */
+  pullCache?: PullCache;
+  /** The highest risk class in a snapshot, for ordering Home's review queue; undefined when not classified. */
+  highestRisk?: (sessionId: string, snapshotId: string) => RiskClass | undefined;
 };
 
 /** What GET handlers may call: reads only. */
@@ -76,7 +86,7 @@ export interface ContextReader {
   signIns(): Promise<SignIn[]>;
   workspace(): WireWorkspace;
   /** One group per matched repository, or the one named (Retry). */
-  pulls(repository?: string): Promise<PullGroup[]>;
+  pulls(repository?: string, options?: { cached?: boolean }): Promise<PullGroup[]>;
   sessions(): SessionSummary[];
   detail(sessionId: string): SessionDetail;
   snapshot(sessionId: string, snapshotId: string): SnapshotDetail;
@@ -157,14 +167,32 @@ export function createContextRoutes(deps: ContextRouteDeps): RouteModule<Views> 
     return out;
   };
 
+  /** The PR's web page on the configured platform, built by its adapter (pure, no network call). */
+  const pullRequestUrl = (repo: RepoRef, prNumber: number): string | undefined => {
+    const w = deps.workspace.snapshot();
+    if (w === null) return undefined;
+    try {
+      const repository: RepoRef = { platform: w.platform, id: repo.id };
+      const settings: SourceControlSettings = { repository, ...(w.baseUrl === undefined ? {} : { baseUrl: w.baseUrl }) };
+      return createSourceControl(w.platform, adapterDeps(w.platform, deps.network, (request) => request), settings).pullRequestUrl(repository, prNumber);
+    } catch {
+      return undefined;
+    }
+  };
+
   const sessions = createSessions({
     store: deps.store,
     manager: createRepositoryManager({ git: deps.git, workspacesDir: appDataPaths(deps.appDataDir).workspaces }),
     environmentFor,
     matched: () => deps.workspace.matched(),
+    ...(deps.pullCache === undefined ? {} : { pullCache: deps.pullCache }),
     availability: (repo) => deps.workspace.availability(repo),
+    pullRequestUrl,
+    ...(deps.highestRisk === undefined ? {} : { highestRisk: deps.highestRisk }),
     onPlatformError: (error) => signIns.noteFailure(error),
+    ...(deps.onSnapshotStored === undefined ? {} : { onSnapshotStored: deps.onSnapshotStored }),
     ...(deps.onSnapshot === undefined ? {} : { onSnapshot: deps.onSnapshot }),
+    ...(deps.onRefreshed === undefined ? {} : { onRefreshed: deps.onRefreshed }),
     ...(deps.onClose === undefined ? {} : { onClose: deps.onClose }),
     ...(deps.afterRunning === undefined ? {} : { afterRunning: deps.afterRunning }),
   });
@@ -217,9 +245,9 @@ export function createContextRoutes(deps: ContextRouteDeps): RouteModule<Views> 
       if (snapshot === null) throw new NotConfiguredError('No base folder is configured yet.');
       return snapshot;
     },
-    async pulls(repository) {
+    async pulls(repository, options) {
       await requireSignedIn();
-      return sessions.listPulls(repository);
+      return sessions.listPulls(repository, options);
     },
     sessions: () => sessions.list(),
     detail: (id) => sessions.detail(id),
@@ -275,10 +303,11 @@ export function createContextRoutes(deps: ContextRouteDeps): RouteModule<Views> 
         pattern: '/api/signins/:platform',
         handler: (ctx) =>
           mapped(false, () => {
-            const body = requireObject(ctx.body, 'The sign-in', ['account', 'secret']);
+            const body = requireObject(ctx.body, 'The sign-in', ['account', 'secret', 'scope']);
             const secret = requireString(body, 'secret', { maxLength: 4096 });
             const account = optionalString(body, 'account', { maxLength: 320 });
-            return write(ctx).signIn(ctx.params['platform'] ?? '', account === undefined ? { secret } : { account, secret });
+            const scope = body['scope'] === undefined ? undefined : requireEnum(body, 'scope', ['read', 'write'] as const);
+            return write(ctx).signIn(ctx.params['platform'] ?? '', { secret, ...(account === undefined ? {} : { account }), ...(scope === undefined ? {} : { scope }) });
           }),
       },
       { method: 'GET', pattern: '/api/workspace', handler: (ctx) => mapped(false, () => ctx.deps.reader.workspace()) },
@@ -300,7 +329,7 @@ export function createContextRoutes(deps: ContextRouteDeps): RouteModule<Views> 
         pattern: '/api/pulls',
         handler: async (ctx) => {
           const repository = ctx.query.get('repository');
-          const groups = await mapped(true, () => ctx.deps.reader.pulls(repository ?? undefined));
+          const groups = await mapped(true, () => ctx.deps.reader.pulls(repository ?? undefined, ctx.query.get('cached') === '1' ? { cached: true } : undefined));
           if (repository === null) return ctx.json(groups);
           const group = groups[0];
           if (group === undefined) throw new HttpError('not_found', 'No such repository under the base folder.');
