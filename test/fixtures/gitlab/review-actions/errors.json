@@ -1,0 +1,102 @@
+[
+  {
+    "request": {
+      "method": "POST",
+      "url": "https://gitlab.example.test/api/v4/projects/acme%2Fwidgets/merge_requests/2/notes"
+    },
+    "response": {
+      "status": 403,
+      "headers": {
+        "content-type": "application/json"
+      },
+      "body": {
+        "message": "403 Forbidden"
+      }
+    }
+  },
+  {
+    "request": {
+      "method": "POST",
+      "url": "https://gitlab.example.test/api/v4/projects/acme%2Fwidgets/merge_requests/3/notes"
+    },
+    "response": {
+      "status": 409,
+      "headers": {
+        "content-type": "application/json"
+      },
+      "body": {
+        "message": "409 Conflict - Merge request is not open"
+      }
+    }
+  },
+  {
+    "request": {
+      "method": "POST",
+      "url": "https://gitlab.example.test/api/v4/projects/acme%2Fwidgets/merge_requests/4/notes"
+    },
+    "response": {
+      "status": 422,
+      "headers": {
+        "content-type": "application/json"
+      },
+      "body": {
+        "message": "Unprocessable Entity: body is too long"
+      }
+    }
+  },
+  {
+    "request": {
+      "method": "POST",
+      "url": "https://gitlab.example.test/api/v4/projects/acme%2Fwidgets/merge_requests/5/notes"
+    },
+    "response": {
+      "status": 429,
+      "headers": {
+        "content-type": "application/json",
+        "retry-after": "60"
+      },
+      "body": {
+        "message": "Retry later"
+      }
+    }
+  },
+  {
+    "request": {
+      "method": "POST",
+      "url": "https://gitlab.example.test/api/v4/projects/acme%2Fwidgets/merge_requests/6/notes"
+    },
+    "response": {
+      "status": 401,
+      "headers": {
+        "content-type": "application/json"
+      },
+      "body": {
+        "message": "401 Unauthorized"
+      }
+    }
+  },
+  {
+    "request": {
+      "method": "POST",
+      "url": "https://gitlab.example.test/api/v4/projects/acme%2Fwidgets/merge_requests/7/notes"
+    },
+    "response": {
+      "status": 503,
+      "headers": {
+        "content-type": "application/json"
+      },
+      "body": {
+        "message": "503 Service Unavailable"
+      }
+    }
+  },
+  {
+    "request": {
+      "method": "POST",
+      "url": "https://gitlab.example.test/api/v4/projects/acme%2Fwidgets/merge_requests/8/notes"
+    },
+    "response": {
+      "networkError": "ETIMEDOUT"
+    }
+  }
+]

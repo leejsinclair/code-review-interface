@@ -1,0 +1,126 @@
+[
+  {
+    "request": {
+      "method": "POST",
+      "url": "https://api.github.com/repos/acme/widgets/issues/2/comments"
+    },
+    "response": {
+      "status": 403,
+      "headers": {
+        "content-type": "application/json; charset=utf-8",
+        "x-github-media-type": "github.v3; format=json"
+      },
+      "body": {
+        "message": "Resource not accessible by personal access token",
+        "documentation_url": "https://docs.github.com/rest/issues/comments#create-an-issue-comment",
+        "status": "403"
+      }
+    }
+  },
+  {
+    "request": {
+      "method": "POST",
+      "url": "https://api.github.com/repos/acme/widgets/issues/3/comments"
+    },
+    "response": {
+      "status": 409,
+      "headers": {
+        "content-type": "application/json; charset=utf-8",
+        "x-github-media-type": "github.v3; format=json"
+      },
+      "body": {
+        "message": "Pull request is not open",
+        "documentation_url": "https://docs.github.com/rest",
+        "status": "409"
+      }
+    }
+  },
+  {
+    "request": {
+      "method": "POST",
+      "url": "https://api.github.com/repos/acme/widgets/issues/4/comments"
+    },
+    "response": {
+      "status": 422,
+      "headers": {
+        "content-type": "application/json; charset=utf-8",
+        "x-github-media-type": "github.v3; format=json"
+      },
+      "body": {
+        "message": "Validation Failed",
+        "errors": [
+          {
+            "resource": "IssueComment",
+            "code": "custom",
+            "field": "body",
+            "message": "body is too long"
+          }
+        ],
+        "documentation_url": "https://docs.github.com/rest",
+        "status": "422"
+      }
+    }
+  },
+  {
+    "request": {
+      "method": "POST",
+      "url": "https://api.github.com/repos/acme/widgets/issues/5/comments"
+    },
+    "response": {
+      "status": 429,
+      "headers": {
+        "content-type": "application/json; charset=utf-8",
+        "retry-after": "60",
+        "x-github-media-type": "github.v3; format=json"
+      },
+      "body": {
+        "message": "You have exceeded a secondary rate limit. Please wait a few minutes before you try again.",
+        "documentation_url": "https://docs.github.com/rest/overview/rate-limits-for-the-rest-api",
+        "status": "429"
+      }
+    }
+  },
+  {
+    "request": {
+      "method": "POST",
+      "url": "https://api.github.com/repos/acme/widgets/issues/6/comments"
+    },
+    "response": {
+      "status": 401,
+      "headers": {
+        "content-type": "application/json; charset=utf-8",
+        "x-github-media-type": "github.v3; format=json"
+      },
+      "body": {
+        "message": "Bad credentials",
+        "documentation_url": "https://docs.github.com/rest",
+        "status": "401"
+      }
+    }
+  },
+  {
+    "request": {
+      "method": "POST",
+      "url": "https://api.github.com/repos/acme/widgets/issues/7/comments"
+    },
+    "response": {
+      "status": 503,
+      "headers": {
+        "content-type": "application/json; charset=utf-8",
+        "x-github-media-type": "github.v3; format=json"
+      },
+      "body": {
+        "message": "Service Unavailable"
+      }
+    }
+  },
+  {
+    "request": {
+      "method": "POST",
+      "url": "https://api.github.com/repos/acme/widgets/issues/8/comments"
+    },
+    "response": {
+      "networkError": "ETIMEDOUT"
+    }
+  }
+]

@@ -1,0 +1,19 @@
+{
+  "request": {
+    "method": "GET",
+    "url": "https://api.github.com/user"
+  },
+  "response": {
+    "status": 200,
+    "headers": {
+      "content-type": "application/json; charset=utf-8",
+      "x-github-media-type": "github.v3; format=json"
+    },
+    "body": {
+      "login": "alice-dev",
+      "id": 41001,
+      "type": "User",
+      "name": "Alice Developer"
+    }
+  }
+}

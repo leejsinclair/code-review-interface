@@ -1,0 +1,57 @@
+[
+  {
+    "request": {
+      "method": "POST",
+      "url": "https://gitlab.example.test/api/v4/projects/acme%2Fwidgets/merge_requests/1/approve"
+    },
+    "response": {
+      "status": 201,
+      "headers": {
+        "content-type": "application/json"
+      },
+      "body": {
+        "id": 501,
+        "iid": 1,
+        "project_id": 77,
+        "title": "Allow password reset more than once",
+        "approvals_required": 1,
+        "approvals_left": 0,
+        "approved_by": [
+          {
+            "user": {
+              "id": 1001,
+              "username": "alice-dev",
+              "name": "Alice Developer",
+              "state": "active"
+            }
+          }
+        ],
+        "user_has_approved": true,
+        "user_can_approve": true
+      }
+    }
+  },
+  {
+    "request": {
+      "method": "POST",
+      "url": "https://gitlab.example.test/api/v4/projects/acme%2Fwidgets/merge_requests/1/unapprove"
+    },
+    "response": {
+      "status": 201,
+      "headers": {
+        "content-type": "application/json"
+      },
+      "body": {
+        "id": 501,
+        "iid": 1,
+        "project_id": 77,
+        "title": "Allow password reset more than once",
+        "approvals_required": 1,
+        "approvals_left": 1,
+        "approved_by": [],
+        "user_has_approved": false,
+        "user_can_approve": true
+      }
+    }
+  }
+]

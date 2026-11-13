@@ -1,0 +1,16 @@
+{
+  "request": {
+    "method": "GET",
+    "url": "https://api.bitbucket.org/2.0/repositories/acme/widgets/commit/a3f9c2e17b4d"
+  },
+  "response": {
+    "status": 200,
+    "headers": {
+      "content-type": "application/json; charset=utf-8"
+    },
+    "body": {
+      "type": "commit",
+      "hash": "a3f9c2e17b4d58e6f0a1c3b5d7e9f2a4c6b8d0e1"
+    }
+  }
+}

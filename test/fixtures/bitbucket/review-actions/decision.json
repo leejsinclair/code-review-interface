@@ -1,0 +1,54 @@
+[
+  {
+    "request": {
+      "method": "POST",
+      "url": "https://api.bitbucket.org/2.0/repositories/acme/widgets/pullrequests/1/approve"
+    },
+    "response": {
+      "status": 200,
+      "headers": {
+        "content-type": "application/json; charset=utf-8"
+      },
+      "body": {
+        "type": "participant",
+        "user": {
+          "type": "user",
+          "display_name": "Alice Developer",
+          "nickname": "alice-dev",
+          "uuid": "{1c2d3e4f-0000-4000-8000-00000000a11c}",
+          "account_id": "712020:aa11c000-0000-4000-8000-000000000001"
+        },
+        "role": "REVIEWER",
+        "approved": true,
+        "state": "approved",
+        "participated_on": "2026-03-02T12:00:00.000000+00:00"
+      }
+    }
+  },
+  {
+    "request": {
+      "method": "POST",
+      "url": "https://api.bitbucket.org/2.0/repositories/acme/widgets/pullrequests/1/request-changes"
+    },
+    "response": {
+      "status": 200,
+      "headers": {
+        "content-type": "application/json; charset=utf-8"
+      },
+      "body": {
+        "type": "participant",
+        "user": {
+          "type": "user",
+          "display_name": "Alice Developer",
+          "nickname": "alice-dev",
+          "uuid": "{1c2d3e4f-0000-4000-8000-00000000a11c}",
+          "account_id": "712020:aa11c000-0000-4000-8000-000000000001"
+        },
+        "role": "REVIEWER",
+        "approved": false,
+        "state": "changes_requested",
+        "participated_on": "2026-03-02T12:00:00.000000+00:00"
+      }
+    }
+  }
+]

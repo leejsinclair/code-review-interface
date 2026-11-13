@@ -1,0 +1,20 @@
+{
+  "request": {
+    "method": "GET",
+    "url": "https://gitlab.example.test/api/v4/version"
+  },
+  "response": {
+    "status": 200,
+    "headers": {
+      "content-type": "application/json"
+    },
+    "body": {
+      "version": "17.8.0",
+      "revision": "f0e1d2c3b4a",
+      "kas": {
+        "enabled": false
+      },
+      "enterprise": false
+    }
+  }
+}

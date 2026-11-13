@@ -1,0 +1,22 @@
+[
+  {
+    "request": {
+      "method": "DELETE",
+      "url": "https://api.github.com/repos/acme/widgets/pulls/comments/5001"
+    },
+    "response": {
+      "status": 204,
+      "headers": {}
+    }
+  },
+  {
+    "request": {
+      "method": "DELETE",
+      "url": "https://api.github.com/repos/acme/widgets/issues/comments/9001"
+    },
+    "response": {
+      "status": 204,
+      "headers": {}
+    }
+  }
+]

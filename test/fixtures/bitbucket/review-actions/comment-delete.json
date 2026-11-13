@@ -1,0 +1,10 @@
+{
+  "request": {
+    "method": "DELETE",
+    "url": "https://api.bitbucket.org/2.0/repositories/acme/widgets/pullrequests/1/comments/3002"
+  },
+  "response": {
+    "status": 204,
+    "headers": {}
+  }
+}

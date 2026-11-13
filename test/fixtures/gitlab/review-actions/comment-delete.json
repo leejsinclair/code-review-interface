@@ -1,0 +1,10 @@
+{
+  "request": {
+    "method": "DELETE",
+    "url": "https://gitlab.example.test/api/v4/projects/acme%2Fwidgets/merge_requests/1/notes/8002"
+  },
+  "response": {
+    "status": 204,
+    "headers": {}
+  }
+}

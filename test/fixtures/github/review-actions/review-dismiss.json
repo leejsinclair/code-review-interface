@@ -1,0 +1,29 @@
+{
+  "request": {
+    "method": "PUT",
+    "url": "https://api.github.com/repos/acme/widgets/pulls/1/reviews/7002/dismissals"
+  },
+  "response": {
+    "status": 200,
+    "headers": {
+      "content-type": "application/json; charset=utf-8",
+      "x-github-media-type": "github.v3; format=json"
+    },
+    "body": {
+      "id": 7002,
+      "node_id": "PRR_7002",
+      "user": {
+        "login": "alice-dev",
+        "id": 41001,
+        "type": "User"
+      },
+      "body": "Please add a test.",
+      "state": "DISMISSED",
+      "commit_id": "a3f9c2e17b4d58e6f0a1c3b5d7e9f2a4c6b8d0e1",
+      "submitted_at": "2026-03-02T12:00:00Z",
+      "html_url": "https://github.com/acme/widgets/pull/1#pullrequestreview-7002",
+      "pull_request_url": "https://api.github.com/repos/acme/widgets/pulls/1",
+      "author_association": "CONTRIBUTOR"
+    }
+  }
+}

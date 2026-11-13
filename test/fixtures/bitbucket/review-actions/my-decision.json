@@ -1,0 +1,55 @@
+{
+  "request": {
+    "method": "GET",
+    "url": "https://api.bitbucket.org/2.0/repositories/acme/widgets/pullrequests/1"
+  },
+  "response": {
+    "status": 200,
+    "headers": {
+      "content-type": "application/json; charset=utf-8"
+    },
+    "body": {
+      "type": "pullrequest",
+      "id": 1,
+      "state": "OPEN",
+      "author": {
+        "type": "user",
+        "display_name": "Alice Developer",
+        "nickname": "alice-dev",
+        "uuid": "{1c2d3e4f-0000-4000-8000-00000000a11c}",
+        "account_id": "712020:aa11c000-0000-4000-8000-000000000001"
+      },
+      "source": {
+        "commit": {
+          "type": "commit",
+          "hash": "a3f9c2e17b4d"
+        },
+        "repository": {
+          "type": "repository",
+          "full_name": "acme/widgets"
+        }
+      },
+      "participants": [
+        {
+          "type": "participant",
+          "user": {
+            "type": "user",
+            "display_name": "Alice Developer",
+            "nickname": "alice-dev",
+            "uuid": "{1c2d3e4f-0000-4000-8000-00000000a11c}",
+            "account_id": "712020:aa11c000-0000-4000-8000-000000000001"
+          },
+          "role": "REVIEWER",
+          "approved": false,
+          "state": "changes_requested",
+          "participated_on": "2026-03-02T12:00:00.000000+00:00"
+        }
+      ],
+      "links": {
+        "self": {
+          "href": "https://api.bitbucket.org/2.0/repositories/acme/widgets/pullrequests/1"
+        }
+      }
+    }
+  }
+}

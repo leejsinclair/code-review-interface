@@ -1,0 +1,127 @@
+[
+  {
+    "request": {
+      "method": "POST",
+      "url": "https://api.bitbucket.org/2.0/repositories/acme/widgets/pullrequests/2/comments"
+    },
+    "response": {
+      "status": 403,
+      "headers": {
+        "content-type": "application/json; charset=utf-8"
+      },
+      "body": {
+        "type": "error",
+        "error": {
+          "message": "Your credentials lack one or more required privilege scopes.",
+          "detail": {
+            "required": [
+              "pullrequest:write"
+            ],
+            "granted": [
+              "pullrequest"
+            ]
+          }
+        }
+      }
+    }
+  },
+  {
+    "request": {
+      "method": "POST",
+      "url": "https://api.bitbucket.org/2.0/repositories/acme/widgets/pullrequests/3/comments"
+    },
+    "response": {
+      "status": 409,
+      "headers": {
+        "content-type": "application/json; charset=utf-8"
+      },
+      "body": {
+        "type": "error",
+        "error": {
+          "message": "Pull request is not open"
+        }
+      }
+    }
+  },
+  {
+    "request": {
+      "method": "POST",
+      "url": "https://api.bitbucket.org/2.0/repositories/acme/widgets/pullrequests/4/comments"
+    },
+    "response": {
+      "status": 422,
+      "headers": {
+        "content-type": "application/json; charset=utf-8"
+      },
+      "body": {
+        "type": "error",
+        "error": {
+          "message": "Comment content is too long"
+        }
+      }
+    }
+  },
+  {
+    "request": {
+      "method": "POST",
+      "url": "https://api.bitbucket.org/2.0/repositories/acme/widgets/pullrequests/5/comments"
+    },
+    "response": {
+      "status": 429,
+      "headers": {
+        "content-type": "application/json; charset=utf-8"
+      },
+      "body": {
+        "type": "error",
+        "error": {
+          "message": "Rate limit for this resource has been exceeded"
+        }
+      }
+    }
+  },
+  {
+    "request": {
+      "method": "POST",
+      "url": "https://api.bitbucket.org/2.0/repositories/acme/widgets/pullrequests/6/comments"
+    },
+    "response": {
+      "status": 401,
+      "headers": {
+        "content-type": "application/json; charset=utf-8"
+      },
+      "body": {
+        "type": "error",
+        "error": {
+          "message": "Invalid credentials"
+        }
+      }
+    }
+  },
+  {
+    "request": {
+      "method": "POST",
+      "url": "https://api.bitbucket.org/2.0/repositories/acme/widgets/pullrequests/7/comments"
+    },
+    "response": {
+      "status": 503,
+      "headers": {
+        "content-type": "application/json; charset=utf-8"
+      },
+      "body": {
+        "type": "error",
+        "error": {
+          "message": "Service Unavailable"
+        }
+      }
+    }
+  },
+  {
+    "request": {
+      "method": "POST",
+      "url": "https://api.bitbucket.org/2.0/repositories/acme/widgets/pullrequests/8/comments"
+    },
+    "response": {
+      "networkError": "ETIMEDOUT"
+    }
+  }
+]

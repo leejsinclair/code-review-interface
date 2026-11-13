@@ -1,0 +1,953 @@
+{
+  "workflow": "companion",
+  "telemetryInstanceId": "6cd74508-40c8-4feb-86e4-b634b8b7ac0d",
+  "specName": "Review Actions",
+  "branch": "main",
+  "selectedAt": "2026-11-10T05:26:51.249Z",
+  "currentStep": "implement",
+  "status": "completed",
+  "history": [
+    {
+      "step": "specify",
+      "substep": null,
+      "kind": "start",
+      "by": "extension",
+      "at": "2026-11-10T05:26:51.249Z"
+    },
+    {
+      "step": "specify",
+      "substep": null,
+      "kind": "complete",
+      "by": "extension",
+      "at": "2026-11-10T05:27:51.444Z"
+    },
+    {
+      "step": "plan",
+      "substep": null,
+      "kind": "start",
+      "by": "extension",
+      "at": "2026-11-10T05:28:45.320Z"
+    },
+    {
+      "step": "plan",
+      "substep": "research",
+      "kind": "complete",
+      "by": "ai",
+      "at": "2026-11-10T05:30:38.062Z"
+    },
+    {
+      "step": "plan",
+      "substep": "design",
+      "kind": "complete",
+      "by": "ai",
+      "at": "2026-11-10T05:31:32.608Z"
+    },
+    {
+      "step": "plan",
+      "substep": null,
+      "kind": "complete",
+      "by": "ai",
+      "at": "2026-11-10T05:31:33.061Z"
+    },
+    {
+      "step": "tasks",
+      "substep": null,
+      "kind": "start",
+      "by": "extension",
+      "at": "2026-11-10T05:31:40.412Z"
+    },
+    {
+      "step": "tasks",
+      "substep": "generate",
+      "kind": "complete",
+      "by": "ai",
+      "at": "2026-11-10T05:32:47.102Z"
+    },
+    {
+      "step": "tasks",
+      "substep": null,
+      "kind": "complete",
+      "by": "ai",
+      "at": "2026-11-10T05:32:55.569Z"
+    },
+    {
+      "step": "implement",
+      "substep": null,
+      "kind": "start",
+      "by": "extension",
+      "at": "2026-11-10T05:49:23.782Z"
+    },
+    {
+      "step": "implement",
+      "substep": null,
+      "task": "T001",
+      "kind": "complete",
+      "by": "ai",
+      "at": "2026-11-10T05:49:48.366Z"
+    },
+    {
+      "step": "implement",
+      "substep": null,
+      "task": "T004",
+      "kind": "complete",
+      "by": "ai",
+      "at": "2026-11-10T05:50:23.675Z"
+    },
+    {
+      "step": "implement",
+      "substep": null,
+      "task": "T005",
+      "kind": "complete",
+      "by": "ai",
+      "at": "2026-11-10T05:50:26.941Z"
+    },
+    {
+      "step": "implement",
+      "substep": null,
+      "task": "T003",
+      "kind": "complete",
+      "by": "ai",
+      "at": "2026-11-10T05:50:28.540Z"
+    },
+    {
+      "step": "implement",
+      "substep": null,
+      "task": "T002",
+      "kind": "complete",
+      "by": "ai",
+      "at": "2026-11-10T05:50:59.725Z"
+    },
+    {
+      "step": "implement",
+      "substep": null,
+      "task": "T006",
+      "kind": "complete",
+      "by": "ai",
+      "at": "2026-11-10T05:50:59.824Z"
+    },
+    {
+      "step": "implement",
+      "substep": null,
+      "task": "T007",
+      "kind": "complete",
+      "by": "ai",
+      "at": "2026-11-10T05:52:16.218Z"
+    },
+    {
+      "step": "implement",
+      "substep": null,
+      "task": "T041",
+      "kind": "complete",
+      "by": "ai",
+      "at": "2026-11-10T05:52:16.331Z"
+    },
+    {
+      "step": "implement",
+      "substep": null,
+      "task": "T008",
+      "kind": "complete",
+      "by": "ai",
+      "at": "2026-11-10T05:53:17.377Z"
+    },
+    {
+      "step": "implement",
+      "substep": null,
+      "task": "T011",
+      "kind": "complete",
+      "by": "ai",
+      "at": "2026-11-10T05:53:17.497Z"
+    },
+    {
+      "step": "implement",
+      "substep": null,
+      "task": "T010",
+      "kind": "complete",
+      "by": "ai",
+      "at": "2026-11-10T05:54:24.189Z"
+    },
+    {
+      "step": "implement",
+      "substep": null,
+      "task": "T013",
+      "kind": "complete",
+      "by": "ai",
+      "at": "2026-11-10T05:54:24.306Z"
+    },
+    {
+      "step": "implement",
+      "substep": null,
+      "task": "T009",
+      "kind": "complete",
+      "by": "ai",
+      "at": "2026-11-10T05:56:08.482Z"
+    },
+    {
+      "step": "implement",
+      "substep": null,
+      "task": "T012",
+      "kind": "complete",
+      "by": "ai",
+      "at": "2026-11-10T05:56:08.573Z"
+    },
+    {
+      "step": "implement",
+      "substep": null,
+      "task": "T015",
+      "kind": "complete",
+      "by": "ai",
+      "at": "2026-11-10T05:57:32.069Z"
+    },
+    {
+      "step": "implement",
+      "substep": null,
+      "task": "T019",
+      "kind": "complete",
+      "by": "ai",
+      "at": "2026-11-10T05:57:32.189Z"
+    },
+    {
+      "step": "implement",
+      "substep": null,
+      "task": "T016",
+      "kind": "complete",
+      "by": "ai",
+      "at": "2026-11-10T05:58:16.677Z"
+    },
+    {
+      "step": "implement",
+      "substep": null,
+      "task": "T014",
+      "kind": "complete",
+      "by": "ai",
+      "at": "2026-11-10T05:58:40.356Z"
+    },
+    {
+      "step": "implement",
+      "substep": null,
+      "task": "T017",
+      "kind": "complete",
+      "by": "ai",
+      "at": "2026-11-10T05:59:20.677Z"
+    },
+    {
+      "step": "implement",
+      "substep": null,
+      "task": "T018",
+      "kind": "complete",
+      "by": "ai",
+      "at": "2026-11-10T05:59:20.831Z"
+    },
+    {
+      "step": "implement",
+      "substep": null,
+      "task": "T020",
+      "kind": "complete",
+      "by": "ai",
+      "at": "2026-11-10T06:02:11.095Z"
+    },
+    {
+      "step": "implement",
+      "substep": null,
+      "task": "T021",
+      "kind": "complete",
+      "by": "ai",
+      "at": "2026-11-10T06:02:11.258Z"
+    },
+    {
+      "step": "implement",
+      "substep": null,
+      "task": "T022",
+      "kind": "complete",
+      "by": "ai",
+      "at": "2026-11-10T06:05:06.613Z"
+    },
+    {
+      "step": "implement",
+      "substep": null,
+      "task": "T023",
+      "kind": "complete",
+      "by": "ai",
+      "at": "2026-11-10T06:05:06.758Z"
+    },
+    {
+      "step": "implement",
+      "substep": null,
+      "task": "T024",
+      "kind": "complete",
+      "by": "ai",
+      "at": "2026-11-10T06:05:06.898Z"
+    },
+    {
+      "step": "implement",
+      "substep": null,
+      "task": "T025",
+      "kind": "complete",
+      "by": "ai",
+      "at": "2026-11-10T06:05:42.917Z"
+    },
+    {
+      "step": "implement",
+      "substep": null,
+      "task": "T026",
+      "kind": "complete",
+      "by": "ai",
+      "at": "2026-11-10T06:05:43.049Z"
+    },
+    {
+      "step": "implement",
+      "substep": null,
+      "task": "T031",
+      "kind": "complete",
+      "by": "ai",
+      "at": "2026-11-10T06:05:43.174Z"
+    },
+    {
+      "step": "implement",
+      "substep": null,
+      "task": "T027",
+      "kind": "complete",
+      "by": "ai",
+      "at": "2026-11-10T06:06:07.486Z"
+    },
+    {
+      "step": "implement",
+      "substep": null,
+      "task": "T030",
+      "kind": "complete",
+      "by": "ai",
+      "at": "2026-11-10T06:06:07.635Z"
+    },
+    {
+      "step": "implement",
+      "substep": null,
+      "task": "T028",
+      "kind": "complete",
+      "by": "ai",
+      "at": "2026-11-10T06:06:46.357Z"
+    },
+    {
+      "step": "implement",
+      "substep": null,
+      "task": "T029",
+      "kind": "complete",
+      "by": "ai",
+      "at": "2026-11-10T06:06:46.496Z"
+    },
+    {
+      "step": "implement",
+      "substep": null,
+      "task": "T032",
+      "kind": "complete",
+      "by": "ai",
+      "at": "2026-11-10T06:17:02.993Z"
+    },
+    {
+      "step": "implement",
+      "substep": null,
+      "task": "T033",
+      "kind": "complete",
+      "by": "ai",
+      "at": "2026-11-10T06:17:03.155Z"
+    },
+    {
+      "step": "implement",
+      "substep": null,
+      "task": "T034",
+      "kind": "complete",
+      "by": "ai",
+      "at": "2026-11-10T06:17:03.295Z"
+    },
+    {
+      "step": "implement",
+      "substep": null,
+      "task": "T035",
+      "kind": "complete",
+      "by": "ai",
+      "at": "2026-11-10T06:17:03.425Z"
+    },
+    {
+      "step": "implement",
+      "substep": null,
+      "task": "T036",
+      "kind": "complete",
+      "by": "ai",
+      "at": "2026-11-10T06:17:03.584Z"
+    },
+    {
+      "step": "implement",
+      "substep": null,
+      "task": "T037",
+      "kind": "complete",
+      "by": "ai",
+      "at": "2026-11-10T06:17:03.729Z"
+    },
+    {
+      "step": "implement",
+      "substep": null,
+      "task": "T038",
+      "kind": "complete",
+      "by": "ai",
+      "at": "2026-11-10T06:17:16.423Z"
+    },
+    {
+      "step": "implement",
+      "substep": null,
+      "task": "T039",
+      "kind": "complete",
+      "by": "ai",
+      "at": "2026-11-10T06:17:16.607Z"
+    },
+    {
+      "step": "implement",
+      "substep": null,
+      "kind": "complete",
+      "by": "extension",
+      "at": "2026-11-10T11:57:28.094Z"
+    }
+  ],
+  "last_action": "living specs evaluated — skipped (not configured)",
+  "coverage": {
+    "FR-001": {
+      "title": "Comment on a line or range in the file view",
+      "tasks": [
+        "T033"
+      ]
+    },
+    "FR-002": {
+      "title": "General comment on the overview",
+      "tasks": [
+        "T029",
+        "T035"
+      ]
+    },
+    "FR-003": {
+      "title": "Approve from the overview, optional message",
+      "tasks": [
+        "T029",
+        "T035"
+      ]
+    },
+    "FR-004": {
+      "title": "Request changes from the overview, required message",
+      "tasks": [
+        "T029",
+        "T035"
+      ]
+    },
+    "FR-005": {
+      "title": "Approve and request changes also in the file view",
+      "tasks": [
+        "T033",
+        "T036"
+      ]
+    },
+    "FR-006": {
+      "title": "Writes started by the reviewer, never by AI",
+      "tasks": [
+        "T021",
+        "T022"
+      ]
+    },
+    "FR-007": {
+      "title": "One-click send naming the action and destination, carries viewed head commit, refused if head moved",
+      "tasks": [
+        "T021",
+        "T025"
+      ]
+    },
+    "FR-008": {
+      "title": "Approval and change request tied to head commit",
+      "tasks": [
+        "T016",
+        "T017",
+        "T018",
+        "T029"
+      ]
+    },
+    "FR-009": {
+      "title": "Withdraw own approval or change request",
+      "tasks": [
+        "T029",
+        "T034"
+      ]
+    },
+    "FR-010": {
+      "title": "Reply to a comment thread",
+      "tasks": [
+        "T028",
+        "T037"
+      ]
+    },
+    "FR-011": {
+      "title": "Edit and delete only own tool-posted comments",
+      "tasks": [
+        "T021",
+        "T028"
+      ]
+    },
+    "FR-012": {
+      "title": "Never merge, decline or close a pull request",
+      "tasks": [
+        "T003",
+        "T014"
+      ]
+    },
+    "FR-013": {
+      "title": "Reviewer decision labelled as theirs, separate from readiness",
+      "tasks": [
+        "T029",
+        "T035"
+      ]
+    },
+    "FR-014": {
+      "title": "Posted comments shown at line and on overview, persist on reload",
+      "tasks": [
+        "T033",
+        "T035"
+      ]
+    },
+    "FR-015": {
+      "title": "Append-only record of each confirmed write",
+      "tasks": [
+        "T006",
+        "T015"
+      ]
+    },
+    "FR-016": {
+      "title": "Show failure reason, keep text in the box, never post twice",
+      "tasks": [
+        "T021",
+        "T026"
+      ]
+    },
+    "FR-017": {
+      "title": "Removed: no drafts stored",
+      "tasks": [
+        "T015",
+        "T027"
+      ]
+    },
+    "FR-018": {
+      "title": "Disable actions with reason when not allowed",
+      "tasks": [
+        "T021",
+        "T029"
+      ]
+    },
+    "FR-019": {
+      "title": "Keyboard and screen reader usable",
+      "tasks": [
+        "T026",
+        "T032"
+      ]
+    },
+    "FR-020": {
+      "title": "Same behaviour on every platform",
+      "tasks": [
+        "T008",
+        "T016",
+        "T017",
+        "T018"
+      ]
+    }
+  },
+  "size": "oversized",
+  "classification": {
+    "projectedFiles": 30,
+    "projectedTasks": 40,
+    "scopeSignal": "larger",
+    "verdict": "oversized"
+  },
+  "expectations": [
+    "Merge, decline or close a pull request",
+    "AI-initiated or batched writes",
+    "Editing or deleting others comments"
+  ],
+  "context": [
+    "area: src/ui/screens/diff.tsx, overview.tsx",
+    "area: src/contracts/source-control.ts (read-only; writes need separate SourceControlWriter)",
+    "area: src/adapters/{github,gitlab,bitbucket}",
+    "constraint: constitution II.1, II.4, VIII.3"
+  ],
+  "intent": "Let the reviewer comment, approve and request changes from the file view and overview",
+  "assistant": "claude",
+  "decisions": [
+    {
+      "decision": "Separate SourceControlWriter contract with its own write-only HTTP layer, allowlist and registry map",
+      "why": "Constitution VIII.3 and X.11 forbid a shared write-capable client",
+      "rejected": "Loosening createReadOnlyFetch"
+    },
+    {
+      "decision": "Two-step preview/confirm API with a single-use token bound to action hash and head SHA, head re-read at both steps",
+      "why": "X.11 requires a preview token; fixes commit-shown vs commit-applied",
+      "rejected": "Client-only confirmation dialog"
+    },
+    {
+      "decision": "In-flight lock, pending write_record intent and read-back after ambiguous failure",
+      "why": "No platform comment API has an idempotency key",
+      "rejected": "Client busy flag only"
+    },
+    {
+      "decision": "Add listComments and myDecision to the read provider; identify tool-posted comments via stored platform ids",
+      "why": "Comments are not read today and platforms have no tool marker",
+      "rejected": "Hidden marker in comment text"
+    },
+    {
+      "decision": "Drafts in SQLite, not sessionStorage",
+      "why": "Survive restart and sign-in redirect; many drafts per session",
+      "rejected": "Extend the single sessionStorage draft field"
+    },
+    {
+      "decision": "Per-action reviewCapability {allowed, reason} instead of platform branching",
+      "why": "FR-020 and VIII.2; platforms differ on request-changes and withdraw",
+      "rejected": "Hiding unsupported actions silently"
+    },
+    {
+      "decision": "One-click send with expectedHead check and per-click requestId; no preview, confirmation token or drafts",
+      "why": "User chose immediate posting over preview and confirm, and dropped drafts",
+      "rejected": "Preview and confirm with single-use token; local drafts"
+    }
+  ],
+  "concerns": [
+    {
+      "note": "plan-blocks.py failed (missing template parts), so no calls/code/states/screens blocks were added"
+    },
+    {
+      "note": "Write scopes in contracts/writer.md are unverified against fixtures"
+    },
+    {
+      "note": "Most route paths and data-testid values in contracts/ are proposed, not pinned by the spec"
+    },
+    {
+      "note": "ADR 0003 is still Proposed; README and MVP 1.3 still say the product never writes"
+    },
+    {
+      "note": "US3 and US4 carry only tests because their behaviour lives in shared Foundational components, a consequence of the one-owner-per-file rule"
+    },
+    {
+      "note": "Foundational is large (30 tasks) and blocks all stories"
+    },
+    {
+      "note": "src/server/routes.ts registration file name is inferred from the reader report, not opened"
+    },
+    {
+      "note": "Constitution II.4 and X.11 amended to 3.0.0 (preview/confirm and token removed) on the user request; FR-017 (drafts) removed"
+    },
+    {
+      "note": "Delete comment and Withdraw are now irreversible single clicks"
+    },
+    {
+      "note": "Reload loses typed text (no drafts)"
+    }
+  ],
+  "step_summaries": {
+    "plan": {
+      "summary": "Plan, research, data model and contracts for review actions via a new SourceControlWriter and two-step confirm API",
+      "key_finding": "Comments and the reviewer decision are not read today, and the read HTTP layer refuses all writes, so both the read and write sides are new work"
+    },
+    "tasks": {
+      "summary": "40 tasks in 7 phases: Setup, a 6-wave Foundational phase (contracts, tests, adapters, core, server, shared UI), one phase per story, Polish",
+      "key_finding": "One-owner-per-file forces shared UI components into Foundational, so US3 and US4 are verification-only phases"
+    }
+  },
+  "approach": "Add a separate SourceControlWriter (own write-only fetch, allowlist, per-platform adapters) behind a core preview/confirm service with a single-use token, an in-flight lock and read-back reconciliation. Extend the read provider with comments and the reviewer decision. Store drafts and an append-only write_record in SQLite, and copy the override dialog for the confirmation UI.",
+  "currentTask": "T039",
+  "task_summaries": {
+    "T001": {
+      "status": "DONE",
+      "did": "Write-aware logged fetch helper",
+      "files": [
+        "test/helpers/logged-write-fetch.ts"
+      ]
+    },
+    "T004": {
+      "status": "DONE",
+      "did": "Added listComments, myDecision, reviewCapability to SourceControlProvider; header still says no method writes",
+      "files": [
+        "src/contracts/source-control.ts"
+      ]
+    },
+    "T005": {
+      "status": "DONE",
+      "did": "Added review-action HTTP types (ReviewAction, ReviewActionBody with expectedHead/requestId, ReviewActionResult, CanReview, ReviewDecisionState, ReviewCommentItem)",
+      "files": [
+        "src/contracts/http.ts"
+      ]
+    },
+    "T003": {
+      "status": "DONE",
+      "did": "Added SourceControlWriter interface with Anchor, WriteOutcome, ActionCapability, ReviewCapability, Comment, ReviewDecision",
+      "files": [
+        "src/contracts/source-control-writer.ts"
+      ]
+    },
+    "T002": {
+      "status": "DONE",
+      "did": "Added forbidden, conflict, rejected, rate_limited to AdapterErrorCode and ADAPTER_ERROR_CODES",
+      "files": [
+        "src/contracts/shared.ts"
+      ]
+    },
+    "T006": {
+      "status": "DONE",
+      "did": "Added append-only write_record table with cascade, one terminal row per intent, one open intent per PR",
+      "files": [
+        "src/store/schema.sql"
+      ]
+    },
+    "T007": {
+      "status": "DONE",
+      "did": "Wrote write-http allowlist, redirect, status-mapping and read-cannot-write tests (failing: write-http.ts missing)",
+      "files": [
+        "test/unit/write-http.test.ts"
+      ]
+    },
+    "T041": {
+      "status": "DONE",
+      "did": "Added lazy write-scope, forbidden mapping and no-token-leak tests (failing: credentials write-scope API missing)",
+      "files": [
+        "test/unit/credentials.test.ts"
+      ]
+    },
+    "T008": {
+      "status": "DONE",
+      "did": "Writer contract suite written (parameterised by WriterTarget, run per platform by T009); no runner yet, fails until T009 and adapters exist",
+      "files": [
+        "test/contract/source-control-writer.suite.ts"
+      ]
+    },
+    "T011": {
+      "status": "DONE",
+      "did": "Five write_record store tests (append-only, one pending per PR, one terminal per intent, abandoned closed, cascade); failing until T015 supplies insertWriteRecord, listWriteRecords, closeAbandonedWrites",
+      "files": [
+        "test/integration/review-store.test.ts"
+      ]
+    },
+    "T010": {
+      "status": "DONE",
+      "did": "Hand-authored (not recorded) GitHub, GitLab and Bitbucket review-actions fixtures plus READMEs",
+      "files": [
+        "test/fixtures/github/review-actions",
+        "test/fixtures/gitlab/review-actions",
+        "test/fixtures/bitbucket/review-actions"
+      ]
+    },
+    "T013": {
+      "status": "DONE",
+      "did": "Route tests written first; failing as expected until Wave 5 routes exist",
+      "files": [
+        "test/integration/review-actions-routes.test.ts"
+      ]
+    },
+    "T009": {
+      "status": "DONE",
+      "did": "Wrote writer contract run for GitHub, GitLab, Bitbucket over review-actions fixtures; failing as expected until the three writer adapters exist",
+      "files": [
+        "test/contract/source-control-writer.contract.test.ts"
+      ]
+    },
+    "T012": {
+      "status": "DONE",
+      "did": "Wrote core review-actions unit tests over in-memory fakes (28 cases); failing as expected until src/core/review-actions.ts exists",
+      "files": [
+        "test/unit/review-actions.test.ts"
+      ]
+    },
+    "T015": {
+      "status": "DONE",
+      "did": "Added insertWriteRecord, listWriteRecords, closeAbandonedWrites and WriteRecordRow to the review store (no update or delete)",
+      "files": [
+        "src/store/review-store.ts"
+      ]
+    },
+    "T019": {
+      "status": "DONE",
+      "did": "Added optional write scope, hasWriteScope and authorizeForWrite (forbidden when no write credential) to the credential store",
+      "files": [
+        "src/credentials.ts"
+      ]
+    },
+    "T016": {
+      "status": "DONE",
+      "did": "GitHub listComments, myDecision, reviewCapability reads and the allowlisted writer with commit_id/side/line anchors",
+      "files": [
+        "src/adapters/github/source-control.ts",
+        "src/adapters/github/source-control-writer.ts"
+      ]
+    },
+    "T014": {
+      "status": "DONE",
+      "did": "Write-only fetch with method+path allowlist, redirect manual, status to neutral code mapping",
+      "files": [
+        "src/adapters/write-http.ts"
+      ]
+    },
+    "T017": {
+      "status": "DONE",
+      "did": "GitLab reads and writer (position object, version-probed request-changes gap)",
+      "files": [
+        "src/adapters/gitlab/source-control.ts",
+        "src/adapters/gitlab/source-control-writer.ts"
+      ]
+    },
+    "T018": {
+      "status": "DONE",
+      "did": "Bitbucket reads and writer (inline anchors, full head SHA); recorded-fetch bodyIncludes",
+      "files": [
+        "src/adapters/bitbucket/source-control.ts",
+        "src/adapters/bitbucket/source-control-writer.ts",
+        "test/helpers/recorded-fetch.ts"
+      ]
+    },
+    "T020": {
+      "status": "DONE",
+      "did": "Writer registry map, writerDeps, createSourceControlWriter",
+      "files": [
+        "src/adapters/registry.ts"
+      ]
+    },
+    "T021": {
+      "status": "DONE",
+      "did": "Core: head check, anchor validation, request id replay, lock, read-back, eligibility; 27 unit tests pass",
+      "files": [
+        "src/core/review-actions.ts"
+      ]
+    },
+    "T022": {
+      "status": "DONE",
+      "did": "Review-action routes: post, comments, decision; strict body parsing; platformMessage in errors",
+      "files": [
+        "src/server/routes/review-actions.ts",
+        "src/contracts/http.ts",
+        "src/server/routes.ts"
+      ]
+    },
+    "T023": {
+      "status": "DONE",
+      "did": "Writer built per session in reviewer.ts with write-scope credential; sign-in accepts scope",
+      "files": [
+        "src/main.ts",
+        "src/server/reviewer.ts",
+        "src/server/routes/context.ts",
+        "src/core/signins.ts"
+      ]
+    },
+    "T024": {
+      "status": "DONE",
+      "did": "Routes registered in main.ts",
+      "files": [
+        "src/main.ts"
+      ]
+    },
+    "T025": {
+      "status": "DONE",
+      "did": "API client functions, ApiError.platformMessage, review labels",
+      "files": [
+        "src/ui/api.ts",
+        "src/ui/labels.ts"
+      ]
+    },
+    "T026": {
+      "status": "DONE",
+      "did": "Action notice: role=alert reason and out-of-date notice",
+      "files": [
+        "src/ui/components/action-notice.tsx"
+      ]
+    },
+    "T031": {
+      "status": "DONE",
+      "did": "Styles for comment box, thread, decision panel, notice, all bands",
+      "files": [
+        "src/ui/app.css"
+      ]
+    },
+    "T027": {
+      "status": "DONE",
+      "did": "Comment box: posts at once, fresh requestId, text kept on error, double-click guard",
+      "files": [
+        "src/ui/components/comment-box.tsx"
+      ]
+    },
+    "T030": {
+      "status": "DONE",
+      "did": "Shared decision state per session",
+      "files": [
+        "src/ui/state/use-review-decision.ts"
+      ]
+    },
+    "T028": {
+      "status": "DONE",
+      "did": "Comment thread: text nodes, outdated marker, reply, edit/delete on own comments",
+      "files": [
+        "src/ui/components/comment-thread.tsx"
+      ]
+    },
+    "T029": {
+      "status": "DONE",
+      "did": "Decision panel: one-click approve/request changes/general comment/withdraw, reasons, own-decision label",
+      "files": [
+        "src/ui/components/decision-panel.tsx"
+      ]
+    },
+    "T032": {
+      "status": "DONE",
+      "did": "Browser test for line/range comments, cancel, refusal, double click, out-of-date, keyboard",
+      "files": [
+        "test/ui/line-comment.ui.ts",
+        "test/helpers/fake-github-reviews.ts",
+        "test/helpers/fake-ai-cli.ts"
+      ]
+    },
+    "T033": {
+      "status": "DONE",
+      "did": "Comment on selection, thread beside the line, decision panel in file view",
+      "files": [
+        "src/ui/screens/diff.tsx",
+        "src/ui/state/use-review-comments.ts"
+      ]
+    },
+    "T034": {
+      "status": "DONE",
+      "did": "Browser test for overview decisions",
+      "files": [
+        "test/ui/overview-decision.ui.ts"
+      ]
+    },
+    "T035": {
+      "status": "DONE",
+      "did": "Overview decision panel, general comment, PR comment list",
+      "files": [
+        "src/ui/screens/overview.tsx"
+      ]
+    },
+    "T036": {
+      "status": "DONE",
+      "did": "Browser test: one decision across views",
+      "files": [
+        "test/ui/file-decision.ui.ts"
+      ]
+    },
+    "T037": {
+      "status": "DONE",
+      "did": "Browser test: reply, edit, delete own comments",
+      "files": [
+        "test/ui/comment-manage.ui.ts"
+      ]
+    },
+    "T038": {
+      "status": "DONE",
+      "did": "README and MVP describe the reviewer-actions scope",
+      "files": [
+        "README.md",
+        "MVP/MVP.md"
+      ]
+    },
+    "T039": {
+      "status": "DONE",
+      "did": "ADR 0003 documents write scopes (unverified); status left Proposed, no human review yet",
+      "files": [
+        "docs/domain_knowledge/adr/0003-reviewer-actions-and-workbench-scope.md"
+      ]
+    }
+  }
+}
