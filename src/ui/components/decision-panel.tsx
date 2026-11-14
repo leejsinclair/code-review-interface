@@ -24,7 +24,7 @@ export function DecisionPanel(props: {
 }) {
   const { sessionId, expectedHead } = props;
   const ctx = useContext(ReviewContext);
-  const { state, error, reload } = useReviewDecision(sessionId);
+  const { state, error, warning, report, reload } = useReviewDecision(sessionId);
   const [message, setMessage] = useState('');
   const [busy, setBusy] = useState(false);
   const [failure, setFailure] = useState<ActionFailure | null>(null);
@@ -36,8 +36,10 @@ export function DecisionPanel(props: {
     setBusy(true);
     setFailure(null);
     try {
-      await postReviewAction(sessionId, { action, expectedHead, requestId: crypto.randomUUID() });
-      setMessage('');
+      const result = await postReviewAction(sessionId, { action, expectedHead, requestId: crypto.randomUUID() });
+      report(result);
+      // The decision stands but the message was not posted: keep the text so it can be sent again (US5).
+      if (result.warning === undefined) setMessage('');
       await reload();
       onOk?.();
       ctx.announce(done);
@@ -75,6 +77,9 @@ export function DecisionPanel(props: {
         <textarea data-testid="decision-message" value={message} onInput={(e) => setMessage((e.currentTarget as HTMLTextAreaElement).value)} />
       </label>
       <ActionNotice failure={failure} testId="comment-error" />
+      {warning?.code === 'message_not_posted' && (
+        <ActionNotice failure={{ kind: 'error', message: REVIEW_LABELS.messageNotPosted, platformMessage: warning.message }} testId="decision-message-not-posted" />
+      )}
       <div class="decision-actions">
         <button
           type="button"

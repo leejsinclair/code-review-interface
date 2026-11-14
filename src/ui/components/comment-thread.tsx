@@ -3,10 +3,10 @@
 // Delete is one click. An outdated comment is marked, never hidden.
 
 import { useState } from 'preact/hooks';
-import type { ReviewCommentItem } from '../../contracts/http.ts';
 import { postReviewAction } from '../api.ts';
 import { REVIEW_LABELS } from '../labels.ts';
 import { ActionNotice, failureOf, type ActionFailure } from './action-notice.tsx';
+import { commentsOf, type CommentThreadView } from '../state/use-review-comments.ts';
 import { CommentBox } from './comment-box.tsx';
 
 const when = (iso: string): string => iso.replace('T', ' ').replace(/\.\d+Z$/, 'Z');
@@ -14,19 +14,17 @@ const when = (iso: string): string => iso.replace('T', ' ').replace(/\.\d+Z$/, '
 export function CommentThread(props: {
   sessionId: string;
   expectedHead: string;
-  /** The thread root first, then replies in time order. */
-  comments: readonly ReviewCommentItem[];
+  /** One conversation: its start (or a deleted placeholder) and the replies in time order. */
+  thread: CommentThreadView;
   /** Why replying is not possible (the reviewer cannot review); absent when it is. */
   disabledReason?: string;
   /** Called after any change, so the caller re-reads the comments. */
   onChanged: () => void;
 }) {
-  const { sessionId, expectedHead, comments, onChanged } = props;
-  const root = comments[0];
+  const { sessionId, expectedHead, thread, onChanged } = props;
   const [replying, setReplying] = useState(false);
   const [editing, setEditing] = useState<string | null>(null);
   const [failure, setFailure] = useState<ActionFailure | null>(null);
-  if (root === undefined) return null;
 
   const remove = async (id: string): Promise<void> => {
     setFailure(null);
@@ -40,7 +38,12 @@ export function CommentThread(props: {
 
   return (
     <div class="comment-thread" data-testid="comment-thread">
-      {comments.map((c) => (
+      {thread.start === 'deleted' && (
+        <p class="comment muted" data-testid="comment-deleted-placeholder">
+          {REVIEW_LABELS.deletedComment}
+        </p>
+      )}
+      {commentsOf(thread).map((c) => (
         <div class="comment" data-testid="comment" data-comment-id={c.id} key={c.id}>
           <p class="comment-meta">
             {`${c.author.name} · ${when(c.createdAt)}${c.editedAt === null ? '' : ' · edited'}`}
@@ -77,16 +80,16 @@ export function CommentThread(props: {
           sessionId={sessionId}
           expectedHead={expectedHead}
           inputLabel="Reply"
-          build={(text) => ({ kind: 'comment', destination: 'reply', threadId: root.threadId, body: text })}
+          build={(text) => ({ kind: 'comment', destination: 'reply', threadId: thread.threadId, body: text })}
           onPosted={() => (setReplying(false), onChanged())}
           onCancel={() => setReplying(false)}
         />
-      ) : props.disabledReason === undefined ? (
+      ) : thread.canReply ? (
         <button type="button" data-testid="comment-reply" onClick={() => setReplying(true)}>
           {REVIEW_LABELS.reply}
         </button>
       ) : (
-        <p class="muted" data-testid="review-disabled-reason">{props.disabledReason}</p>
+        props.disabledReason !== undefined && <p class="muted" data-testid="review-disabled-reason">{props.disabledReason}</p>
       )}
     </div>
   );

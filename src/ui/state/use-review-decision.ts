@@ -4,22 +4,22 @@
 // is the source of truth and the capability is computed there.
 
 import { useEffect, useState } from 'preact/hooks';
-import type { ReviewDecisionState } from '../../contracts/http.ts';
+import type { ReviewActionResult, ReviewDecisionState } from '../../contracts/http.ts';
 import { getReviewDecision } from '../api.ts';
 
-type Entry = { state: ReviewDecisionState | null; error: string | null; listeners: Set<() => void> };
+type Entry = { state: ReviewDecisionState | null; error: string | null; warning: ReviewActionResult['warning'] | null; listeners: Set<() => void> };
 const entries = new Map<string, Entry>();
 
 function entryOf(sessionId: string): Entry {
   let entry = entries.get(sessionId);
   if (entry === undefined) {
-    entry = { state: null, error: null, listeners: new Set() };
+    entry = { state: null, error: null, warning: null, listeners: new Set() };
     entries.set(sessionId, entry);
   }
   return entry;
 }
 
-function publish(entry: Entry, patch: Partial<Pick<Entry, 'state' | 'error'>>): void {
+function publish(entry: Entry, patch: Partial<Pick<Entry, 'state' | 'error' | 'warning'>>): void {
   Object.assign(entry, patch);
   for (const listener of [...entry.listeners]) listener();
 }
@@ -27,6 +27,10 @@ function publish(entry: Entry, patch: Partial<Pick<Entry, 'state' | 'error'>>): 
 export type ReviewDecisionHook = {
   state: ReviewDecisionState | null;
   error: string | null;
+  /** Set when the last decision was recorded but its message was not posted; the caller keeps the message text. */
+  warning: ReviewActionResult['warning'] | null;
+  /** Records the outcome of an action: its warning, or none. */
+  report(result: ReviewActionResult): void;
   /** Re-reads the decision and what is allowed from the server. */
   reload(): Promise<void>;
 };
@@ -49,7 +53,8 @@ export function useReviewDecision(sessionId: string): ReviewDecisionHook {
     };
   }, [sessionId]);
 
-  return { state: entry.state, error: entry.error, reload };
+  const report = (result: ReviewActionResult): void => publish(entry, { warning: result.warning ?? null });
+  return { state: entry.state, error: entry.error, warning: entry.warning, report, reload };
 }
 
 /** Test seam: forget every session's cached decision. */

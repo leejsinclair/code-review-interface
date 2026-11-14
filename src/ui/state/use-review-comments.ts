@@ -7,13 +7,33 @@ import { getReviewComments } from '../api.ts';
 
 export type ReviewCommentsHook = { comments: ReviewCommentItem[]; error: string | null; reload(): Promise<void> };
 
-/** Groups comments into threads: the root first, replies after it in time order. Threads keep the root's order. */
-export function threadsOf(comments: readonly ReviewCommentItem[]): ReviewCommentItem[][] {
+/** One conversation, derived from the flat comment list (feature 007, data-model.md "Comment thread"). */
+export type CommentThreadView = {
+  threadId: string;
+  /** The comment with `startsThread`, or 'deleted' when it is gone (FR-006). */
+  start: ReviewCommentItem | 'deleted';
+  /** Every other comment in the thread, by `createdAt`. */
+  replies: ReviewCommentItem[];
+  /** `capability.reply.allowed`; false when the capability is not known yet. */
+  canReply: boolean;
+};
+
+/** Every comment of a thread in display order, the start first when present. */
+export const commentsOf = (thread: CommentThreadView): ReviewCommentItem[] => (thread.start === 'deleted' ? thread.replies : [thread.start, ...thread.replies]);
+
+/** One thread per `threadId`, at any depth, in first-seen order. */
+export function threadsOf(comments: readonly ReviewCommentItem[], capability: { reply: { allowed: boolean } } | null): CommentThreadView[] {
   const byThread = new Map<string, ReviewCommentItem[]>();
   for (const c of comments) byThread.set(c.threadId, [...(byThread.get(c.threadId) ?? []), c]);
-  return [...byThread.values()].map((thread) =>
-    [...thread].sort((a, b) => (a.id === a.threadId ? -1 : b.id === b.threadId ? 1 : a.createdAt.localeCompare(b.createdAt))),
-  );
+  return [...byThread].map(([threadId, members]) => {
+    const start = members.find((c) => c.startsThread);
+    return {
+      threadId,
+      start: start ?? 'deleted',
+      replies: members.filter((c) => c !== start).sort((a, b) => a.createdAt.localeCompare(b.createdAt)),
+      canReply: capability?.reply.allowed === true,
+    };
+  });
 }
 
 export function useReviewComments(sessionId: string): ReviewCommentsHook {

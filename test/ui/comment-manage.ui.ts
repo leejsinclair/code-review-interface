@@ -86,3 +86,26 @@ test('reply, edit and delete complete by keyboard only', async (t) => {
   await own(page, 'Keyboard edited').waitFor({ state: 'detached' });
   assert.equal(platform.comments.some((c) => c.body === 'Keyboard edited'), false);
 });
+
+// Feature 007, US3 (FR-004, FR-006, FR-015). A reply whose root was deleted on the platform still reads as one thread.
+test('a reply whose root was deleted shows the deleted-comment placeholder first, then the reply', async (t) => {
+  const orphan = { id: 501, body: 'Replying to something gone.', user: OTHER, created_at: '2026-03-01T11:00:00Z', updated_at: '2026-03-01T11:00:00Z', review: false, in_reply_to_id: 499 };
+  const platform = fakeGithubReviews({ seed: [orphan] });
+  const b = await useBrowser(t, { reviewer: 'rita-reviewer', intercept: platform.intercept });
+  const { sessionId } = await b.bench.startSession();
+  const page = await b.openPage(`#/sessions/${sessionId}`);
+  await page.getByText('Replying to something gone.').waitFor();
+  const thread = page.getByTestId('comment-thread');
+  assert.equal(await thread.count(), 1, 'one thread');
+  assert.equal(await thread.getByTestId('comment-deleted-placeholder').count(), 1);
+  assert.match((await thread.getByTestId('comment-deleted-placeholder').textContent()) ?? '', /This comment was deleted/);
+  const order = await thread.locator('[data-testid="comment-deleted-placeholder"], [data-testid="comment"]').evaluateAll((els) => els.map((e) => e.getAttribute('data-testid')));
+  assert.deepEqual(order, ['comment-deleted-placeholder', 'comment']);
+  assert.equal(await thread.getByTestId('comment-edit').count(), 0, 'the other author\'s reply is not editable');
+});
+
+test('a whole-pull-request thread offers a reply', async (t) => {
+  const { page } = await setup(t);
+  assert.equal(await page.getByTestId('comment-reply').count(), 1);
+  assert.equal(await page.getByTestId('comment-deleted-placeholder').count(), 0, 'a thread with its start has no placeholder');
+});

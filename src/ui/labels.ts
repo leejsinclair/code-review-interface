@@ -6,6 +6,8 @@
 // tracker platform, so it comes from the server (the tracker adapter) as the
 // reason string on the issue row, and the UI shows that string as text.
 
+import type { SpecRule } from '../contracts/http.ts';
+
 export type ClaimLabel = 'evidence' | 'inference';
 export type QuestionCategory = 'what' | 'why' | 'how' | 'whatif' | 'risk' | 'requirement';
 export type CompletenessStatus = 'found' | 'missing' | 'stale';
@@ -101,7 +103,7 @@ export const QUEUE_LANE_LABELS = {
 /** The short form used in the one-line summary above the lanes. */
 export const QUEUE_SUMMARY_LABELS = { 'new-commits': 'with new commits', 'in-progress': 'in progress', approved: 'approved' } as const;
 
-/** The external link to the pull request on its platform, e.g. "Open on Bitbucket". */
+/** The external link to the pull request on its platform, e.g. "Open on <platform>". */
 export const openOnPlatform = (platformName: string): string => `Open on ${platformName}`;
 
 /** Accessible names for icon-only controls. Where a verbatim action label exists it is reused unchanged. */
@@ -206,6 +208,8 @@ export const REVIEW_LABELS = {
   reply: 'Reply',
   edit: 'Edit',
   deleteComment: 'Delete comment',
+  deletedComment: 'This comment was deleted',
+  messageNotPosted: 'Your decision was recorded, but your message was not posted.',
   panelHeading: 'Your review',
   panelNote: 'This is your own decision on the platform. It is not the readiness of the pull request.',
   messageLabel: 'Message',
@@ -244,7 +248,6 @@ export const SPEC_LABELS = {
   citationUnverified: 'Source not found in the stored text',
   gapNoSpec: 'No specification was found',
   gapNoKey: 'No key was found to search with',
-  gapNotInProject: 'This repository is not inside a known project repository; only its own repository was searched',
   gapSourceUnreadable: 'Could not read the specification source',
   stale: 'Stale',
   readInFull: 'Read in full',
@@ -253,3 +256,14 @@ export const SPEC_LABELS = {
   retry: 'Retry assessment',
   loadFailed: 'Could not load the specification context.',
 } as const;
+
+/** Plain-language text for each rule that chose a specification when several matched. */
+export const SPEC_RULE_LABELS: Readonly<Record<SpecRule, string>> = {
+  'own-repository-first': 'own repository first',
+  'matching-branch-over-develop': 'matching branch over base branch',
+  'most-recent-commit': 'most recent commit',
+  'only-candidate': 'only match',
+} as const;
+
+/** `<branch>` also has a copy: another branch holds a copy of the chosen specification. */
+export const alsoHasCopy = (branch: string): string => `${branch} also has a copy`;

@@ -53,9 +53,10 @@ test('a specification without evidence lists the criteria and says "No evidence 
   assert.match((await page.getByTestId('spec-verdict').textContent()) ?? '', /Testing cannot be judged/);
 });
 
-test('no key, outside a project and a failed read each have their own words', async (t) => {
+test('no key and a failed read each have their own words, and outside a project raises none', async (t) => {
   assert.match(await notices(await open(t, { outcome: 'no-key' })), /No key was found to search with/);
-  assert.match(await notices(await open(t, { outcome: 'not-found', enclosingNote: 'not-inside-project' })), /not inside a known project repository; only its own repository was searched/);
+  // FR-034: a repository outside any enclosing project repository raises no gap.
+  assert.doesNotMatch(await notices(await open(t, { outcome: 'not-found', enclosingNote: 'not-inside-project' })), /not inside a known project repository/);
   assert.match(await notices(await open(t, { outcome: 'failed' })), /Could not read the specification source: fatal: unable to access the remote/);
 });
 
