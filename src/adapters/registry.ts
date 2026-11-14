@@ -20,7 +20,7 @@ import { createReadOnlyFetch, type NetworkFetch } from './read-only-http.ts';
 export type TrackerSettings = { repository: RepoRef; site?: string; projectKeys?: readonly string[] };
 
 /** What a source-control adapter needs from the configuration (R1). Platforms that are not self-hosted ignore it. */
-export type SourceControlSettings = { repository: RepoRef; baseUrl?: string };
+export type SourceControlSettings = { repository: RepoRef; baseUrl?: string; sshHost?: string };
 
 type SourceControlEntry = { descriptor: AdapterDescriptor; create(deps: AdapterDeps, settings: SourceControlSettings): SourceControlProvider };
 type TrackerEntry = { descriptor: AdapterDescriptor; create(deps: AdapterDeps, settings: TrackerSettings): IssueTracker };

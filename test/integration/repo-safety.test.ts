@@ -117,6 +117,7 @@ function fakePlatform(sandbox: GitSandbox) {
         title: `PR ${n}`,
         description: '',
         author: 'alice',
+        authorHandle: 'alice',
         sourceBranch: s.branch,
         targetBranch: s.targetBranch,
         state: 'open',
@@ -322,4 +323,20 @@ test('VO-072 the start-up sweep of a leftover worktree leaves the branch, HEAD, 
   assert.deepEqual(removed, [leftover]);
   assert.equal((await h.worktrees()).includes(leftover), false);
   assert.deepEqual(await h.sandbox.fingerprint(), before);
+});
+
+test('007 VO-039 listing a remote\'s heads with the symref form writes nothing to the dirty clone and returns the default branch', async (t) => {
+  const h = await harness(t);
+  await h.sandbox.openPr({ number: 1, branch: 'feature/sub', files: { 'src/util.js': UTIL_V2 } });
+  h.platform.publish(1);
+  await h.sandbox.dirtyClone();
+  const before = await h.sandbox.fingerprint();
+  const filesBefore = await filesOutsideGit(h.sandbox.root, h.paths.workspaces);
+
+  const remote = (await h.manager.listRemoteBranches(h.sandbox.clone, REMOTE)) as unknown as { heads: Array<{ branch: string }>; defaultBranch: string | null };
+  assert.ok(Array.isArray(remote.heads) && remote.heads.length > 0, 'the heads come back');
+  assert.equal(typeof remote.defaultBranch, 'string', 'the default branch comes from the HEAD symref');
+  assert.deepEqual(await h.sandbox.fingerprint(), before, 'branch, HEAD, index, stash, refs and FETCH_HEAD are unchanged');
+  assert.deepEqual(await filesOutsideGit(h.sandbox.root, h.paths.workspaces), filesBefore);
+  assert.deepEqual(await h.prwbRefs(), [], 'no ref was written');
 });

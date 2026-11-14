@@ -363,7 +363,7 @@ test('VO-067 the default runner runs real git with an argument array', async (t)
 test('006 the table holds listRemoteHeads, listTreePaths and lastCommitTouching, none with a forbidden verb', async () => {
   const { GIT_COMMANDS } = await loadGit();
   const table = GIT_COMMANDS as Readonly<Record<string, { readonly args: readonly string[] }>>;
-  assert.deepEqual([...(table.listRemoteHeads?.args ?? [])], ['ls-remote', '--heads', '{url}']);
+  assert.deepEqual([...(table.listRemoteHeads?.args ?? [])], ['ls-remote', '--symref', '{url}', 'HEAD', 'refs/heads/*']); // 007 T043
   assert.deepEqual([...(table.listTreePaths?.args ?? [])], ['ls-tree', '-r', '--name-only', '{commit}', '--', 'specs/']);
   assert.deepEqual([...(table.lastCommitTouching?.args ?? [])], ['log', '-1', '--format=%H', '{commit}', '--', '{path}']);
   for (const name of ['listRemoteHeads', 'listTreePaths', 'lastCommitTouching']) {

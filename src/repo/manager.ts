@@ -60,7 +60,8 @@ export interface RepositoryManager {
   /** Deletes every `refs/prwb/<sessionId>/` ref in the clone. */
   deleteSessionRefs(clonePath: string, sessionId: string): Promise<void>;
   /** The remote's branch heads (`ls-remote --heads`); `branch` has no `refs/heads/` prefix. Rejects with the first git error line. */
-  listRemoteBranches(clonePath: string, remoteUrl: string): Promise<Array<{ branch: string; commit: string }>>;
+  /** The branch heads of a remote and its default branch (from the `HEAD` symref; null when it reports none). */
+  listRemoteBranches(clonePath: string, remoteUrl: string): Promise<{ heads: Array<{ branch: string; commit: string }>; defaultBranch: string | null }>;
   /** Fetches one branch into `refs/prwb/<sessionId>/<snapshotId>/spec-<n>` and returns that ref and the commit it holds. */
   fetchSpecRef(input: { clonePath: string; remoteUrl: string; branch: string; sessionId: string; snapshotId: string; n: number }): Promise<{ ref: string; commit: string }>;
   /** Every path under `specs/` in the commit's tree. */
@@ -309,11 +310,17 @@ export function createRepositoryManager(options: { git: Git; workspacesDir: stri
         throw new Error(gitReason(error));
       }
       const heads: Array<{ branch: string; commit: string }> = [];
+      let defaultBranch: string | null = null;
       for (const line of output.split('\n')) {
+        const sym = /^ref:\s*refs\/heads\/(.+?)\s+HEAD$/.exec(line.trim());
+        if (sym !== null) {
+          defaultBranch = sym[1] ?? null;
+          continue;
+        }
         const m = /^([0-9a-f]{40}|[0-9a-f]{64})\trefs\/heads\/(.+)$/.exec(line.trim());
         if (m !== null) heads.push({ commit: m[1] ?? '', branch: m[2] ?? '' });
       }
-      return heads;
+      return { heads, defaultBranch };
     },
 
     async fetchSpecRef({ clonePath, remoteUrl, branch, sessionId, snapshotId, n }) {

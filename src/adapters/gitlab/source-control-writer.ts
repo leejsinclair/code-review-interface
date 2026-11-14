@@ -10,7 +10,7 @@ import { AdapterError } from '../../contracts/shared.ts';
 import type { RepoRef } from '../../contracts/source-control.ts';
 import type { Anchor, SourceControlWriter, WriteOutcome } from '../../contracts/source-control-writer.ts';
 import type { SourceControlSettings } from '../registry.ts';
-import type { NetworkFetch } from '../read-only-http.ts';
+import { createReadOnlyFetch, type NetworkFetch } from '../read-only-http.ts';
 import { createWriteFetch, type WriteAllow } from '../write-http.ts';
 import { obj, projectSegment, str, type Json } from './api.ts';
 
@@ -53,18 +53,37 @@ export function createGitlabSourceControlWriter(deps: Deps, settings: SourceCont
     return response.status === 204 ? null : response.json().catch(() => null);
   };
 
+  // Every read goes through the read layer (FR-016), so inside a request scope it shares one network read
+  // with the read side. The credential rides in the headers, as the read side sends it, so both share a key.
+  const read = createReadOnlyFetch({ platform: PLATFORM, fetch: deps.fetch });
+  const readJson = async (url: string): Promise<unknown> => {
+    const signed = deps.authorize(new Request(url, { headers: { accept: 'application/json' } }));
+    const headers: Record<string, string> = {};
+    signed.headers.forEach((value, name) => {
+      headers[name] = value;
+    });
+    return (await read(url, { headers })).json();
+  };
+
   type Version = { head: string; base: string; start: string };
   const versions = async (repo: RepoRef, pr: number): Promise<Version[]> => {
-    const response = await authorized(`${mr(repo, pr)}/versions`, { headers: { accept: 'application/json' } });
-    if (!response.ok) throw new AdapterError('unavailable', PLATFORM, `${PLATFORM}: could not read the merge request versions (${response.status})`);
-    const list = await response.json();
+    const list = await readJson(`${mr(repo, pr)}/versions`);
     return (Array.isArray(list) ? (list as Json[]) : []).map((v) => ({
       head: str(v.head_commit_sha).toLowerCase(),
       base: str(v.base_commit_sha),
       start: str(v.start_commit_sha),
     }));
   };
+  // GitLab lists the newest diff version first; only it is the merge request's current head.
   const latestHead = async (repo: RepoRef, pr: number): Promise<string> => (await versions(repo, pr))[0]?.head ?? '';
+
+  /** True when the signed-in account has approved the merge request. */
+  const hasApproved = async (repo: RepoRef, pr: number): Promise<boolean> => {
+    const me = str(obj(await readJson(`${root}/user`)).username).toLowerCase();
+    const approvals = obj(await readJson(`${mr(repo, pr)}/approvals`));
+    const by = Array.isArray(approvals.approved_by) ? (approvals.approved_by as Json[]) : [];
+    return me !== '' && by.some((a) => str(obj(a.user).username).toLowerCase() === me);
+  };
 
   const noteOutcome = async (note: Json, threadId: string | undefined, fallbackCommit: () => Promise<string>): Promise<WriteOutcome> => {
     const sha = str(obj(note.position).head_sha).toLowerCase();
@@ -87,9 +106,8 @@ export function createGitlabSourceControlWriter(deps: Deps, settings: SourceCont
     },
 
     async postLineComment(repo, pr, anchor: Anchor, body) {
-      const all = await versions(repo, pr);
-      const version = all.find((v) => v.head === anchor.commit.toLowerCase());
-      if (version === undefined) {
+      const version = (await versions(repo, pr))[0];
+      if (version === undefined || version.head !== anchor.commit.toLowerCase()) {
         throw new AdapterError('conflict', PLATFORM, `${PLATFORM}: the merge request has moved on from commit ${anchor.commit}`);
       }
       const side = anchor.side === 'head' ? 'new' : 'old';
@@ -129,9 +147,18 @@ export function createGitlabSourceControlWriter(deps: Deps, settings: SourceCont
     async approve(repo, pr, commit, body) {
       await send('POST', `${mr(repo, pr)}/approve`, { sha: commit });
       const createdAt = new Date().toISOString();
-      // GitLab's approval carries no message; a given one is kept as a note on the merge request.
-      if (body !== undefined && body !== '') await send('POST', `${mr(repo, pr)}/notes`, { body });
-      return { kind: 'decision', decision: 'approved', createdAt, commit };
+      const outcome: WriteOutcome = { kind: 'decision', decision: 'approved', createdAt, commit };
+      // GitLab's approval carries no message; a given one is kept as a note, written after the decision.
+      // A note that fails leaves the approval made and is reported on the outcome, never thrown.
+      if (body !== undefined && body !== '') {
+        try {
+          const note = obj(await send('POST', `${mr(repo, pr)}/notes`, { body }));
+          outcome.message = { posted: true, commentId: String(note.id) };
+        } catch (error) {
+          outcome.message = { posted: false, reason: error instanceof Error ? error.message : 'the message could not be posted' };
+        }
+      }
+      return outcome;
     },
 
     async requestChanges() {
@@ -139,6 +166,7 @@ export function createGitlabSourceControlWriter(deps: Deps, settings: SourceCont
     },
 
     async withdrawDecision(repo, pr) {
+      if (!(await hasApproved(repo, pr))) throw new AdapterError('conflict', PLATFORM, `${PLATFORM}: there is no approval of yours to withdraw`);
       await send('POST', `${mr(repo, pr)}/unapprove`);
       return { kind: 'decision', decision: 'withdrawn', createdAt: new Date().toISOString(), commit: await latestHead(repo, pr) };
     },

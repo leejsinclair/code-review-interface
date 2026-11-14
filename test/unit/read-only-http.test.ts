@@ -285,3 +285,62 @@ test('FR-044 a cross-origin hop after a same-origin hop is refused before it is 
   await assert.rejects(async () => ro(`${BASE}/a`, { headers: CREDENTIAL }), assertUnavailable(AdapterError));
   assert.deepEqual(calls.map((c) => c.url), [`${BASE}/a`, `${BASE}/b`]);
 });
+
+// VO-028 (FR-016, FR-017): inside a request scope the read-only layer serves a repeated GET of one address
+// and credential from one network call and replays the body to each caller; a different credential is never
+// shared; a request that is not a GET is never kept. Written first (T013): `src/adapters/request-memo.ts`
+// (T018) and the memo wiring (T021) do not exist yet, so these fail until then. The scope API assumed, from
+// research.md R8: `withRequestScope(fn)` runs `fn` inside a scope and returns what `fn` returns.
+
+type MemoModule = { withRequestScope<T>(fn: () => Promise<T>): Promise<T> };
+const loadMemo = async (): Promise<MemoModule> => (await import('../../src/adapters/request-memo.ts')) as MemoModule;
+const ALICE = { headers: { authorization: 'Bearer alice-token', accept: 'application/json' } };
+const BOB = { headers: { authorization: 'Bearer bob-token', accept: 'application/json' } };
+
+test('VO-028 a repeated GET inside a scope makes one network call and replays the body to each caller', async () => {
+  const { withRequestScope } = await loadMemo();
+  const { calls, ro } = await setup();
+  const bodies = await withRequestScope(async () => {
+    const first = await ro(`${BASE}/repos/o/r`, ALICE);
+    const second = await ro(`${BASE}/repos/o/r`, ALICE);
+    const [third, fourth] = await Promise.all([ro(`${BASE}/repos/o/r`, ALICE), ro(`${BASE}/repos/o/r`, ALICE)]);
+    return Promise.all([first, second, third, fourth].map((r) => r.json()));
+  });
+  assert.equal(calls(), 1, 'one network call for four reads of the same address and credential');
+  for (const body of bodies) assert.deepEqual(body, { name: 'r' }, 'each caller gets the whole body');
+});
+
+test('VO-028 a different credential is not shared inside a scope', async () => {
+  const { withRequestScope } = await loadMemo();
+  const { rec, calls, ro } = await setup();
+  await withRequestScope(async () => {
+    await (await ro(`${BASE}/repos/o/r`, ALICE)).json();
+    await (await ro(`${BASE}/repos/o/r`, BOB)).json();
+    await (await ro(`${BASE}/repos/o/r`, BOB)).json();
+  });
+  assert.equal(calls(), 2, 'one call per credential');
+  assert.deepEqual(rec.requests.map((r) => r.headers['authorization']), ['Bearer alice-token', 'Bearer bob-token']);
+});
+
+test('VO-028 the same address read as JSON and as a diff is two reads, not one', async () => {
+  const { withRequestScope } = await loadMemo();
+  const { calls, ro } = await setup();
+  await withRequestScope(async () => {
+    await (await ro(`${BASE}/repos/o/r`, { headers: { ...ALICE.headers, accept: 'application/json' } })).text();
+    await (await ro(`${BASE}/repos/o/r`, { headers: { ...ALICE.headers, accept: 'application/vnd.github.v3.diff' } })).text();
+  });
+  assert.equal(calls(), 2, 'a different Accept is a different read');
+});
+
+test('VO-028 a request that is not a GET is never kept, and it does not hide a later read', async () => {
+  const { withRequestScope } = await loadMemo();
+  const { rec, calls, ro } = await setup();
+  await withRequestScope(async () => {
+    for (let i = 0; i < 2; i += 1) {
+      await assert.rejects(async () => ro(`${BASE}/repos/o/r/pulls/1`, withMethod('POST')), /POST[\s\S]*read-only/i);
+    }
+    await (await ro(`${BASE}/repos/o/r`, ALICE)).json();
+  });
+  assert.equal(calls(), 1, 'the refused requests never reached the network');
+  assert.deepEqual(rec.requests.map((r) => r.method), ['GET']);
+});

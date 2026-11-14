@@ -14,10 +14,10 @@
       "state": "OPEN",
       "author": {
         "type": "user",
-        "display_name": "Alice Developer",
-        "nickname": "alice-dev",
-        "uuid": "{1c2d3e4f-0000-4000-8000-00000000a11c}",
-        "account_id": "712020:aa11c000-0000-4000-8000-000000000001"
+        "display_name": "Bob Reviewer",
+        "nickname": "bob-reviewer",
+        "uuid": "{1c2d3e4f-0000-4000-8000-00000000b0b2}",
+        "account_id": "712020:bb22c000-0000-4000-8000-000000000002"
       },
       "source": {
         "commit": {

@@ -5,8 +5,9 @@
 //
 // APIs required (T015, T020; contracts/git-commands.md):
 //   src/repo/manager.ts  RepositoryManager gains
-//     listRemoteBranches(clonePath, remoteUrl): Promise<Array<{ branch: string; commit: string }>>
-//         `ls-remote --heads` of the remote URL; `branch` has no `refs/heads/` prefix.
+//     listRemoteBranches(clonePath, remoteUrl): Promise<{ heads: Array<{ branch: string; commit: string }>; defaultBranch: string | null }>
+//         `ls-remote --symref <url> HEAD refs/heads/*` (feature 007, R12); `branch` has no `refs/heads/` prefix;
+//         `defaultBranch` comes from the HEAD symref, null when the remote reports none.
 //     fetchSpecRef(input: { clonePath; remoteUrl; branch; sessionId; snapshotId; n }): Promise<{ ref: string; commit: string }>
 //         fetches into `refs/prwb/<sessionId>/<snapshotId>/spec-<n>` and returns that ref and the commit it holds.
 //     listSpecFiles(clonePath, commit): Promise<string[]>          every path under `specs/` in the commit's tree
@@ -75,7 +76,7 @@ test('a full lookup writes only product-owned spec refs, reads at the last-touch
   const before = await reviewerState(sandbox);
   assert.notEqual(before.stash, '', 'the sandbox holds a stash to protect');
 
-  const heads = await manager.listRemoteBranches(sandbox.project, sandbox.remote);
+  const { heads } = await manager.listRemoteBranches(sandbox.project, sandbox.remote);
   const names = heads.map((h) => h.branch).sort();
   assert.deepEqual(names, ['develop', 'feature/ENG-12-data']);
   assert.equal(heads.find((h) => h.branch === 'feature/ENG-12-data')?.commit, headCommit);
@@ -140,4 +141,23 @@ test('the spec refs are removed with the session, and no other ref is touched', 
   assert.deepEqual(after.filter((r) => r.startsWith(PREFIX)), [], 'the session\'s spec refs are gone');
   assert.deepEqual(after.filter((r) => r.startsWith(`refs/prwb/${other}/`)).length, 1, 'another session\'s ref stays');
   assert.deepEqual(after.filter((r) => !r.startsWith('refs/prwb/')), before);
+});
+
+test('007 VO-038 the default branch comes from the HEAD symref, and is null when the remote reports none', async (t) => {
+  const { sandbox, manager } = await harness(t);
+  await sandbox.commitSpec('develop', specFolder('ENG-12-x'));
+  const first = await manager.listRemoteBranches(sandbox.project, sandbox.remote);
+  assert.equal(first.defaultBranch, 'develop', 'the sandbox remote\'s HEAD names develop');
+  assert.deepEqual(first.heads.map((h) => h.branch), ['develop'], 'the HEAD line is not a head');
+
+  await sandbox.commitSpec('main', specFolder('ENG-12-y'));
+  await sandbox.git(sandbox.remote, 'symbolic-ref', 'HEAD', 'refs/heads/main');
+  const second = await manager.listRemoteBranches(sandbox.project, sandbox.remote);
+  assert.equal(second.defaultBranch, 'main');
+  assert.deepEqual(second.heads.map((h) => h.branch).sort(), ['develop', 'main']);
+
+  await sandbox.git(sandbox.remote, 'symbolic-ref', 'HEAD', 'refs/heads/does-not-exist');
+  const third = await manager.listRemoteBranches(sandbox.project, sandbox.remote);
+  assert.equal(third.defaultBranch, null, 'a HEAD that points at nothing reports no default branch');
+  assert.deepEqual(third.heads.map((h) => h.branch).sort(), ['develop', 'main']);
 });

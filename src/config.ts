@@ -23,7 +23,7 @@ export type RegisteredPlatforms = {
 };
 
 /** The folder holding the clones and the source-control platform they belong to (data-model 1.1). */
-export type WorkspaceConfig = { baseFolder: string; platform: PlatformId; baseUrl?: string };
+export type WorkspaceConfig = { baseFolder: string; platform: PlatformId; baseUrl?: string; sshHost?: string };
 
 export type IssueTrackerConfig = { platform: PlatformId; site?: string; projectKeys?: string[] };
 
@@ -124,7 +124,7 @@ export function validateBaseUrl(field: string, value: string): void {
 function validateWorkspace(value: unknown, platforms: RegisteredPlatforms, appDataDir: string, checkFolder: boolean): WorkspaceConfig {
   const prefix = 'workspace';
   if (value === undefined) throw invalid(prefix, 'is required');
-  const obj = object(value, prefix, ['baseFolder', 'platform', 'baseUrl']);
+  const obj = object(value, prefix, ['baseFolder', 'platform', 'baseUrl', 'sshHost']);
   const baseFolder = requiredString(obj, 'baseFolder', prefix);
   const platform = platformIn(obj, prefix, platforms.sourceControl);
   if (!isAbsolute(baseFolder)) throw invalid('workspace.baseFolder', 'must be an absolute path');
@@ -149,6 +149,11 @@ function validateWorkspace(value: unknown, platforms: RegisteredPlatforms, appDa
     out.baseUrl = baseUrl;
   } else if (platforms.needsBaseUrl?.includes(platform)) {
     throw invalid('workspace.baseUrl', 'is required for the chosen platform');
+  }
+  if (obj.sshHost !== undefined) {
+    const sshHost = requiredString(obj, 'sshHost', prefix);
+    if (!/^[A-Za-z0-9]([A-Za-z0-9.-]*[A-Za-z0-9])?$/.test(sshHost)) throw invalid('workspace.sshHost', 'must be a bare host name (no scheme, user, port or path)');
+    out.sshHost = sshHost;
   }
   return out;
 }

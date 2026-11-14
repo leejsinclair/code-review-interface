@@ -121,6 +121,7 @@ function fakePlatform(sandbox: GitSandbox) {
         title: `PR ${n}`,
         description: '',
         author: 'alice',
+        authorHandle: 'alice',
         sourceBranch: s.branch,
         targetBranch: s.targetBranch,
         state: 'open',

@@ -1,0 +1,35 @@
+{
+  "request": {
+    "method": "GET",
+    "url": "https://api.github.com/repos/acme/widgets/pulls/1"
+  },
+  "response": {
+    "status": 200,
+    "headers": {
+      "content-type": "application/json; charset=utf-8",
+      "x-github-media-type": "github.v3; format=json"
+    },
+    "body": {
+      "url": "https://api.github.com/repos/acme/widgets/pulls/1",
+      "number": 1,
+      "state": "open",
+      "title": "Allow password reset more than once",
+      "body": "Fixes ABC-12.",
+      "user": {
+        "login": "alice-dev",
+        "id": 41001,
+        "type": "User"
+      },
+      "merged": false,
+      "merged_at": null,
+      "updated_at": "2026-03-02T09:00:00Z",
+      "head": {
+        "ref": "feature/ABC-12-reset",
+        "sha": "c7d1e5f9a2b4c6d8e0f1a3b5c7d9e1f3a5b7c9d0"
+      },
+      "base": {
+        "ref": "main"
+      }
+    }
+  }
+}

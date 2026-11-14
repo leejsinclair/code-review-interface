@@ -7,7 +7,7 @@ import type { RepoRef } from '../../contracts/source-control.ts';
 import type { Anchor, PullRequestRef, SourceControlWriter, WriteOutcome } from '../../contracts/source-control-writer.ts';
 import { createReadOnlyFetch, type NetworkFetch } from '../read-only-http.ts';
 import { createWriteFetch, type WriteAllow } from '../write-http.ts';
-import { authorisedGet, GITHUB_ID } from './source-control.ts';
+import { authorisedGet, createGithubSourceControl, GITHUB_ID } from './source-control.ts';
 
 const API = 'https://api.github.com';
 const JSON_TYPE = 'application/vnd.github+json';
@@ -26,6 +26,7 @@ export const GITHUB_WRITE_ALLOWLIST: readonly WriteAllow[] = [
 ];
 
 type Json = Record<string, unknown>;
+type CommentOutcome = Extract<WriteOutcome, { kind: 'comment' }>;
 const str = (value: unknown): string => (typeof value === 'string' ? value : '');
 const obj = (value: unknown): Json => (value !== null && typeof value === 'object' ? (value as Json) : {});
 const iso = (value: unknown, fallback: () => string): string => {
@@ -43,6 +44,8 @@ function repoPath(repo: RepoRef): string {
 export function createGithubSourceControlWriter(deps: { fetch: NetworkFetch; authorize: Authorize }): SourceControlWriter {
   const send = createWriteFetch({ platform: GITHUB_ID, fetch: deps.fetch, allowlist: GITHUB_WRITE_ALLOWLIST });
   const read = { fetch: createReadOnlyFetch({ platform: GITHUB_ID, fetch: deps.fetch }), authorize: deps.authorize };
+  // Every read the writer needs goes through the read layer, shared with the read side (FR-016).
+  const reads = createGithubSourceControl(read);
 
   const write = async (method: string, url: string, payload?: unknown): Promise<unknown> => {
     const request = deps.authorize(new Request(url, { method, headers: { accept: JSON_TYPE, 'content-type': 'application/json' } }));
@@ -54,9 +57,9 @@ export function createGithubSourceControlWriter(deps: { fetch: NetworkFetch; aut
     return response.status === 204 ? undefined : response.json();
   };
 
-  const comment = (raw: unknown, threadId?: string): WriteOutcome => {
+  const comment = (raw: unknown, threadId?: string): CommentOutcome => {
     const c = obj(raw);
-    const outcome: WriteOutcome = {
+    const outcome: CommentOutcome = {
       kind: 'comment',
       commentId: String(c.id),
       createdAt: iso(c.created_at, now),
@@ -97,6 +100,11 @@ export function createGithubSourceControlWriter(deps: { fetch: NetworkFetch; aut
     },
 
     async postLineComment(repo, pr, anchor: Anchor, body) {
+      // Only the pull request's current head counts: lines chosen on an older commit may have moved.
+      const head = (await reads.getPullRequest(repo, pr)).headCommit;
+      if (head !== anchor.commit.toLowerCase()) {
+        throw new AdapterError('conflict', GITHUB_ID, `${GITHUB_ID}: pull request ${pr} has new commits since these lines were chosen`);
+      }
       const side = anchor.side === 'head' ? 'RIGHT' : 'LEFT';
       const payload: Json = { body, commit_id: anchor.commit, path: anchor.path, line: anchor.endLine, side };
       if (anchor.endLine > anchor.startLine) {
@@ -107,8 +115,21 @@ export function createGithubSourceControlWriter(deps: { fetch: NetworkFetch; aut
     },
 
     async replyToThread(repo, pr, threadId, body) {
-      const url = `${API}/repos/${repoPath(repo)}/pulls/${pr}/comments/${encodeURIComponent(threadId)}/replies`;
-      return comment(await write('POST', url, { body }), threadId);
+      const base = `${API}/repos/${repoPath(repo)}`;
+      const safe = encodeURIComponent(threadId);
+      const get = async (url: string): Promise<Json> => obj(await (await authorisedGet(read, url, JSON_TYPE)).json());
+      try {
+        await get(`${base}/pulls/comments/${safe}`);
+      } catch (error) {
+        if (!(error instanceof AdapterError) || error.code !== 'not_found') throw error;
+        // A comment on the whole pull request has no reply: post a new one quoting the original.
+        const original = str((await get(`${base}/issues/comments/${safe}`)).body);
+        const quote = original.split('\n').map((line) => `> ${line}`).join('\n');
+        const posted = comment(await write('POST', `${base}/issues/${pr}/comments`, { body: `${quote}\n\n${body}` }));
+        posted.threadId = posted.commentId;
+        return posted;
+      }
+      return comment(await write('POST', `${base}/pulls/${pr}/comments/${safe}/replies`, { body }), threadId);
     },
 
     async editComment(repo, _pr, commentId, body) {
@@ -130,19 +151,13 @@ export function createGithubSourceControlWriter(deps: { fetch: NetworkFetch; aut
     },
 
     async withdrawDecision(repo, pr) {
-      const base = `${API}/repos/${repoPath(repo)}`;
-      const login = str(obj(await (await authorisedGet(read, `${API}/user`, JSON_TYPE)).json()).login).toLowerCase();
-      const all = await (await authorisedGet(read, `${base}/pulls/${pr}/reviews?per_page=100`, JSON_TYPE)).json();
-      const decided = (Array.isArray(all) ? (all as Json[]) : []).filter(
-        (r) => str(obj(r.user).login).toLowerCase() === login && ['APPROVED', 'CHANGES_REQUESTED', 'DISMISSED'].includes(str(r.state)),
-      );
-      const current = decided.at(-1);
-      if (current === undefined || str(current.state) === 'DISMISSED') {
-        throw new AdapterError('not_found', GITHUB_ID, `${GITHUB_ID}: there is no decision of yours on pull request ${pr} to withdraw`);
+      const current = await reads.myDecision(repo, pr);
+      if (current === null || current.platformId === null) {
+        throw new AdapterError('conflict', GITHUB_ID, `${GITHUB_ID}: there is no decision of yours on pull request ${pr} to withdraw`);
       }
-      const url = `${base}/pulls/${pr}/reviews/${encodeURIComponent(String(current.id))}/dismissals`;
+      const url = `${API}/repos/${repoPath(repo)}/pulls/${pr}/reviews/${encodeURIComponent(current.platformId)}/dismissals`;
       const done = obj(await write('PUT', url, { message: 'Withdrawn by the reviewer' }));
-      return { kind: 'decision', decision: 'withdrawn', createdAt: now(), commit: str(done.commit_id) || str(current.commit_id), platformId: String(current.id) };
+      return { kind: 'decision', decision: 'withdrawn', createdAt: now(), commit: str(done.commit_id) || current.commit, platformId: current.platformId };
     },
   };
 }

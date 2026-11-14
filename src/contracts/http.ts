@@ -204,7 +204,7 @@ export type PullSummary = {
   approvedByMe?: boolean;
   /** Present when a session exists. */
   sessionId?: string;
-  /** The pull request's head commit on the platform (may be abbreviated on Bitbucket list rows). */
+  /** The pull request's head commit as the list reports it. It may be an abbreviated prefix of the full sha; compare by prefix, not equality. */
   headCommit?: string;
   /** The pull request's page on the platform, opened in a new browser tab. */
   webUrl?: string;
@@ -615,6 +615,8 @@ export type ReviewActionResult = {
   comment?: Comment;
   decision?: ReviewDecision | null;
   record: ReviewActionRecord;
+  /** Set when the decision was recorded but its accompanying message was not posted. */
+  warning?: { code: 'message_not_posted'; message: string };
 };
 
 /** Same shape as `RiskReport['canOverride']`. */
@@ -635,6 +637,7 @@ export type ReviewComments = { comments: ReviewCommentItem[] };
 
 export type SpecDocumentKind = 'specification' | 'tdd-evidence';
 export type SpecDocumentStatus = 'found' | 'missing' | 'stale';
+/** Which rule chose the copy of the spec that was used, when more than one existed. */
 export type SpecRule = 'own-repository-first' | 'matching-branch-over-develop' | 'most-recent-commit' | 'only-candidate';
 
 export type SpecCopy = {
@@ -645,7 +648,7 @@ export type SpecCopy = {
 };
 
 export type SpecSource = {
-  /** The issue key that matched, as written on the pull request. */
+  /** The issue key that matched, as written on the pull request (the spec folder's key, not a normalised form). */
   key: string;
   used: SpecCopy;
   rule: SpecRule;
@@ -671,7 +674,6 @@ export type SpecKeyResult = {
 
 export type SpecLookupGap =
   | { kind: 'no-key'; message: string }
-  | { kind: 'no-enclosing-repository'; message: string }
   | { kind: 'read-failed'; message: string };
 
 /** The only label on assessment statements (FR-014); never 'verified'. */

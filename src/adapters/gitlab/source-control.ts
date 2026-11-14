@@ -2,7 +2,7 @@
 // The repository id is the project's full path, nested groups included. Every merge request's
 // head, a fork's too, is fetched from the base project's `refs/merge-requests/<iid>/head`.
 
-import { mapLimited } from '../concurrent.ts';
+import { approvedAcross } from '../approved-by-me.ts';
 import type { AdapterDeps, AdapterDescriptor, SignInCheck } from '../../contracts/shared.ts';
 import { AdapterError } from '../../contracts/shared.ts';
 import type { Anchor, Comment, ReviewCapability, ReviewDecision } from '../../contracts/source-control-writer.ts';
@@ -35,6 +35,7 @@ function toPullRequest(raw: Json): PullRequestInfo {
     title: str(raw.title),
     description: str(raw.description),
     author: str(obj(raw.author).username),
+    authorHandle: str(obj(raw.author).username),
     sourceBranch: str(raw.source_branch),
     targetBranch: str(raw.target_branch),
     headCommit: str(raw.sha).toLowerCase(),
@@ -115,6 +116,7 @@ export function createGitlabSourceControl(
       return '';
     }
   })();
+  const sshPrefix = (settings.sshHost ?? '').trim().toLowerCase();
   const mr = (repo: RepoRef, number: number): string => `/projects/${projectSegment(repo.id)}/merge_requests/${number}`;
 
   /** The base project's clone URLs (built by GitLab from its external address) with `ref`. */
@@ -159,13 +161,15 @@ export function createGitlabSourceControl(
     currentUser: readUser,
 
     cloneLocations(repo) {
-      return [`${locationPrefix}/${repo.id}`.toLowerCase()];
+      const hosts = sshPrefix === '' ? [locationPrefix] : [locationPrefix, sshPrefix];
+      return hosts.map((host) => `${host}/${repo.id}`.toLowerCase());
     },
 
     // Only this instance's host (and its sub-path, when it has one) is recognised; nested groups stay in the id.
     repositoryForRemote(remote) {
-      if (!remote.startsWith(`${locationPrefix.toLowerCase()}/`)) return null;
-      const id = remote.slice(locationPrefix.length + 1);
+      const prefix = [locationPrefix, sshPrefix].find((host) => host !== '' && remote.startsWith(`${host}/`));
+      if (prefix === undefined) return null;
+      const id = remote.slice(prefix.length + 1);
       return id.includes('/') && !id.startsWith('/') && !id.endsWith('/') ? id : null;
     },
 
@@ -178,19 +182,11 @@ export function createGitlabSourceControl(
 
     async approvedByMe(repo, numbers) {
       const username = await myUsername();
-      const approvedOne = async (number: number): Promise<boolean> => {
+      return approvedAcross(GITLAB_ID, numbers, async (number) => {
         const approvals = obj(await api.json(`${mr(repo, number)}/approvals`));
         const by = Array.isArray(approvals.approved_by) ? (approvals.approved_by as Json[]) : [];
         return by.some((a) => str(obj(a.user).username).toLowerCase() === username);
-      };
-      const flags = await mapLimited(numbers, 4, async (number) => {
-        try {
-          return await approvedOne(number);
-        } catch {
-          return false; // one PR failing must not hide the others' approvals
-        }
       });
-      return new Set(numbers.filter((_, i) => flags[i]));
     },
 
     async getPullRequest(repo, number) {
@@ -226,8 +222,12 @@ export function createGitlabSourceControl(
       for (const discussion of discussions) {
         const notes = Array.isArray(discussion.notes) ? (discussion.notes as Json[]) : [];
         const threadId = str(discussion.id);
+        // GitLab keeps no trace of a deleted note: the first note it still lists starts the thread.
+        let first = true;
         for (const note of notes) {
           if (note.system === true) continue;
+          const startsThread = first;
+          first = false;
           const author = obj(note.author);
           const anchor = toAnchor(note.position);
           const created = iso(note.created_at);
@@ -235,7 +235,12 @@ export function createGitlabSourceControl(
           comments.push({
             id: String(note.id),
             threadId,
-            author: { id: String(author.id ?? ''), name: str(author.name) === '' ? str(author.username) : str(author.name) },
+            startsThread,
+            author: {
+              id: String(author.id ?? ''),
+              name: str(author.name) === '' ? str(author.username) : str(author.name),
+              handle: str(author.username),
+            },
             body: str(note.body),
             createdAt: created,
             editedAt: updated !== created ? updated : null,

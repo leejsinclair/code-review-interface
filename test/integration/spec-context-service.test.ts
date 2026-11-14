@@ -89,13 +89,13 @@ async function harness(t: { after(fn: () => unknown): void }, ai: FakeConfig = {
   const { sessionId } = seedSession(store);
   let seq = 0;
   /** Appends a snapshot for a pull request whose title holds the key. */
-  const snapshot = (title = 'ENG-12 data request', head = String(seq + 1).repeat(40).slice(0, 40)): string => {
+  const snapshot = (title = 'ENG-12 data request', head = String(seq + 1).repeat(40).slice(0, 40), branchName = 'feature/data'): string => {
     seq += 1;
     const id = randomUUID();
     const repo = { platform: 'scm-test', identifier: 'acme/job' };
     store.appendSnapshot({
       id, sessionId, seq, takenAt: `2026-11-07T10:0${seq}:00.000Z`, headCommit: head, title, description: 'Implements it.', author: 'Ana',
-      sourceBranch: { repo, name: 'feature/data' }, targetBranch: { repo, name: 'develop' },
+      sourceBranch: { repo, name: branchName }, targetBranch: { repo, name: 'develop' },
       targetCommit: 'b'.repeat(40), baseCommit: 'c'.repeat(40), diffSource: 'local', diffFingerprint: String(seq).repeat(64).slice(0, 64),
       repositoryStatus: 'found', repositoryReason: null, headRef: `refs/prwb/${sessionId}/${id}/head`, targetRef: `refs/prwb/${sessionId}/${id}/target`,
     });
@@ -155,9 +155,9 @@ test('the lookup does not block the snapshot: the entry point returns at once an
   assert.equal((await h.service.report(h.sessionId, snap)).status, 'ready');
 });
 
-test('no key on the pull request gives a gap and no run (FR-015)', async (t) => {
+test('no key and no branch name on the pull request give a gap and no run (FR-015, FR-034)', async (t) => {
   const h = await harness(t);
-  const snap = h.snapshot('Tidy up the readme');
+  const snap = h.snapshot('Tidy up the readme', undefined, '');
   await h.open(snap);
   const report = await h.service.report(h.sessionId, snap);
   assert.equal(report.status, 'none');
@@ -323,4 +323,72 @@ test('a same-head refresh that cannot read keeps the stored documents and the as
   assert.equal(after.keys[0]?.documents[0]?.status, 'found');
   assert.equal(after.alignment?.runId, before.alignment?.runId);
   assert.equal(await h.runs(), 1);
+});
+
+// Feature 007 (T046; FR-032, FR-033, R12, VO-040): a pull request with no tracker key finds its spec in its own
+// repository by branch name, on the default branch, `develop` and the matching branches, each considered once.
+const BRANCH = 'feature/007-review-actions-parity';
+const SAME = '007-review-actions-parity';
+
+/** The own repository's remote: default branch `main`, plus `develop`, the PR's branch and an unrelated branch. */
+async function sameRepository(h: Awaited<ReturnType<typeof harness>>, onMain: boolean, onDevelop: boolean) {
+  const s = h.sandbox;
+  const files = (text: string) => specFolder(SAME, { spec: `# ${text}\n- **FR-001**: ${text}.\n` });
+  // develop is the sandbox's first branch; main and the others branch from it, so develop gets its copy last.
+  await s.commitNestedSpec('main', onMain ? files('main copy') : { 'src/x.txt': 'x\n' });
+  await s.commitNestedSpec(BRANCH, { 'src/feature.txt': 'feature work\n' });
+  await s.commitNestedSpec('feature/unrelated', files('unrelated copy'));
+  if (onDevelop) await s.commitNestedSpec('develop', files('develop copy'));
+  await s.git(s.nestedRemote, 'symbolic-ref', 'HEAD', 'refs/heads/main');
+}
+
+test('007 a spec on the default branch only is found by branch name, and the searched branches are the default, develop and the matching ones, once each (VO-040)', async (t) => {
+  const h = await harness(t);
+  await sameRepository(h, true, false);
+  const snap = h.snapshot('Review actions parity', undefined, BRANCH);
+  await h.open(snap);
+  const report = await h.service.report(h.sessionId, snap);
+  assert.equal(report.status, 'ready');
+  assert.deepEqual(report.gaps, [], 'no gap');
+  const own = report.searched.find((s) => s.repository === OWN);
+  assert.deepEqual([...(own?.branches ?? [])].sort(), ['develop', 'feature/007-review-actions-parity', 'main'], 'each once; the unrelated branch is not searched');
+  const spec = report.keys[0]?.documents[0];
+  assert.equal(spec?.status, 'found');
+  assert.equal(spec?.source?.used.repository, OWN);
+  assert.equal(spec?.source?.used.branch, 'main');
+  assert.equal(spec?.source?.used.folder, `specs/${SAME}`);
+  assert.deepEqual(spec?.source?.others ?? [], []);
+  assert.equal(report.keys[0]?.key, SAME, 'the term that matched is shown where a key was');
+});
+
+test('007 a spec on the default branch and on develop is found once, and the other copy names its actual branch (VO-040)', async (t) => {
+  const h = await harness(t);
+  await sameRepository(h, true, true);
+  const snap = h.snapshot('Review actions parity', undefined, BRANCH);
+  await h.open(snap);
+  const source = (await h.service.report(h.sessionId, snap)).keys[0]?.documents[0]?.source;
+  const branches = [source?.used.branch, ...(source?.others ?? []).map((o) => o.branch)].sort();
+  assert.deepEqual(branches, ['develop', 'main'], 'one used copy and one other, no duplicates');
+  assert.notEqual(source?.used.branch, source?.others[0]?.branch);
+});
+
+test('007 a spec on the pull request\'s own branch is the matching branch and wins over the default branch (VO-040)', async (t) => {
+  const h = await harness(t);
+  await sameRepository(h, true, false);
+  await h.sandbox.commitNestedSpec(BRANCH, specFolder(SAME, { spec: '# Branch copy\n- **FR-001**: branch.\n' }));
+  const snap = h.snapshot('Review actions parity', undefined, BRANCH);
+  await h.open(snap);
+  const source = (await h.service.report(h.sessionId, snap)).keys[0]?.documents[0]?.source;
+  assert.equal(source?.used.branch, BRANCH);
+  assert.equal(source?.rule, 'matching-branch-over-develop');
+  assert.deepEqual(source?.others.map((o) => o.branch), ['main']);
+});
+
+test('007 a branch term matches a whole folder name only: 007-review does not find the folder (VO-036)', async (t) => {
+  const h = await harness(t);
+  await sameRepository(h, true, false);
+  const snap = h.snapshot('Review actions parity', undefined, 'feature/007-review');
+  await h.open(snap);
+  const report = await h.service.report(h.sessionId, snap);
+  assert.equal(report.keys[0]?.documents[0]?.status, 'missing');
 });

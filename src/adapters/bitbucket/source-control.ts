@@ -3,7 +3,7 @@
 // through the read-only layer (VIII.3). A PR head is fetched from its source repository, which is the
 // fork for a fork PR, at the source branch (R10).
 
-import { mapLimited } from '../concurrent.ts';
+import { approvedAcross } from '../approved-by-me.ts';
 import { AdapterError, type AdapterDeps, type AdapterDescriptor, type SignInCheck } from '../../contracts/shared.ts';
 import type {
   ChangedFileInfo,
@@ -112,6 +112,7 @@ export function createBitbucketCloudSourceControl(deps: AdapterDeps): SourceCont
     title: str(raw.title),
     description: str(raw.description),
     author: str(obj(raw.author).display_name),
+    authorHandle: str(obj(raw.author).account_id),
     sourceBranch: str(obj(obj(raw.source).branch).name),
     targetBranch: str(obj(obj(raw.destination).branch).name),
     headCommit,
@@ -125,6 +126,11 @@ export function createBitbucketCloudSourceControl(deps: AdapterDeps): SourceCont
     const handle = str(user.account_id);
     const name = str(user.display_name);
     return { handle, displayName: name === '' ? handle : name, uuid: str(user.uuid).toLowerCase() };
+  };
+
+  const readPullRequest = async (repo: RepoRef, number: number): Promise<PullRequestInfo> => {
+    const raw = await getRawPr(repo, number);
+    return toPullRequest(raw, await fullHead(raw));
   };
 
   type Me = { accountId: string; uuid: string };
@@ -176,26 +182,11 @@ export function createBitbucketCloudSourceControl(deps: AdapterDeps): SourceCont
         const list = Array.isArray(participants) ? (participants as Json[]) : [];
         return list.some((p) => (p.approved === true || p.state === 'approved') && isMe(obj(p.user)));
       };
-      let failures = 0;
-      const flags = await mapLimited(numbers, 4, async (number) => {
-        try {
-          return await approvedOne(number);
-        } catch (error) {
-          // One PR failing must not hide the others' approvals, but it is not silent either.
-          console.warn(`bitbucket: could not read the participants of ${repo.id}#${number}: ${error instanceof Error ? error.message : String(error)}`);
-          failures += 1;
-          return false;
-        }
-      });
-      // Every lookup failing (a missing scope, rate limiting) is a failed check, not "nothing approved".
-      if (numbers.length > 0 && failures === numbers.length) throw new AdapterError('unavailable', BITBUCKET_CLOUD_ID, `${BITBUCKET_CLOUD_ID}: could not read the participants of any pull request`);
-      return new Set(numbers.filter((_, i) => flags[i]));
+      // Partial failures are logged and the rest reported; every check failing is `unavailable` (FR-013).
+      return approvedAcross(BITBUCKET_CLOUD_ID, numbers, approvedOne);
     },
 
-    async getPullRequest(repo, number) {
-      const raw = await getRawPr(repo, number);
-      return toPullRequest(raw, await fullHead(raw));
-    },
+    getPullRequest: readPullRequest,
 
     async listCommits(repo, number): Promise<CommitInfo[]> {
       const raw = await getPages(`${API}/repositories/${repoPath(repo.id)}/pullrequests/${number}/commits`);
@@ -230,9 +221,22 @@ export function createBitbucketCloudSourceControl(deps: AdapterDeps): SourceCont
 
     async listComments(repo, number): Promise<Comment[]> {
       const raw = await getPages(`${API}/repositories/${repoPath(repo.id)}/pullrequests/${number}/comments?pagelen=100`);
+      // Replies keep their parent link when the parent is deleted, so the walk to the root runs over every
+      // comment, deleted ones included; the deleted ones are dropped afterwards.
+      const parentOf = new Map<string, string>();
+      for (const c of raw) if (c.parent !== undefined) parentOf.set(String(c.id), String(obj(c.parent).id));
+      const rootOf = (id: string): string => {
+        const seen = new Set<string>([id]);
+        let current = id;
+        for (let parent = parentOf.get(current); parent !== undefined && !seen.has(parent); parent = parentOf.get(current)) {
+          seen.add(parent);
+          current = parent;
+        }
+        return current;
+      };
       const live = raw.filter((c) => c.deleted !== true);
       // Bitbucket pins an inline comment to the diff, not a commit: report the current head.
-      const head = live.some((c) => obj(c.inline).path !== undefined) ? (await this.getPullRequest(repo, number)).headCommit : '';
+      const head = live.some((c) => obj(c.inline).path !== undefined) ? (await readPullRequest(repo, number)).headCommit : '';
       return live.map((c): Comment => {
         const id = String(c.id);
         const inline = obj(c.inline);
@@ -248,8 +252,9 @@ export function createBitbucketCloudSourceControl(deps: AdapterDeps): SourceCont
         const user = obj(c.user);
         return {
           id,
-          threadId: c.parent !== undefined ? String(obj(c.parent).id) : id,
-          author: { id: str(user.account_id) || str(user.uuid), name: str(user.display_name) },
+          threadId: rootOf(id),
+          startsThread: c.parent === undefined,
+          author: { id: str(user.account_id) || str(user.uuid), name: str(user.display_name), handle: str(user.account_id) },
           body: str(obj(c.content).raw),
           createdAt: created,
           editedAt: updated !== '' && updated !== created ? updated : null,

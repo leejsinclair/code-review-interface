@@ -3,7 +3,7 @@
 // seeds moments before. The suites are the same ones the recorded-fixture targets pass; everything
 // GitLab-specific is expected values here, never a branch in a suite.
 //
-// The adapters are built through the registry with the run's reviewer token (Reporter, read-only
+// The adapters are built through the registry with the run's reviewer token (Developer, read-only
 // scopes), never the root token (FR-029), over `loggedFetch`, so every request can be checked to be
 // a GET (SC-005). The root token is used only by the seeder and to read seeded commit times.
 //
@@ -16,12 +16,14 @@
 
 import assert from 'node:assert/strict';
 import { after, test } from 'node:test';
-import { adapterDeps, createIssueTracker, createSourceControl } from '../../src/adapters/registry.ts';
+import { adapterDeps, createIssueTracker, createSourceControl, createSourceControlWriter, writerDeps } from '../../src/adapters/registry.ts';
+import { AdapterError } from '../../src/contracts/shared.ts';
 import type { Authorize } from '../../src/contracts/shared.ts';
 import type { ChangedFileInfo, CommitInfo, RepoRef } from '../../src/contracts/source-control.ts';
 import { runIssueTrackerContract, type IssueTrackerTarget } from '../contract/issue-tracker.suite.ts';
 import { runSourceControlContract, type SourceControlTarget } from '../contract/source-control.suite.ts';
 import { loggedFetch, type LoggedFetch } from '../helpers/logged-fetch.ts';
+import { loggedWriteFetch } from '../helpers/logged-write-fetch.ts';
 import { GitlabAdmin, GitlabSeeder } from '../seeder/gitlab-seeder.ts';
 import { ownedBy } from '../seeder/run-name.ts';
 import { GITLAB_TOKEN, GITLAB_URL, gitlabGate } from './env.ts';
@@ -74,6 +76,15 @@ if (gate.skip !== undefined) {
   // A failure while seeding still removes what was created before it.
   const run = await seeder.begin('contract');
   runName = run.name;
+  // The runner counts the file as finished (and runs `after`, which deletes the run's projects) as soon as it
+  // has no pending test. Seeding awaits at the top level, so this test keeps the file open until it is done.
+  let seedingDone: () => void = () => {};
+  const seeding = new Promise<void>((resolve) => {
+    seedingDone = resolve;
+  });
+  test('seeded data is ready before any case runs', async () => {
+    await seeding;
+  });
   const seed = async () => {
     const review = await seeder.createRepository('review');
     const tokenLines = (n: number): string => ['export function token() {', '  const size = 32;', '  const alphabet = "abc";', `  return make(size, alphabet, ${n});`, '}', ''].join('\n');
@@ -238,6 +249,146 @@ if (gate.skip !== undefined) {
     },
   };
   runIssueTrackerContract(tracker);
+
+  // ------------------------------------------------------------------ writes (T064; US7, FR-031, FR-029, VO-048)
+  // The reviewer acts on a merge request AUTHORED BY ANOTHER account (the seeded author), with a Developer
+  // role and an `api` token. Everything is written to one run-owned project (`ownedBy`) and nowhere else;
+  // the project goes away with the run's cleanup. Writes use their own logged network, so the read-only
+  // check below still sees only the read-side adapters.
+  const writeRepoSeed = await (async () => {
+    const project = await seeder.createRepository('write');
+    await seeder.pushCommit(project, 'main', [
+      { kind: 'add', path: 'src/reset.js', content: 'export const reset = () => false;\n' },
+    ]);
+    await seeder.pushCommit(project, 'feature/write', [
+      { kind: 'edit', path: 'src/reset.js', content: 'export const reset = () => true;\n' },
+      { kind: 'add', path: 'docs/reset.md', content: '# Reset\n\nReset tokens\nare reusable.\n' },
+    ]);
+    const mr = await seeder.openPullRequest(project, { source: 'feature/write', target: 'main', title: 'Authored by the other account', asAuthor: true });
+    return { project, mr, writeToken: await seeder.createReviewerWriteToken() };
+  })();
+  seedingDone();
+  const writeRepo: RepoRef = { platform: SC_ID, id: writeRepoSeed.project.id };
+  const writeMr = writeRepoSeed.mr;
+  const writeNet = loggedWriteFetch();
+  const writeSettings = { repository: writeRepo, baseUrl: GITLAB_URL };
+  const writer = createSourceControlWriter(SC_ID, writerDeps(writeNet.fetch, bearer(writeRepoSeed.writeToken)), writeSettings);
+  const reader = createSourceControl(SC_ID, adapterDeps(SC_ID, writeNet.fetch, bearer(writeRepoSeed.writeToken)), writeSettings);
+  const projectPath = `/api/v4/projects/${encodeURIComponent(writeRepoSeed.project.id)}/merge_requests/${writeMr.number}`;
+  const commentsNow = () => reader.listComments(writeRepo, writeMr.number);
+  const live: { lineComment?: string; wholeComment?: string } = {};
+  const head = writeMr.headCommit;
+
+  test('US7 gitlab write: the reviewer is not the merge request author, and the token carries write access', async () => {
+    assert.notEqual(writeMr.author, run.reviewer.username, 'the author is another account');
+    assert.equal(writeMr.author, seeder.author.username);
+    assert.equal((await reader.currentUser()).handle, run.reviewer.username);
+    assert.ok(ownedBy(run.name, writeRepoSeed.project.id.split('/').pop() ?? ''), 'the target project is owned by this run');
+  });
+
+  test('US7 gitlab write: postComment posts on the whole merge request and the read side lists it as the reviewer', async () => {
+    const out = await writer.postComment(writeRepo, writeMr.number, 'live whole-request comment');
+    assert.equal(out.kind, 'comment');
+    live.wholeComment = out.kind === 'comment' ? out.commentId : undefined;
+    const found = (await commentsNow()).find((c) => c.id === live.wholeComment);
+    assert.equal(found?.body, 'live whole-request comment');
+    assert.equal(found?.anchor, null);
+    assert.equal(found?.author.handle, run.reviewer.username);
+  });
+
+  test('US7 gitlab write: postLineComment anchors a single line on the head, replyToThread joins that thread', async () => {
+    const out = await writer.postLineComment(writeRepo, writeMr.number, { path: 'src/reset.js', side: 'head', startLine: 1, endLine: 1, commit: head }, 'live line comment');
+    assert.equal(out.kind, 'comment');
+    if (out.kind !== 'comment') return;
+    assert.ok(out.threadId !== undefined && out.threadId !== '', 'a thread id comes back');
+    live.lineComment = out.commentId;
+    const root = (await commentsNow()).find((c) => c.id === out.commentId);
+    assert.equal(root?.anchor?.path, 'src/reset.js');
+    assert.equal(root?.anchor?.startLine, 1);
+
+    const reply = await writer.replyToThread(writeRepo, writeMr.number, out.threadId as string, 'live reply');
+    assert.equal(reply.kind === 'comment' && reply.threadId, out.threadId);
+    const listed = await commentsNow();
+    const replied = listed.find((c) => c.body === 'live reply');
+    assert.equal(replied?.threadId, listed.find((c) => c.id === out.commentId)?.threadId);
+    assert.equal(replied?.startsThread, false);
+  });
+
+  test('US7 gitlab write: postLineComment accepts a multi-line range on the head', async () => {
+    const out = await writer.postLineComment(writeRepo, writeMr.number, { path: 'docs/reset.md', side: 'head', startLine: 3, endLine: 4, commit: head }, 'live range comment');
+    assert.equal(out.kind, 'comment');
+    const found = (await commentsNow()).find((c) => c.body === 'live range comment');
+    assert.equal(found?.anchor?.path, 'docs/reset.md');
+    assert.equal(found?.anchor?.endLine, 4);
+  });
+
+  test("US7 gitlab write: editComment changes the text of the reviewer's own comment", async () => {
+    await writer.editComment(writeRepo, writeMr.number, live.lineComment as string, 'live line comment, edited');
+    const found = (await commentsNow()).find((c) => c.id === live.lineComment);
+    assert.equal(found?.body, 'live line comment, edited');
+  });
+
+  test('US7 gitlab write: deleteComment removes that comment and no other', async () => {
+    const before = (await commentsNow()).map((c) => c.id);
+    await writer.deleteComment(writeRepo, writeMr.number, live.wholeComment as string);
+    const after = (await commentsNow()).map((c) => c.id);
+    assert.ok(!after.includes(live.wholeComment as string), 'the deleted comment is gone');
+    assert.deepEqual(after, before.filter((id) => id !== live.wholeComment), 'every other comment remains');
+  });
+
+  test("US7 gitlab write: approve on the head is the reviewer's decision; withdraw clears it; a second withdraw is a conflict", async () => {
+    assert.equal(await reader.myDecision(writeRepo, writeMr.number), null, 'no decision yet');
+    const approved = await writer.approve(writeRepo, writeMr.number, head, 'live approval note');
+    assert.equal(approved.kind === 'decision' && approved.decision, 'approved');
+    assert.equal(approved.kind === 'decision' && approved.message?.posted, true, 'the message is posted after the decision');
+    const mine = await reader.myDecision(writeRepo, writeMr.number);
+    assert.equal(mine?.kind, 'approved');
+
+    const withdrawn = await writer.withdrawDecision(writeRepo, writeMr.number);
+    assert.equal(withdrawn.kind === 'decision' && withdrawn.decision, 'withdrawn');
+    assert.equal(await reader.myDecision(writeRepo, writeMr.number), null);
+
+    const before = writeNet.writes.length;
+    await assert.rejects(writer.withdrawDecision(writeRepo, writeMr.number), (e: unknown) => e instanceof AdapterError && e.code === 'conflict');
+    assert.equal(writeNet.writes.length, before, 'a withdraw with nothing to withdraw sends no write');
+  });
+
+  test('US7 gitlab write: requestChanges is refused (no REST request-changes) and sends no write', async () => {
+    const before = writeNet.writes.length;
+    await assert.rejects(writer.requestChanges(writeRepo, writeMr.number, head, 'please change'), (e: unknown) => e instanceof AdapterError && e.code === 'rejected');
+    assert.equal(writeNet.writes.length, before);
+  });
+
+  test('US7 gitlab write: a line comment on a commit the merge request has moved past is a conflict and posts nothing (FR-019)', async () => {
+    const newHead = await seeder.pushCommit(writeRepoSeed.project, 'feature/write', [{ kind: 'edit', path: 'docs/reset.md', content: '# Reset\n\nReset tokens\nare reusable, twice.\n' }]);
+    assert.notEqual(newHead, head);
+    const before = writeNet.writes.length;
+    await assert.rejects(
+      writer.postLineComment(writeRepo, writeMr.number, { path: 'src/reset.js', side: 'head', startLine: 1, endLine: 1, commit: head }, 'too late'),
+      (e: unknown) => e instanceof AdapterError && e.code === 'conflict',
+    );
+    assert.equal(writeNet.writes.length, before, 'the refusal happens before any write');
+    assert.ok(!(await commentsNow()).some((c) => c.body === 'too late'));
+    const fresh = await writer.postLineComment(writeRepo, writeMr.number, { path: 'src/reset.js', side: 'head', startLine: 1, endLine: 1, commit: newHead }, 'on the new head');
+    assert.equal(fresh.kind, 'comment');
+  });
+
+  test("US7 gitlab write: every write went to the one owned project's merge request and only the allowed endpoints", () => {
+    assert.ok(writeNet.writes.length >= 8, 'writes were exercised, not only reads');
+    for (const w of writeNet.writes) {
+      const url = new URL(w.url);
+      assert.equal(url.host, host);
+      assert.ok(url.pathname.startsWith(projectPath), `write outside the owned merge request: ${w.method} ${url.pathname}`);
+    }
+    writeNet.assertOnlyAllowedWrites([
+      { method: 'POST', pattern: /\/notes$/ },
+      { method: 'POST', pattern: /\/discussions$/ },
+      { method: 'POST', pattern: /\/discussions\/[^/]+\/notes$/ },
+      { method: 'PUT', pattern: /\/notes\/\d+$/ },
+      { method: 'DELETE', pattern: /\/notes\/\d+$/ },
+      { method: 'POST', pattern: /\/(approve|unapprove)$/ },
+    ]);
+  });
 
   // ------------------------------------------------------------------ read-only (SC-005, FR-029)
   test('SC-005 gitlab: every adapter request in this file was a GET to the GitLab host', () => {

@@ -11,7 +11,7 @@
     "body": {
       "pagelen": 100,
       "page": 1,
-      "size": 2,
+      "size": 8,
       "values": [
         {
           "type": "pullrequest_comment",
@@ -90,6 +90,303 @@
             "path": "src/app.js",
             "to": 45,
             "from": null
+          }
+        },
+        {
+          "type": "pullrequest_comment",
+          "id": 3003,
+          "created_on": "2026-03-02T10:03:00.000000+00:00",
+          "updated_on": "2026-03-02T10:03:00.000000+00:00",
+          "content": {
+            "type": "rendered",
+            "raw": "Because the config says so.",
+            "markup": "markdown",
+            "html": "<p>Because the config says so.</p>"
+          },
+          "user": {
+            "type": "user",
+            "display_name": "Bob Reviewer",
+            "nickname": "bob-reviewer",
+            "uuid": "{1c2d3e4f-0000-4000-8000-00000000b0b2}",
+            "account_id": "712020:bb22c000-0000-4000-8000-000000000002"
+          },
+          "deleted": false,
+          "pullrequest": {
+            "type": "pullrequest",
+            "id": 1,
+            "links": {
+              "self": {
+                "href": "https://api.bitbucket.org/2.0/repositories/acme/widgets/pullrequests/1"
+              }
+            }
+          },
+          "links": {
+            "self": {
+              "href": "https://api.bitbucket.org/2.0/repositories/acme/widgets/pullrequests/1/comments/3003"
+            },
+            "html": {
+              "href": "https://bitbucket.org/acme/widgets/pull-requests/1/_/diff#comment-3003"
+            }
+          },
+          "inline": {
+            "path": "src/app.js",
+            "to": 45,
+            "from": null
+          },
+          "parent": {
+            "type": "pullrequest_comment",
+            "id": 3002,
+            "links": {
+              "self": {
+                "href": "https://api.bitbucket.org/2.0/repositories/acme/widgets/pullrequests/1/comments/3002"
+              }
+            }
+          }
+        },
+        {
+          "type": "pullrequest_comment",
+          "id": 3005,
+          "created_on": "2026-03-02T10:04:00.000000+00:00",
+          "updated_on": "2026-03-02T10:04:00.000000+00:00",
+          "content": {
+            "type": "rendered",
+            "raw": "Then name the config key.",
+            "markup": "markdown",
+            "html": "<p>Then name the config key.</p>"
+          },
+          "user": {
+            "type": "user",
+            "display_name": "Alice Developer",
+            "nickname": "alice-dev",
+            "uuid": "{1c2d3e4f-0000-4000-8000-00000000a11c}",
+            "account_id": "712020:aa11c000-0000-4000-8000-000000000001"
+          },
+          "deleted": false,
+          "pullrequest": {
+            "type": "pullrequest",
+            "id": 1,
+            "links": {
+              "self": {
+                "href": "https://api.bitbucket.org/2.0/repositories/acme/widgets/pullrequests/1"
+              }
+            }
+          },
+          "links": {
+            "self": {
+              "href": "https://api.bitbucket.org/2.0/repositories/acme/widgets/pullrequests/1/comments/3005"
+            },
+            "html": {
+              "href": "https://bitbucket.org/acme/widgets/pull-requests/1/_/diff#comment-3005"
+            }
+          },
+          "inline": {
+            "path": "src/app.js",
+            "to": 45,
+            "from": null
+          },
+          "parent": {
+            "type": "pullrequest_comment",
+            "id": 3003,
+            "links": {
+              "self": {
+                "href": "https://api.bitbucket.org/2.0/repositories/acme/widgets/pullrequests/1/comments/3003"
+              }
+            }
+          }
+        },
+        {
+          "type": "pullrequest_comment",
+          "id": 3010,
+          "created_on": "2026-03-02T10:05:00.000000+00:00",
+          "updated_on": "2026-03-02T10:05:00.000000+00:00",
+          "content": {
+            "type": "rendered",
+            "raw": "(deleted)",
+            "markup": "markdown",
+            "html": "<p>(deleted)</p>"
+          },
+          "user": {
+            "type": "user",
+            "display_name": "Bob Reviewer",
+            "nickname": "bob-reviewer",
+            "uuid": "{1c2d3e4f-0000-4000-8000-00000000b0b2}",
+            "account_id": "712020:bb22c000-0000-4000-8000-000000000002"
+          },
+          "deleted": true,
+          "pullrequest": {
+            "type": "pullrequest",
+            "id": 1,
+            "links": {
+              "self": {
+                "href": "https://api.bitbucket.org/2.0/repositories/acme/widgets/pullrequests/1"
+              }
+            }
+          },
+          "links": {
+            "self": {
+              "href": "https://api.bitbucket.org/2.0/repositories/acme/widgets/pullrequests/1/comments/3010"
+            },
+            "html": {
+              "href": "https://bitbucket.org/acme/widgets/pull-requests/1/_/diff#comment-3010"
+            }
+          },
+          "inline": {
+            "path": "src/app.js",
+            "to": 45,
+            "from": null
+          }
+        },
+        {
+          "type": "pullrequest_comment",
+          "id": 3011,
+          "created_on": "2026-03-02T10:06:00.000000+00:00",
+          "updated_on": "2026-03-02T10:06:00.000000+00:00",
+          "content": {
+            "type": "rendered",
+            "raw": "Replying to a deleted comment.",
+            "markup": "markdown",
+            "html": "<p>Replying to a deleted comment.</p>"
+          },
+          "user": {
+            "type": "user",
+            "display_name": "Alice Developer",
+            "nickname": "alice-dev",
+            "uuid": "{1c2d3e4f-0000-4000-8000-00000000a11c}",
+            "account_id": "712020:aa11c000-0000-4000-8000-000000000001"
+          },
+          "deleted": false,
+          "pullrequest": {
+            "type": "pullrequest",
+            "id": 1,
+            "links": {
+              "self": {
+                "href": "https://api.bitbucket.org/2.0/repositories/acme/widgets/pullrequests/1"
+              }
+            }
+          },
+          "links": {
+            "self": {
+              "href": "https://api.bitbucket.org/2.0/repositories/acme/widgets/pullrequests/1/comments/3011"
+            },
+            "html": {
+              "href": "https://bitbucket.org/acme/widgets/pull-requests/1/_/diff#comment-3011"
+            }
+          },
+          "inline": {
+            "path": "src/app.js",
+            "to": 45,
+            "from": null
+          },
+          "parent": {
+            "type": "pullrequest_comment",
+            "id": 3010,
+            "links": {
+              "self": {
+                "href": "https://api.bitbucket.org/2.0/repositories/acme/widgets/pullrequests/1/comments/3010"
+              }
+            }
+          }
+        },
+        {
+          "type": "pullrequest_comment",
+          "id": 3012,
+          "created_on": "2026-03-02T10:07:00.000000+00:00",
+          "updated_on": "2026-03-02T10:07:00.000000+00:00",
+          "content": {
+            "type": "rendered",
+            "raw": "(deleted)",
+            "markup": "markdown",
+            "html": "<p>(deleted)</p>"
+          },
+          "user": {
+            "type": "user",
+            "display_name": "Bob Reviewer",
+            "nickname": "bob-reviewer",
+            "uuid": "{1c2d3e4f-0000-4000-8000-00000000b0b2}",
+            "account_id": "712020:bb22c000-0000-4000-8000-000000000002"
+          },
+          "deleted": true,
+          "pullrequest": {
+            "type": "pullrequest",
+            "id": 1,
+            "links": {
+              "self": {
+                "href": "https://api.bitbucket.org/2.0/repositories/acme/widgets/pullrequests/1"
+              }
+            }
+          },
+          "links": {
+            "self": {
+              "href": "https://api.bitbucket.org/2.0/repositories/acme/widgets/pullrequests/1/comments/3012"
+            },
+            "html": {
+              "href": "https://bitbucket.org/acme/widgets/pull-requests/1/_/diff#comment-3012"
+            }
+          },
+          "inline": {
+            "path": "src/app.js",
+            "to": 45,
+            "from": null
+          },
+          "parent": {
+            "type": "pullrequest_comment",
+            "id": 3011,
+            "links": {
+              "self": {
+                "href": "https://api.bitbucket.org/2.0/repositories/acme/widgets/pullrequests/1/comments/3011"
+              }
+            }
+          }
+        },
+        {
+          "type": "pullrequest_comment",
+          "id": 3013,
+          "created_on": "2026-03-02T10:08:00.000000+00:00",
+          "updated_on": "2026-03-02T10:08:00.000000+00:00",
+          "content": {
+            "type": "rendered",
+            "raw": "Last word.",
+            "markup": "markdown",
+            "html": "<p>Last word.</p>"
+          },
+          "user": {
+            "type": "user",
+            "display_name": "Alice Developer",
+            "nickname": "alice-dev",
+            "uuid": "{1c2d3e4f-0000-4000-8000-00000000a11c}",
+            "account_id": "712020:aa11c000-0000-4000-8000-000000000001"
+          },
+          "deleted": false,
+          "pullrequest": {
+            "type": "pullrequest",
+            "id": 1,
+            "links": {
+              "self": {
+                "href": "https://api.bitbucket.org/2.0/repositories/acme/widgets/pullrequests/1"
+              }
+            }
+          },
+          "links": {
+            "self": {
+              "href": "https://api.bitbucket.org/2.0/repositories/acme/widgets/pullrequests/1/comments/3013"
+            },
+            "html": {
+              "href": "https://bitbucket.org/acme/widgets/pull-requests/1/_/diff#comment-3013"
+            }
+          },
+          "inline": {
+            "path": "src/app.js",
+            "to": 45,
+            "from": null
+          },
+          "parent": {
+            "type": "pullrequest_comment",
+            "id": 3012,
+            "links": {
+              "self": {
+                "href": "https://api.bitbucket.org/2.0/repositories/acme/widgets/pullrequests/1/comments/3012"
+              }
+            }
           }
         }
       ]

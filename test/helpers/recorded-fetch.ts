@@ -230,12 +230,32 @@ const RECORDED_HEADERS = ['content-type', 'link', 'x-next-page', 'x-page', 'x-pe
 
 type Network = (input: string | URL | Request, init?: RequestInit) => Promise<Response>;
 
-export function recordingFetch<N extends Network>(network: N, options: { dir?: string; secrets: readonly string[] }): N | Network {
+/** Placeholders a recording uses for the real people and workspace (T065; SC-009). */
+export const ALIAS_PLACEHOLDERS = ['alice-dev', 'bob-dev', 'test-workspace'] as const;
+
+export type RecordingOptions = {
+  dir?: string;
+  secrets: readonly string[];
+  /**
+   * Real name to placeholder (for example `{ 'lee-reviewer': 'alice-dev', 'lee-author': 'bob-dev', 'my-ws': 'test-workspace' }`),
+   * applied to URLs, response headers and response bodies after the secrets. Longer names go first, so a name
+   * that contains another is replaced whole. An empty real name is ignored.
+   */
+  aliases?: Readonly<Record<string, string>>;
+};
+
+export function recordingFetch<N extends Network>(network: N, options: RecordingOptions): N | Network {
   const dir = options.dir ?? process.env.PRWB_RECORD_FIXTURES;
   if (dir === undefined || dir === '') return network;
   mkdirSync(dir, { recursive: true });
   const secrets = options.secrets.filter((secret) => secret !== '');
-  const scrub = (text: string): string => secrets.reduce((out, secret) => out.split(secret).join('[redacted]'), text);
+  const aliases = Object.entries(options.aliases ?? {})
+    .filter(([real]) => real !== '')
+    .sort((a, b) => b[0].length - a[0].length);
+  const scrub = (text: string): string => {
+    const clean = secrets.reduce((out, secret) => out.split(secret).join('[redacted]'), text);
+    return aliases.reduce((out, [real, placeholder]) => out.split(real).join(placeholder), clean);
+  };
   let count = 0;
 
   return async (input, init) => {

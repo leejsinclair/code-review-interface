@@ -72,6 +72,11 @@ export function fakeGithubReviews(options: { reviewer?: string; seed?: FakeComme
     if (method === 'GET') {
       if (rest === '/pulls/1/comments') return json(200, comments.filter((c) => c.review));
       if (rest === '/issues/1/comments') return json(200, comments.filter((c) => !c.review));
+      let one: RegExpMatchArray | null;
+      if ((one = rest.match(/^\/(pulls|issues)\/comments\/(\d+)$/))) {
+        const found = comments.find((c) => c.id === Number(one![2]) && c.review === (one![1] === 'pulls'));
+        return found === undefined ? json(404, { message: 'Not Found' }) : json(200, found);
+      }
       if (rest === '/pulls/1/reviews') return json(200, reviews);
       if (rest === '/pulls/1/files') return json(200, [{ filename: 'src/app.js', status: 'modified', additions: 21, deletions: 21, changes: 42 }]);
       return undefined;

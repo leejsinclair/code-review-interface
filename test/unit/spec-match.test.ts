@@ -32,6 +32,7 @@ import assert from 'node:assert/strict';
 import { test } from 'node:test';
 import type { SpecCandidate } from '../../src/core/spec-match.ts';
 import { chooseCopy, chooseDocumentFiles, keyMatchesName, matchingFolders } from '../../src/core/spec-match.ts';
+import * as match from '../../src/core/spec-match.ts';
 
 const KEY = 'ENG-1213';
 
@@ -161,4 +162,69 @@ test('the repository step outranks the branch step, and the input is not changed
   const snapshot = structuredClone(input);
   assert.equal(chooseCopy(KEY, input)?.used, ownDevelop);
   assert.deepEqual(input, snapshot);
+});
+
+// Feature 007 (T042; FR-032, FR-035, VO-036): search terms. Required of src/core/spec-match.ts (T050):
+//   export type SpecTerm = { kind: 'key' | 'branch'; value: string };
+//   export function buildTerms(keys: readonly string[], branchName: string): SpecTerm[];
+//     keys present: one `key` term each (as written). None: the branch name and its last segment after `/` as
+//     `branch` terms, de-duplicated ignoring case, empty values dropped.
+//   export function termMatchesName(term: SpecTerm, name: string): boolean;
+//     key: keyMatchesName. branch: the whole name equals the value, ignoring case.
+//   matchingFolders(term | key, paths) and chooseCopy(matcher | key, candidates) accept a term / a branch matcher.
+
+type Term = { kind: 'key' | 'branch'; value: string };
+const api = match as unknown as {
+  buildTerms: (keys: readonly string[], branch: string) => Term[];
+  termMatchesName: (term: Term, name: string) => boolean;
+  matchingFolders: (term: Term, paths: readonly string[]) => string[];
+  chooseCopy: (matcher: (branch: string) => boolean, candidates: readonly SpecCandidate[]) => ReturnType<typeof chooseCopy>;
+};
+
+test('007 with no tracker key the terms are the branch name and its last segment, de-duplicated ignoring case', () => {
+  assert.deepEqual(api.buildTerms([], 'feature/007-review-actions-parity'), [
+    { kind: 'branch', value: 'feature/007-review-actions-parity' },
+    { kind: 'branch', value: '007-review-actions-parity' },
+  ]);
+  assert.deepEqual(api.buildTerms([], 'main'), [{ kind: 'branch', value: 'main' }], 'no slash: one term');
+  assert.deepEqual(api.buildTerms([], 'Feature/Feature'), [{ kind: 'branch', value: 'Feature/Feature' }, { kind: 'branch', value: 'Feature' }]);
+  assert.deepEqual(api.buildTerms([], 'Dup/dup').map((t) => t.value.toLowerCase()), ['dup/dup', 'dup']);
+  assert.deepEqual(api.buildTerms([], 'a/b/c').map((t) => t.value), ['a/b/c', 'c']);
+  assert.deepEqual(api.buildTerms([], ''), [], 'no branch name, no term');
+});
+
+test('007 a tracker key still gives the key terms and no branch term', () => {
+  assert.deepEqual(api.buildTerms(['ENG-1213', 'ENG-9'], 'feature/ENG-1213-x'), [
+    { kind: 'key', value: 'ENG-1213' },
+    { kind: 'key', value: 'ENG-9' },
+  ]);
+});
+
+test('007 a branch term matches a whole folder name only, ignoring case', () => {
+  const term = { kind: 'branch', value: '007-review-actions-parity' } as const;
+  assert.equal(api.termMatchesName(term, '007-review-actions-parity'), true);
+  assert.equal(api.termMatchesName(term, '007-Review-Actions-Parity'), true);
+  assert.equal(api.termMatchesName({ kind: 'branch', value: '007-review' }, '007-review-actions-parity'), false);
+  assert.equal(api.termMatchesName(term, '007-review-actions-parity-2'), false);
+  assert.equal(api.termMatchesName(term, 'x007-review-actions-parity'), false);
+  assert.equal(api.termMatchesName({ kind: 'key', value: KEY }, '006-ENG-1213-data-request'), true, 'a key matches as in feature 006');
+  assert.equal(api.termMatchesName({ kind: 'key', value: 'ENG-12' }, 'ENG-1213-x'), false);
+});
+
+test('007 matchingFolders takes a branch term as a whole folder name', () => {
+  const paths = ['specs/007-review-actions-parity/spec.md', 'specs/007-review/spec.md', 'specs/007-review-actions-parity-b/spec.md'];
+  assert.deepEqual(api.matchingFolders({ kind: 'branch', value: '007-review-actions-parity' }, paths), ['specs/007-review-actions-parity']);
+  assert.deepEqual(api.matchingFolders({ kind: 'branch', value: '007-review' }, paths), ['specs/007-review']);
+  assert.deepEqual(api.matchingFolders({ kind: 'branch', value: 'feature/007-review-actions-parity' }, paths), []);
+});
+
+test('007 chooseCopy takes a branch matcher and ranks as before', () => {
+  const main = candidate({ role: 'own', branch: 'main', committedAt: '2026-11-02T00:00:00.000Z' });
+  const feature = candidate({ role: 'own', branch: 'feature/x', committedAt: '2026-11-01T00:00:00.000Z' });
+  const choice = api.chooseCopy((b) => b === 'feature/x', [main, feature]);
+  assert.equal(choice?.used.branch, 'feature/x');
+  assert.equal(choice?.rule, 'matching-branch-over-develop');
+  assert.deepEqual(choice?.others.map((o) => o.branch), ['main']);
+  assert.equal(api.chooseCopy(() => false, [main, feature])?.used.branch, 'main');
+  assert.equal(api.chooseCopy(() => false, [main, feature])?.rule, 'most-recent-commit');
 });

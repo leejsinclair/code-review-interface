@@ -79,3 +79,14 @@ test('a failed sign-in lookup is not remembered: the next call tries again', asy
   await assert.rejects(sc.approvedByMe(repo, [1]));
   assert.deepEqual([...(await sc.approvedByMe(repo, [1]))], [1]);
 });
+
+test('approvedByMe goes through the shared helper: every check failing is unavailable', async () => {
+  const sc = createGithubSourceControl({
+    authorize: (r: Request) => r,
+    fetch: async (url: string) => {
+      if (url.endsWith('/user')) return new Response(JSON.stringify({ login: 'alice-dev' }), { headers: { 'content-type': 'application/json' } });
+      throw new Error('network down');
+    },
+  } as never);
+  await assert.rejects(sc.approvedByMe(repo, [1, 2]), (e: unknown) => (e as { code?: string }).code === 'unavailable');
+});

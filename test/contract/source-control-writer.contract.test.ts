@@ -26,7 +26,7 @@ import { createGithubSourceControlWriter } from '../../src/adapters/github/sourc
 import { createGitlabSourceControl } from '../../src/adapters/gitlab/source-control.ts';
 import { createGitlabSourceControlWriter } from '../../src/adapters/gitlab/source-control-writer.ts';
 import { createReadOnlyFetch } from '../../src/adapters/read-only-http.ts';
-import { recordedFetch } from '../helpers/recorded-fetch.ts';
+import { recordedFetch, UnrecordedRequestError, type RecordedFetch } from '../helpers/recorded-fetch.ts';
 import {
   runWriterContract,
   type ObservedWrite,
@@ -82,12 +82,30 @@ type PlatformSetup = {
 
 type NetworkFetch = (input: string | URL | Request, init?: RequestInit) => Promise<Response>;
 
+/** Scenarios of spec 007 that are fixture variants rather than a status code. */
+const VARIANT_SCENARIOS = new Set<WriterScenario>(['moved-head', 'abbreviated-head', 'message-fails', 'no-decision', 'withdrawn-once', 'whole-pr-comment']);
+
+function variantFetch(fixtures: string, scenario: WriterScenario): RecordedFetch | null {
+  if (!VARIANT_SCENARIOS.has(scenario)) return null;
+  try {
+    return recordedFetch(`${fixtures}/variants/${scenario}`);
+  } catch (error) {
+    if ((error as NodeJS.ErrnoException).code === 'ENOENT') {
+      throw new Error(`variant fixtures missing: test/fixtures/${fixtures}/variants/${scenario}/ (authored by the fixture tasks T028, T032 and the Bitbucket equivalent)`);
+    }
+    throw error;
+  }
+}
+
+const json = (write: ObservedWrite): Record<string, any> => JSON.parse(write.body) as Record<string, any>;
+
 function target(setup: PlatformSetup): WriterTarget {
   return {
     id: setup.id,
     async create(scenario: WriterScenario = 'default'): Promise<WriterHarness> {
       mock.timers.enable({ apis: ['Date'], now: Date.parse(WRITE_TIME) });
       const recorded = recordedFetch(setup.fixtures);
+      const overlay = variantFetch(setup.fixtures, scenario);
       const observed: ObservedWrite[] = [];
       let skipped = false;
 
@@ -109,12 +127,19 @@ function target(setup: PlatformSetup): WriterTarget {
           skipped = true;
           await recorded.fetch(request.clone());
         }
+        if (overlay !== null) {
+          try {
+            return await overlay.fetch(request.clone());
+          } catch (error) {
+            if (!(error instanceof UnrecordedRequestError)) throw error;
+          }
+        }
         return recorded.fetch(request);
       };
 
       const read: AdapterDeps = { fetch: createReadOnlyFetch({ platform: setup.id, fetch: network }), authorize };
       const { writer, sc } = setup.build({ network, read, authorize });
-      return { writer, sc, requests: observed, assertComplete: () => recorded.assertAllRecorded() };
+      return { writer, sc, read: read.fetch, requests: observed, assertComplete: () => recorded.assertAllRecorded() };
     },
     expected: {
       ...setup.expected,
@@ -153,6 +178,16 @@ runWriterContract(
       ownComment: { id: '5001', author: 'alice-dev' },
       myDecision: { kind: 'changes_requested', commit: HEAD },
       refusalMessage: REFUSAL,
+      anchorOnWire: (w) => {
+        const b = json(w);
+        return { path: b.path, side: b.side === 'RIGHT' ? 'head' : 'base', startLine: b.start_line ?? b.line, endLine: b.line };
+      },
+      decisionWrite: (w) => w.method === 'POST' && w.path.endsWith('/pulls/1/reviews'),
+      listPath: '/repos/acme/widgets/pulls',
+      headReadPath: '/repos/acme/widgets/pulls/1',
+      headReadAccept: 'application/vnd.github+json',
+      // The comment is on the whole pull request (issues/comments/9001); GitHub has no reply for it, so the reply quotes it.
+      wholePullRequestReply: { threadId: '9001', commentId: '9002', quoted: 'Looks reasonable overall.' },
     },
   }),
 );
@@ -185,6 +220,20 @@ runWriterContract(
       refusalMessage: REFUSAL,
       // The recorded instance is 16.11.2 (version.json): no request-changes endpoint.
       requestChangesGap: { reason: 'version' },
+      anchorOnWire: (w) => {
+        const p = json(w).position;
+        const side = p.new_line !== undefined ? 'head' : 'base';
+        const key = `${side === 'head' ? 'new' : 'old'}_line`;
+        const startOf = (end: Record<string, any>): number => end[key];
+        return { path: p.new_path, side, startLine: p.line_range ? startOf(p.line_range.start) : p[key], endLine: p[key] };
+      },
+      decisionWrite: (w) => w.method === 'POST' && w.path.endsWith('/merge_requests/1/approve'),
+      messageWrite: (w) => w.method === 'POST' && w.path.endsWith('/merge_requests/1/notes'),
+      listPath: '/api/v4/projects/acme%2Fwidgets/merge_requests',
+      // The head check compares the newest diff version only.
+      headReadPath: '/api/v4/projects/acme%2Fwidgets/merge_requests/1/versions',
+      // A discussion note on the whole merge request takes a reply in its discussion.
+      wholePullRequestReply: { threadId: 'd1a2b3c4', commentId: '8004' },
     },
   }),
 );
@@ -211,6 +260,18 @@ runWriterContract(
       ownComment: { id: '3001', author: 'Alice Developer' },
       myDecision: { kind: 'changes_requested', commit: HEAD },
       refusalMessage: REFUSAL,
+      anchorOnWire: (w) => {
+        const i = json(w).inline;
+        const side = i.to !== undefined ? 'head' : 'base';
+        const end = side === 'head' ? i.to : i.from;
+        return { path: i.path, side, startLine: (side === 'head' ? i.start_to : i.start_from) ?? end, endLine: end };
+      },
+      decisionWrite: (w) => w.method === 'POST' && w.path.endsWith('/pullrequests/1/approve'),
+      messageWrite: (w) => w.method === 'POST' && w.path.endsWith('/pullrequests/1/comments'),
+      listPath: '/2.0/repositories/acme/widgets/pullrequests',
+      headReadPath: '/2.0/repositories/acme/widgets/pullrequests/1',
+      // Bitbucket replies to a whole-pull-request comment through `parent`.
+      wholePullRequestReply: { threadId: '3001', commentId: '3004' },
     },
   }),
 );

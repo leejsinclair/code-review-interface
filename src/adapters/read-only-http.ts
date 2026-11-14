@@ -2,6 +2,7 @@
 // Any method but GET is refused before the network is touched; failures map to neutral AdapterError codes.
 
 import { AdapterError, type PlatformId, type ReadOnlyFetch } from '../contracts/shared.ts';
+import { memoGet, memoKey } from './request-memo.ts';
 
 /** The network fetch the layer wraps; injected so tests replay recorded fixtures. */
 export type NetworkFetch = (input: string | URL | Request, init?: RequestInit) => Promise<Response>;
@@ -54,10 +55,7 @@ export function createReadOnlyFetch(options: ReadOnlyFetchOptions): ReadOnlyFetc
     }
   };
 
-  return async (url, init) => {
-    const method = requestedMethod(url, init);
-    if (method.toUpperCase() !== 'GET') throw new ReadOnlyViolationError(method);
-
+  const read = async (url: string | URL | Request, init: RequestInit | undefined): Promise<Response> => {
     const input: unknown = url;
     let target = input instanceof Request ? input.url : String(input);
     const headers = init?.headers;
@@ -92,5 +90,22 @@ export function createReadOnlyFetch(options: ReadOnlyFetchOptions): ReadOnlyFetc
       throw new AdapterError(code, platform, `${platform}: HTTP ${response.status}`);
     }
     return response;
+  };
+
+  // Inside a request scope a repeated GET shares one network read (FR-017). The body is read once and
+  // replayed as a fresh Response to each caller, so no caller consumes another's stream.
+  return async (url, init) => {
+    const method = requestedMethod(url, init);
+    if (method.toUpperCase() !== 'GET') throw new ReadOnlyViolationError(method);
+    const asInput: unknown = url;
+    const target = asInput instanceof Request ? asInput.url : String(url);
+    // The same URL answers differently by `Accept` (a pull request as JSON or as a diff), so it is part of the key.
+    const sent = new Headers(init?.headers);
+    const credential = `${sent.get('authorization') ?? ''}\n${sent.get('accept') ?? ''}`;
+    const shared = await memoGet(memoKey(target, credential), async () => {
+      const response = await read(url, init);
+      return { body: await response.arrayBuffer(), status: response.status, statusText: response.statusText, headers: [...response.headers] };
+    });
+    return new Response(shared.body.slice(0), { status: shared.status, statusText: shared.statusText, headers: shared.headers });
   };
 }

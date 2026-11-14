@@ -74,7 +74,18 @@ export function createBitbucketCloudSourceControlWriter(deps: { fetch: NetworkFe
     }
   };
 
+  // Reads go through the read layer, so inside a request scope the pull request is fetched once (FR-017).
   const headOf = async (repo: RepoRef, pr: number): Promise<string> => (await reads.getPullRequest(repo, pr)).headCommit;
+
+  /** Commit ids are compared by prefix: either side may be abbreviated (FR-019). */
+  const sameCommit = (a: string, b: string): boolean => {
+    const x = a.toLowerCase();
+    const y = b.toLowerCase();
+    return x !== '' && y !== '' && (x.startsWith(y) || y.startsWith(x));
+  };
+
+  const refuseMovedHead = (head: string): AdapterError =>
+    new AdapterError('conflict', BITBUCKET_CLOUD_ID, `${BITBUCKET_CLOUD_ID}: the pull request head moved to ${head.slice(0, 12)}`);
 
   const commentOutcome = async (response: Response, commit: string, threadId?: string): Promise<WriteOutcome> => {
     const body = await readJson(response);
@@ -98,13 +109,20 @@ export function createBitbucketCloudSourceControlWriter(deps: { fetch: NetworkFe
   ): Promise<WriteOutcome> => {
     // A decision belongs to the commit the reviewer read: refuse if the head moved since.
     const head = await headOf(repo, pr);
-    if (head !== commit.toLowerCase()) {
-      throw new AdapterError('conflict', BITBUCKET_CLOUD_ID, `${BITBUCKET_CLOUD_ID}: the pull request head moved to ${head.slice(0, 12)}`);
-    }
-    // Bitbucket's decision endpoints take no text, so a message is its own pull-request comment, posted first.
-    if (message !== undefined && message !== '') await send('POST', `${prUrl(repo, pr)}/comments`, { content: { raw: message } });
+    if (!sameCommit(head, commit)) throw refuseMovedHead(head);
+    // The platform records the decision on the pull request's current head; the commit is also sent.
     const body = await readJson(await send('POST', `${prUrl(repo, pr)}/${endpoint}`, { commit }));
-    return { kind: 'decision', decision, createdAt: iso(body.participated_on) || new Date().toISOString(), commit };
+    const outcome: WriteOutcome = { kind: 'decision', decision, createdAt: iso(body.participated_on) || new Date().toISOString(), commit };
+    if (message === undefined || message === '') return outcome;
+    // The decision endpoints take no text, so a message is its own pull-request comment, posted after the
+    // decision. A message that fails leaves the decision made and is reported, never thrown (FR-011).
+    try {
+      const posted = await readJson(await send('POST', `${prUrl(repo, pr)}/comments`, { content: { raw: message } }));
+      return { ...outcome, message: { posted: true, commentId: String(posted.id) } };
+    } catch (error) {
+      const reason = error instanceof Error && error.message !== '' ? error.message : 'the message could not be posted';
+      return { ...outcome, message: { posted: false, reason } };
+    }
   };
 
   return {
@@ -114,6 +132,9 @@ export function createBitbucketCloudSourceControlWriter(deps: { fetch: NetworkFe
     },
 
     async postLineComment(repo, pr, anchor, body) {
+      // An inline comment pins to the diff as it stands: refuse when the pull request moved past the anchor.
+      const head = await headOf(repo, pr);
+      if (!sameCommit(head, anchor.commit)) throw refuseMovedHead(head);
       const payload = { content: { raw: body }, inline: inlineOf(anchor) };
       return commentOutcome(await send('POST', `${prUrl(repo, pr)}/comments`, payload), anchor.commit);
     },
