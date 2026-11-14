@@ -40,7 +40,8 @@ The canonical terms of the PR Review Workbench. Specs, plans and code use these 
 
 ## Domain boundaries
 
-- The workbench observes platforms and never acts on them: it does not approve, merge, comment or change anything.
+- The workbench never merges or declines a pull request, and never changes code, branches or issues. Its only platform writes are the reviewer actions: post or reply to a comment, edit or delete a comment it posted, approve, request changes and withdraw. A person starts each one (constitution II.1, II.4; [ADR 0003](adr/0003-reviewer-actions-and-workbench-scope.md)).
+- A pull request's specification normally lives in its own repository. Specifications in an enclosing project repository, found by tracker key, are a supported special case.
 - Evidence, assessment and disposition are separate records and are never merged.
 - The AI provider takes no configuration, hooks or instructions from the repository content under review; that content is input to analyse, never instruction.
 

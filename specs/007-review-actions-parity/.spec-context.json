@@ -1,0 +1,1631 @@
+{
+  "workflow": "companion",
+  "specName": "Review Actions Platform Parity",
+  "branch": "main",
+  "currentStep": "implement",
+  "status": "implementing",
+  "history": [
+    {
+      "step": "specify",
+      "substep": null,
+      "kind": "start",
+      "by": "extension",
+      "at": "2026-11-14T00:10:36.459Z"
+    },
+    {
+      "step": "specify",
+      "substep": null,
+      "kind": "complete",
+      "by": "extension",
+      "at": "2026-11-14T00:12:59.939Z"
+    },
+    {
+      "step": "plan",
+      "substep": null,
+      "kind": "start",
+      "by": "extension",
+      "at": "2026-11-14T00:33:24.568Z"
+    },
+    {
+      "step": "plan",
+      "substep": "research",
+      "kind": "complete",
+      "by": "ai",
+      "at": "2026-11-14T00:39:10.061Z"
+    },
+    {
+      "step": "plan",
+      "substep": "design",
+      "kind": "complete",
+      "by": "ai",
+      "at": "2026-11-14T00:41:45.096Z"
+    },
+    {
+      "step": "plan",
+      "substep": null,
+      "kind": "complete",
+      "by": "ai",
+      "at": "2026-11-14T00:41:48.723Z"
+    },
+    {
+      "step": "tasks",
+      "substep": null,
+      "kind": "start",
+      "by": "extension",
+      "at": "2026-11-14T00:42:16.130Z"
+    },
+    {
+      "step": "tasks",
+      "substep": "generate",
+      "kind": "complete",
+      "by": "ai",
+      "at": "2026-11-14T00:47:02.492Z"
+    },
+    {
+      "step": "tasks",
+      "substep": null,
+      "kind": "complete",
+      "by": "ai",
+      "at": "2026-11-14T00:47:24.016Z"
+    },
+    {
+      "step": "implement",
+      "substep": null,
+      "kind": "start",
+      "by": "extension",
+      "at": "2026-11-14T00:42:16.141Z"
+    },
+    {
+      "step": "implement",
+      "substep": null,
+      "task": "T005",
+      "kind": "complete",
+      "by": "ai",
+      "at": "2026-11-14T01:30:17.931Z"
+    },
+    {
+      "step": "implement",
+      "substep": null,
+      "task": "T006",
+      "kind": "complete",
+      "by": "ai",
+      "at": "2026-11-14T01:30:41.078Z"
+    },
+    {
+      "step": "implement",
+      "substep": null,
+      "task": "T004",
+      "kind": "complete",
+      "by": "ai",
+      "at": "2026-11-14T01:32:00.412Z"
+    },
+    {
+      "step": "implement",
+      "substep": null,
+      "task": "T003",
+      "kind": "complete",
+      "by": "ai",
+      "at": "2026-11-14T01:32:24.986Z"
+    },
+    {
+      "step": "implement",
+      "substep": null,
+      "task": "T007",
+      "kind": "complete",
+      "by": "ai",
+      "at": "2026-11-14T01:32:25.055Z"
+    },
+    {
+      "step": "implement",
+      "substep": null,
+      "task": "T001",
+      "kind": "complete",
+      "by": "ai",
+      "at": "2026-11-14T01:32:38.257Z"
+    },
+    {
+      "step": "implement",
+      "substep": null,
+      "task": "T010",
+      "kind": "complete",
+      "by": "ai",
+      "at": "2026-11-14T01:34:10.428Z"
+    },
+    {
+      "step": "implement",
+      "substep": null,
+      "task": "T014",
+      "kind": "complete",
+      "by": "ai",
+      "at": "2026-11-14T01:34:10.496Z"
+    },
+    {
+      "step": "implement",
+      "substep": null,
+      "task": "T008",
+      "kind": "complete",
+      "by": "ai",
+      "at": "2026-11-14T01:34:18.054Z"
+    },
+    {
+      "step": "implement",
+      "substep": null,
+      "task": "T012",
+      "kind": "complete",
+      "by": "ai",
+      "at": "2026-11-14T01:34:18.122Z"
+    },
+    {
+      "step": "implement",
+      "substep": null,
+      "task": "T016",
+      "kind": "complete",
+      "by": "ai",
+      "at": "2026-11-14T01:34:18.186Z"
+    },
+    {
+      "step": "implement",
+      "substep": null,
+      "task": "T009",
+      "kind": "complete",
+      "by": "ai",
+      "at": "2026-11-14T01:35:44.430Z"
+    },
+    {
+      "step": "implement",
+      "substep": null,
+      "task": "T013",
+      "kind": "complete",
+      "by": "ai",
+      "at": "2026-11-14T01:35:44.496Z"
+    },
+    {
+      "step": "implement",
+      "substep": null,
+      "task": "T011",
+      "kind": "complete",
+      "by": "ai",
+      "at": "2026-11-14T01:36:13.211Z"
+    },
+    {
+      "step": "implement",
+      "substep": null,
+      "task": "T015",
+      "kind": "complete",
+      "by": "ai",
+      "at": "2026-11-14T01:36:13.280Z"
+    },
+    {
+      "step": "implement",
+      "substep": null,
+      "task": "T018",
+      "kind": "complete",
+      "by": "ai",
+      "at": "2026-11-14T01:36:57.151Z"
+    },
+    {
+      "step": "implement",
+      "substep": null,
+      "task": "T019",
+      "kind": "complete",
+      "by": "ai",
+      "at": "2026-11-14T01:37:00.859Z"
+    },
+    {
+      "step": "implement",
+      "substep": null,
+      "task": "T020",
+      "kind": "complete",
+      "by": "ai",
+      "at": "2026-11-14T01:37:13.116Z"
+    },
+    {
+      "step": "implement",
+      "substep": null,
+      "task": "T017",
+      "kind": "complete",
+      "by": "ai",
+      "at": "2026-11-14T01:37:33.488Z"
+    },
+    {
+      "step": "implement",
+      "substep": null,
+      "task": "T021",
+      "kind": "complete",
+      "by": "ai",
+      "at": "2026-11-14T01:38:26.081Z"
+    },
+    {
+      "step": "implement",
+      "substep": null,
+      "task": "T022",
+      "kind": "complete",
+      "by": "ai",
+      "at": "2026-11-14T01:38:26.167Z"
+    },
+    {
+      "step": "implement",
+      "substep": null,
+      "task": "T023",
+      "kind": "complete",
+      "by": "ai",
+      "at": "2026-11-14T01:38:26.251Z"
+    },
+    {
+      "step": "implement",
+      "substep": null,
+      "task": "T056",
+      "kind": "complete",
+      "by": "ai",
+      "at": "2026-11-14T01:39:37.684Z"
+    },
+    {
+      "step": "implement",
+      "substep": null,
+      "task": "T057",
+      "kind": "complete",
+      "by": "ai",
+      "at": "2026-11-14T01:39:37.752Z"
+    },
+    {
+      "step": "implement",
+      "substep": null,
+      "task": "T058",
+      "kind": "complete",
+      "by": "ai",
+      "at": "2026-11-14T01:39:37.817Z"
+    },
+    {
+      "step": "implement",
+      "substep": null,
+      "task": "T059",
+      "kind": "complete",
+      "by": "ai",
+      "at": "2026-11-14T01:39:37.884Z"
+    },
+    {
+      "step": "implement",
+      "substep": null,
+      "task": "T060",
+      "kind": "complete",
+      "by": "ai",
+      "at": "2026-11-14T01:39:37.954Z"
+    },
+    {
+      "step": "implement",
+      "substep": null,
+      "task": "T054",
+      "kind": "complete",
+      "by": "ai",
+      "at": "2026-11-14T01:39:38.021Z"
+    },
+    {
+      "step": "implement",
+      "substep": null,
+      "task": "T061",
+      "kind": "complete",
+      "by": "ai",
+      "at": "2026-11-14T01:39:38.052Z"
+    },
+    {
+      "step": "implement",
+      "substep": null,
+      "task": "T055",
+      "kind": "complete",
+      "by": "ai",
+      "at": "2026-11-14T01:39:38.119Z"
+    },
+    {
+      "step": "implement",
+      "substep": null,
+      "task": "T062",
+      "kind": "complete",
+      "by": "ai",
+      "at": "2026-11-14T01:39:38.137Z"
+    },
+    {
+      "step": "implement",
+      "substep": null,
+      "task": "T063",
+      "kind": "complete",
+      "by": "ai",
+      "at": "2026-11-14T01:39:38.209Z"
+    },
+    {
+      "step": "implement",
+      "substep": null,
+      "task": "T042",
+      "kind": "complete",
+      "by": "ai",
+      "at": "2026-11-14T01:41:30.821Z"
+    },
+    {
+      "step": "implement",
+      "substep": null,
+      "task": "T043",
+      "kind": "complete",
+      "by": "ai",
+      "at": "2026-11-14T01:41:30.895Z"
+    },
+    {
+      "step": "implement",
+      "substep": null,
+      "task": "T044",
+      "kind": "complete",
+      "by": "ai",
+      "at": "2026-11-14T01:41:30.973Z"
+    },
+    {
+      "step": "implement",
+      "substep": null,
+      "task": "T045",
+      "kind": "complete",
+      "by": "ai",
+      "at": "2026-11-14T01:41:31.052Z"
+    },
+    {
+      "step": "implement",
+      "substep": null,
+      "task": "T046",
+      "kind": "complete",
+      "by": "ai",
+      "at": "2026-11-14T01:41:31.127Z"
+    },
+    {
+      "step": "implement",
+      "substep": null,
+      "task": "T047",
+      "kind": "complete",
+      "by": "ai",
+      "at": "2026-11-14T01:41:31.203Z"
+    },
+    {
+      "step": "implement",
+      "substep": null,
+      "task": "T048",
+      "kind": "complete",
+      "by": "ai",
+      "at": "2026-11-14T01:41:31.277Z"
+    },
+    {
+      "step": "implement",
+      "substep": null,
+      "task": "T028",
+      "kind": "complete",
+      "by": "ai",
+      "at": "2026-11-14T01:42:07.485Z"
+    },
+    {
+      "step": "implement",
+      "substep": null,
+      "task": "T029",
+      "kind": "complete",
+      "by": "ai",
+      "at": "2026-11-14T01:42:07.556Z"
+    },
+    {
+      "step": "implement",
+      "substep": null,
+      "task": "T032",
+      "kind": "complete",
+      "by": "ai",
+      "at": "2026-11-14T01:42:15.079Z"
+    },
+    {
+      "step": "implement",
+      "substep": null,
+      "task": "T033",
+      "kind": "complete",
+      "by": "ai",
+      "at": "2026-11-14T01:42:15.165Z"
+    },
+    {
+      "step": "implement",
+      "substep": null,
+      "task": "T034",
+      "kind": "complete",
+      "by": "ai",
+      "at": "2026-11-14T01:42:15.242Z"
+    },
+    {
+      "step": "implement",
+      "substep": null,
+      "task": "T049",
+      "kind": "complete",
+      "by": "ai",
+      "at": "2026-11-14T01:43:05.840Z"
+    },
+    {
+      "step": "implement",
+      "substep": null,
+      "task": "T050",
+      "kind": "complete",
+      "by": "ai",
+      "at": "2026-11-14T01:43:05.910Z"
+    },
+    {
+      "step": "implement",
+      "substep": null,
+      "task": "T051",
+      "kind": "complete",
+      "by": "ai",
+      "at": "2026-11-14T01:43:05.977Z"
+    },
+    {
+      "step": "implement",
+      "substep": null,
+      "task": "T052",
+      "kind": "complete",
+      "by": "ai",
+      "at": "2026-11-14T01:43:06.048Z"
+    },
+    {
+      "step": "implement",
+      "substep": null,
+      "task": "T053",
+      "kind": "complete",
+      "by": "ai",
+      "at": "2026-11-14T01:43:06.118Z"
+    },
+    {
+      "step": "implement",
+      "substep": null,
+      "task": "T024",
+      "kind": "complete",
+      "by": "ai",
+      "at": "2026-11-14T01:43:22.674Z"
+    },
+    {
+      "step": "implement",
+      "substep": null,
+      "task": "T025",
+      "kind": "complete",
+      "by": "ai",
+      "at": "2026-11-14T01:43:22.740Z"
+    },
+    {
+      "step": "implement",
+      "substep": null,
+      "task": "T026",
+      "kind": "complete",
+      "by": "ai",
+      "at": "2026-11-14T01:43:22.809Z"
+    },
+    {
+      "step": "implement",
+      "substep": null,
+      "task": "T035",
+      "kind": "complete",
+      "by": "ai",
+      "at": "2026-11-14T01:44:16.192Z"
+    },
+    {
+      "step": "implement",
+      "substep": null,
+      "task": "T036",
+      "kind": "complete",
+      "by": "ai",
+      "at": "2026-11-14T01:44:16.258Z"
+    },
+    {
+      "step": "implement",
+      "substep": null,
+      "task": "T037",
+      "kind": "complete",
+      "by": "ai",
+      "at": "2026-11-14T01:44:16.342Z"
+    },
+    {
+      "step": "implement",
+      "substep": null,
+      "task": "T038",
+      "kind": "complete",
+      "by": "ai",
+      "at": "2026-11-14T01:44:16.419Z"
+    },
+    {
+      "step": "implement",
+      "substep": null,
+      "task": "T039",
+      "kind": "complete",
+      "by": "ai",
+      "at": "2026-11-14T01:44:16.486Z"
+    },
+    {
+      "step": "implement",
+      "substep": null,
+      "task": "T040",
+      "kind": "complete",
+      "by": "ai",
+      "at": "2026-11-14T01:44:16.553Z"
+    },
+    {
+      "step": "implement",
+      "substep": null,
+      "task": "T041",
+      "kind": "complete",
+      "by": "ai",
+      "at": "2026-11-14T01:44:16.617Z"
+    },
+    {
+      "step": "implement",
+      "substep": null,
+      "task": "T027",
+      "kind": "complete",
+      "by": "ai",
+      "at": "2026-11-14T06:27:38.943Z"
+    },
+    {
+      "step": "implement",
+      "substep": null,
+      "task": "T030",
+      "kind": "complete",
+      "by": "ai",
+      "at": "2026-11-14T06:27:39.032Z"
+    },
+    {
+      "step": "implement",
+      "substep": null,
+      "task": "T031",
+      "kind": "complete",
+      "by": "ai",
+      "at": "2026-11-14T06:27:39.114Z"
+    },
+    {
+      "step": "implement",
+      "substep": null,
+      "task": "T069",
+      "kind": "complete",
+      "by": "ai",
+      "at": "2026-11-14T06:34:09.697Z"
+    },
+    {
+      "step": "implement",
+      "substep": null,
+      "task": "T070",
+      "kind": "complete",
+      "by": "ai",
+      "at": "2026-11-14T06:34:09.785Z"
+    },
+    {
+      "step": "implement",
+      "substep": null,
+      "task": "T071",
+      "kind": "complete",
+      "by": "ai",
+      "at": "2026-11-14T06:34:09.864Z"
+    },
+    {
+      "step": "implement",
+      "substep": null,
+      "task": "T064",
+      "kind": "complete",
+      "by": "ai",
+      "at": "2026-11-14T07:07:23.385Z"
+    },
+    {
+      "step": "implement",
+      "substep": null,
+      "task": "T065",
+      "kind": "complete",
+      "by": "ai",
+      "at": "2026-11-14T07:07:23.453Z"
+    },
+    {
+      "step": "implement",
+      "substep": null,
+      "task": "T066",
+      "kind": "complete",
+      "by": "ai",
+      "at": "2026-11-14T07:07:23.520Z"
+    },
+    {
+      "step": "implement",
+      "substep": null,
+      "task": "T067",
+      "kind": "complete",
+      "by": "ai",
+      "at": "2026-11-14T07:07:23.588Z"
+    },
+    {
+      "step": "implement",
+      "substep": null,
+      "task": "T072",
+      "kind": "complete",
+      "by": "ai",
+      "at": "2026-11-14T07:36:18.384Z"
+    }
+  ],
+  "telemetryInstanceId": "ea6a4841-d075-4ef3-8092-495ff89d5251",
+  "selectedAt": "2026-11-14T00:10:36.459Z",
+  "last_action": "validation run; typecheck clean, 950/952 unit and contract, 52/52 live GitLab",
+  "coverage": {
+    "FR-001": {
+      "title": "Every platform reports PR and comment authors in the same form as the signed-in handle",
+      "tasks": [
+        "T003",
+        "T004",
+        "T010",
+        "T026",
+        "T030",
+        "T033"
+      ]
+    },
+    "FR-002": {
+      "title": "Ownership decided only by comparing handles",
+      "tasks": [
+        "T008",
+        "T017"
+      ]
+    },
+    "FR-003": {
+      "title": "Own PR: every action disabled with author reason; server refuses as forbidden",
+      "tasks": [
+        "T008",
+        "T009",
+        "T017"
+      ]
+    },
+    "FR-004": {
+      "title": "Tool-posted comments listed as editable; edit and delete succeed",
+      "tasks": [
+        "T008",
+        "T010",
+        "T017",
+        "T033",
+        "T036",
+        "T040"
+      ]
+    },
+    "FR-005": {
+      "title": "Every comment carries the thread of its first comment, nested replies included",
+      "tasks": [
+        "T004",
+        "T010",
+        "T026",
+        "T030",
+        "T033",
+        "T035",
+        "T038"
+      ]
+    },
+    "FR-006": {
+      "title": "Replies to a deleted first comment shown under a placeholder",
+      "tasks": [
+        "T007",
+        "T010",
+        "T026",
+        "T035",
+        "T036",
+        "T038",
+        "T040"
+      ]
+    },
+    "FR-007": {
+      "title": "Line comment refused with conflict when the PR moved to a newer commit",
+      "tasks": [
+        "T011",
+        "T027",
+        "T031",
+        "T034"
+      ]
+    },
+    "FR-008": {
+      "title": "Single-line or range comment lands on exactly the chosen lines",
+      "tasks": [
+        "T011",
+        "T027"
+      ]
+    },
+    "FR-009": {
+      "title": "Decision first, message second",
+      "tasks": [
+        "T011",
+        "T027",
+        "T034"
+      ]
+    },
+    "FR-010": {
+      "title": "Failed message reports a made decision with a warning and keeps the text",
+      "tasks": [
+        "T005",
+        "T008",
+        "T009",
+        "T011",
+        "T017",
+        "T037",
+        "T039",
+        "T041"
+      ]
+    },
+    "FR-011": {
+      "title": "Message posted with a decision recorded as posted by the tool",
+      "tasks": [
+        "T008",
+        "T017"
+      ]
+    },
+    "FR-012": {
+      "title": "Withdraw with no decision gives the same conflict everywhere",
+      "tasks": [
+        "T004",
+        "T009",
+        "T011",
+        "T027",
+        "T031",
+        "T034"
+      ]
+    },
+    "FR-013": {
+      "title": "Approved-by-me logs failures, keeps successes, unavailable when all fail",
+      "tasks": [
+        "T003",
+        "T010",
+        "T015",
+        "T019",
+        "T025",
+        "T029"
+      ]
+    },
+    "FR-014": {
+      "title": "Approved-by-me shared by all platforms",
+      "tasks": [
+        "T019",
+        "T026",
+        "T030",
+        "T033"
+      ]
+    },
+    "FR-015": {
+      "title": "Reply to a whole-PR comment posts on every platform (quoting where needed)",
+      "tasks": [
+        "T009",
+        "T011",
+        "T031",
+        "T036"
+      ]
+    },
+    "FR-016": {
+      "title": "Every writer read goes through the read-only layer",
+      "tasks": [
+        "T011",
+        "T027",
+        "T031",
+        "T034"
+      ]
+    },
+    "FR-017": {
+      "title": "Repeated reads of the same PR in one request combined on Bitbucket",
+      "tasks": [
+        "T012",
+        "T013",
+        "T014",
+        "T018",
+        "T021",
+        "T022",
+        "T023",
+        "T025"
+      ]
+    },
+    "FR-018": {
+      "title": "No platform names outside the adapters",
+      "tasks": [
+        "T003",
+        "T004",
+        "T005",
+        "T007",
+        "T059",
+        "T062",
+        "T063"
+      ]
+    },
+    "FR-019": {
+      "title": "Contract states list-row commit ids may be abbreviated; UI compares accordingly",
+      "tasks": [
+        "T003",
+        "T005",
+        "T060",
+        "T062"
+      ]
+    },
+    "FR-020": {
+      "title": "Contract states decisions stand on the current head where no commit is recorded",
+      "tasks": [
+        "T004"
+      ]
+    },
+    "FR-021": {
+      "title": "Clone recognised over ssh.bitbucket.org, ssh.github.com:443, self-hosted GitLab SSH host",
+      "tasks": [
+        "T006",
+        "T010",
+        "T016",
+        "T020",
+        "T030",
+        "T033"
+      ]
+    },
+    "FR-022": {
+      "title": "GitHub and GitLab credentials read from .env",
+      "tasks": [
+        "T054",
+        "T055"
+      ]
+    },
+    "FR-023": {
+      "title": "Approved by you, waiting to merge allowed as an own-approval label",
+      "tasks": [
+        "T056"
+      ]
+    },
+    "FR-024": {
+      "title": "Markdown preview is the only HTML exemption, with a sanitising test",
+      "tasks": [
+        "T056",
+        "T058"
+      ]
+    },
+    "FR-025": {
+      "title": "View-state allowlist includes collapsed lanes",
+      "tasks": [
+        "T057"
+      ]
+    },
+    "FR-026": {
+      "title": "Unused panel components removed",
+      "tasks": [
+        "T061"
+      ]
+    },
+    "FR-027": {
+      "title": "Type check and full test suite pass",
+      "tasks": [
+        "T001",
+        "T072"
+      ]
+    },
+    "FR-028": {
+      "title": "Contract suites cover FR-001 to FR-015 for all platforms, expectations as data",
+      "tasks": [
+        "T010",
+        "T011"
+      ]
+    },
+    "FR-029": {
+      "title": "Signed-in user differs from PR author in test data",
+      "tasks": [
+        "T010",
+        "T024",
+        "T028",
+        "T032",
+        "T068"
+      ]
+    },
+    "FR-030": {
+      "title": "Test data recorded from real accounts, scrubbed",
+      "tasks": [
+        "T002",
+        "T065",
+        "T067",
+        "T068"
+      ]
+    },
+    "FR-031": {
+      "title": "Writer contract runs live against local GitLab",
+      "tasks": [
+        "T064",
+        "T066"
+      ]
+    },
+    "FR-032": {
+      "title": "Without a tracker key, spec folder matched by branch name or last segment",
+      "tasks": [
+        "T042",
+        "T050",
+        "T053"
+      ]
+    },
+    "FR-033": {
+      "title": "Spec context searches default branch plus develop",
+      "tasks": [
+        "T043",
+        "T044",
+        "T045",
+        "T046",
+        "T049",
+        "T052",
+        "T053"
+      ]
+    },
+    "FR-034": {
+      "title": "No gap for a repository outside an enclosing project repository",
+      "tasks": [
+        "T005",
+        "T007",
+        "T048",
+        "T051",
+        "T053"
+      ]
+    },
+    "FR-035": {
+      "title": "Enclosing project repository still found by tracker key",
+      "tasks": [
+        "T042",
+        "T047"
+      ]
+    },
+    "FR-036": {
+      "title": "Spec context tests cover the same-repository case",
+      "tasks": [
+        "T047"
+      ]
+    }
+  },
+  "size": "oversized",
+  "classification": {
+    "projectedFiles": 35,
+    "projectedTasks": 45,
+    "scopeSignal": "none",
+    "verdict": "oversized"
+  },
+  "expectations": [
+    "new review actions (suggestions, resolving threads, batched reviews)",
+    "GitLab request-changes",
+    "Bitbucket Data Center / Server",
+    "stale-decision detection on Bitbucket and GitLab",
+    "merge, decline or close"
+  ],
+  "context": [
+    "handover: docs/handover/review-actions-platform-parity.md",
+    "area: src/adapters/{bitbucket,github,gitlab} source-control and source-control-writer",
+    "area: src/core/review-actions.ts identity checks",
+    "area: src/contracts/ neutral contract",
+    "area: src/ui/ (comment-thread, review-queue, labels, home, markdown-preview)",
+    "area: test/contract/*.suite.ts, test/fixtures/*/review-actions/, test/gitlab/",
+    "constraint: read contract stays read-only (II.1, VIII.3)",
+    "constraint: core never branches on platform (VIII.1, VIII.2, VO-036)",
+    "constraint: shared contract suites take expectations as data (XI.2)",
+    "constraint: identity is audit data only; fixtures scrubbed (VII.2)"
+  ],
+  "intent": "Make every review action behave the same, correct way on Bitbucket Cloud, GitHub and GitLab, proven by recorded-response contract tests",
+  "assistant": "claude",
+  "decisions": [
+    {
+      "decision": "Add Comment.author.handle and PullRequestInfo.authorHandle; keep author/name as display text",
+      "why": "Replacing author with the handle would show raw Bitbucket account ids on Home and in search",
+      "rejected": "Redefine author.id as the handle"
+    },
+    {
+      "decision": "One core sameHandle helper: non-empty, case-insensitive, used in all five identity checks",
+      "why": "GitHub/GitLab handles ignore case; empty never matching covers deleted author accounts",
+      "rejected": "Adapters lowercase every handle"
+    },
+    {
+      "decision": "Comment.startsThread flag; UI threadsOf shows a Deleted comment placeholder when a thread has no start",
+      "why": "id === threadId cannot mark the start on GitLab, whose thread id is a discussion id",
+      "rejected": "Adapters emit a synthetic deleted root"
+    },
+    {
+      "decision": "Decision outcome carries message {posted, commentId|reason}; core writes a <requestId>:message comment record; result carries warning message_not_posted",
+      "why": "Reuses existing write_record actions with no schema change and makes the message editable",
+      "rejected": "New decision_message write_record action"
+    },
+    {
+      "decision": "Request-scoped GET memo via AsyncLocalStorage in the read layer, cleared by any write, scope opened per server request",
+      "why": "Exactly one request, no TTL guess, no contract change, helps all platforms",
+      "rejected": "Short-TTL cache inside the Bitbucket adapter"
+    },
+    {
+      "decision": "Shared approvedAcross helper in src/adapters/; read contract approvedByMe shape unchanged",
+      "why": "Lifts Bitbucket logging/unavailable behaviour to all three without touching core",
+      "rejected": "Per-PR contract method with the loop in core"
+    },
+    {
+      "decision": "GitHub reply to a whole-PR comment: read pulls/comments, on not_found post a quoting issue comment",
+      "why": "Mirrors the existing edit fallback and uses an allowlisted endpoint",
+      "rejected": "Per-thread reply capability field"
+    },
+    {
+      "decision": "Optional neutral workspace.sshHost config for GitLab; GitHub accepts ssh.github.com",
+      "why": "GitLab SSH host is unknowable before discovery and repositoryForRemote is synchronous",
+      "rejected": "Accept any host whose path matches"
+    },
+    {
+      "decision": "Spec context: branch-name terms when no tracker key, ls-remote --symref for default branch, keep stored rule value and relabel",
+      "why": "Implements FR-032..035 without a store migration",
+      "rejected": "Rename the stored rule value"
+    },
+    {
+      "decision": "Markdown preview exemption named in ui-safety; existing Playwright test proves sanitising",
+      "why": "DOMPurify needs a DOM; adding jsdom breaks Q.1 minimum",
+      "rejected": "Add jsdom as a dev dependency"
+    },
+    {
+      "decision": "Recording by a person-run test/record script with account aliasing; GitLab from the local instance",
+      "why": "XI.5 forbids automated tests against hosted platforms; aliases keep account details out",
+      "rejected": "Recording hook inside main.ts"
+    },
+    {
+      "decision": "Record hosted review-action fixtures through the real UI with a test-only node --import capture preload (test/record/capture.ts), not a script driving writer adapters",
+      "why": "A script writing to hosted Bitbucket/GitHub through an adapter breaks XI.4, and writes not started by a UI click break II.4; the preload keeps recording code out of the product",
+      "rejected": "Constitution amendment; plan-level exception; dropping hosted recording"
+    },
+    {
+      "decision": "Read memo key is URL plus authorization plus accept; the body is read once and replayed as a fresh Response",
+      "why": "the same URL answers differently by Accept (JSON vs diff) and a Response body can be read once",
+      "rejected": "keying on URL and credential only, which broke the platform-diff fallback"
+    },
+    {
+      "decision": "Bitbucket approve and request-changes keep the {commit} body",
+      "why": "the shared approve-on-commit test needs a write carrying the commit",
+      "rejected": "dropping the body as the task text says"
+    }
+  ],
+  "concerns": [
+    {
+      "note": "plan-blocks.py failed: the call-paths.md part is missing from .specify/extensions/companion/presets/_parts; call paths and screens were written as plain plan sections"
+    },
+    {
+      "note": "Recorder runs product writer code by hand against the hosted test workspace: not an automated test (XI.5), but confirm the boundary at review-plan"
+    },
+    {
+      "note": ".spec-context.json coverage lists only FR-001..FR-031 with pre-clarification titles for FR-023/FR-024; FR-032..FR-036 are missing"
+    },
+    {
+      "note": "GitLab keeps no trace of a deleted first note, so FR-006 placeholder is an expectation value false on GitLab (replies still shown in one thread)"
+    },
+    {
+      "note": "Pre-existing failures not fixed: bitbucket postLineComment single-line test expects the commit in the body (Bitbucket sends none); test/ui comment-manage keyboard reply and signin.ui return-after-sign-in fail at HEAD too",
+      "step": "implement"
+    },
+    {
+      "note": "T002 (second test accounts) and T068 (recording fixtures from real platforms) are person tasks and remain open; review-action fixtures for Bitbucket and GitHub are hand-authored until then",
+      "step": "implement"
+    },
+    {
+      "note": "GitLab has no read-suite target in test/contract/source-control.contract.test.ts, so its VO-011 to VO-015 read cases run only through the live GitLab suite",
+      "step": "implement"
+    }
+  ],
+  "step_summaries": {
+    "plan": {
+      "summary": "Plan, research (R1-R15), data model and four contract docs for review-action parity and same-repo spec context",
+      "key_finding": "Identity bugs come from each adapter filling author fields differently; a separate handle field plus one case-insensitive core comparison fixes both safety rules"
+    },
+    "tasks": {
+      "summary": "72 tasks in 11 phases: Setup, Foundational (4 waves), Bitbucket/GitHub/GitLab parity, thread+decision UI, same-repo spec context, .env, checks, live GitLab + recording, Polish"
+    },
+    "implement": {
+      "summary": "Review actions parity across Bitbucket, GitHub and GitLab, thread and decision UI, same-repo spec lookup, env sign-in, request-scoped read memo; 70 of 72 tasks, T002 and T068 are person tasks"
+    }
+  },
+  "approach": "Add a handle to every author field and compare handles in one core helper; give threads an explicit start flag; make each writer check the head, decide before posting its message, and return message failures as warnings. Share approved-by-me and a request-scoped GET memo in src/adapters, and extend spec context to match same-repo spec folders by branch name on the default branch.",
+  "currentTask": "T072",
+  "task_summaries": {
+    "T005": {
+      "status": "DONE",
+      "did": "Contract declarations: ReviewActionResult.warning, headCommit prefix note, removed no-enclosing-repository gap kind, SpecSource.key and SpecRule docs",
+      "files": [
+        "src/contracts/http.ts"
+      ]
+    },
+    "T006": {
+      "status": "DONE",
+      "did": "Added optional sshHost to WorkspaceConfig type",
+      "files": [
+        "src/config.ts"
+      ]
+    },
+    "T004": {
+      "status": "DONE",
+      "did": "Comment.author gains handle, Comment.startsThread added, decision outcome gains message, withdraw-conflict and decision-on-head docs added to the writer contract",
+      "files": [
+        "src/contracts/source-control-writer.ts"
+      ]
+    },
+    "T003": {
+      "status": "DONE",
+      "did": "Added PullRequestInfo.authorHandle and documented prefix-compared headCommit and approvedByMe partial/unavailable rules",
+      "files": [
+        "src/contracts/source-control.ts"
+      ]
+    },
+    "T007": {
+      "status": "DONE",
+      "did": "Added deletedComment, messageNotPosted, SPEC_RULE_LABELS and alsoHasCopy labels; removed gapNotInProject",
+      "files": [
+        "src/ui/labels.ts"
+      ]
+    },
+    "T001": {
+      "status": "DONE",
+      "did": "Baseline: typecheck red (orphaned panels, 9 errors), tests slow >120s"
+    },
+    "T010": {
+      "status": "DONE",
+      "did": "Wrote failing contract scenarios and per-platform expectation data (author handles, threads, orphans, approvedByMe partial/all-fail, clone locations); fail because feature and fixtures are not built",
+      "files": [
+        "test/contract/source-control.suite.ts",
+        "test/contract/source-control.contract.test.ts"
+      ]
+    },
+    "T014": {
+      "status": "DONE",
+      "did": "Wrote failing memo-clearing tests for the write layer; fail because src/adapters/request-memo.ts does not exist yet",
+      "files": [
+        "test/unit/write-http.test.ts"
+      ]
+    },
+    "T008": {
+      "status": "DONE",
+      "did": "Wrote failing-first tests for sameHandle, author guard, handle-based ownership and the decision message intent; fakes now use distinct id, name and handle",
+      "files": [
+        "test/unit/review-actions.test.ts"
+      ]
+    },
+    "T012": {
+      "status": "DONE",
+      "did": "Wrote failing-first request-memo tests (scope, per-URL-and-credential sharing, no cache outside scope, eviction on failure, clear, scope isolation)",
+      "files": [
+        "test/unit/request-memo.test.ts"
+      ]
+    },
+    "T016": {
+      "status": "DONE",
+      "did": "Wrote failing-first workspace.sshHost test (bare host accepted; scheme, path, port, user refused)",
+      "files": [
+        "test/unit/config.test.ts"
+      ]
+    },
+    "T009": {
+      "status": "DONE",
+      "did": "Wrote per-platform (bitbucket-cloud, github, gitlab) route tests for own-PR 403, author-reason decision, message-failure warning, withdraw-with-nothing 409 and reply offered; fail as expected (feature not built)",
+      "files": [
+        "test/integration/review-actions-routes.test.ts"
+      ]
+    },
+    "T013": {
+      "status": "DONE",
+      "did": "Wrote read-only-http memo tests (one call per scope, credential not shared, non-GET never kept); fail as expected (request-memo.ts not built)",
+      "files": [
+        "test/unit/read-only-http.test.ts"
+      ]
+    },
+    "T011": {
+      "status": "DONE",
+      "did": "Writer contract suite gains spec 007 scenarios (moved head, abbreviated head, message order and failure, empty message, withdraw twice, whole-PR reply, anchors, one read per scope) with per-platform expectation data; fails first: variant fixtures and request-memo not built",
+      "files": [
+        "test/contract/source-control-writer.suite.ts",
+        "test/contract/source-control-writer.contract.test.ts"
+      ]
+    },
+    "T015": {
+      "status": "DONE",
+      "did": "New approved-by-me unit test (limit 4, failures logged with number and code, partial success, all-fail unavailable, empty input); fails first: src/adapters/approved-by-me.ts not built",
+      "files": [
+        "test/unit/approved-by-me.test.ts"
+      ]
+    },
+    "T018": {
+      "status": "DONE",
+      "did": "Added request-scoped GET memo (AsyncLocalStorage) with withRequestScope, memoGet, memoKey, clearRequestMemo",
+      "files": [
+        "src/adapters/request-memo.ts"
+      ]
+    },
+    "T019": {
+      "status": "DONE",
+      "did": "Added approvedAcross(platform, numbers, one) over mapLimited (limit 4): logs each failure, throws unavailable when all fail",
+      "files": [
+        "src/adapters/approved-by-me.ts"
+      ]
+    },
+    "T020": {
+      "status": "DONE",
+      "did": "Validated workspace.sshHost as a bare host, added SourceControlSettings.sshHost, passed it at the config-driven call sites",
+      "files": [
+        "src/config.ts",
+        "src/adapters/registry.ts",
+        "src/server/routes/context.ts",
+        "src/server/reviewer.ts"
+      ]
+    },
+    "T017": {
+      "status": "DONE",
+      "did": "Exported sameHandle and used it in run guard, decision, edit/delete ownership, readBack, comments; resultOf fills author name/handle; message intent and warning on decision outcome",
+      "files": [
+        "src/core/review-actions.ts"
+      ]
+    },
+    "T021": {
+      "status": "DONE",
+      "did": "GET memo with replayed body in read layer",
+      "files": [
+        "src/adapters/read-only-http.ts"
+      ]
+    },
+    "T022": {
+      "status": "DONE",
+      "did": "Clear memo after every write",
+      "files": [
+        "src/adapters/write-http.ts"
+      ]
+    },
+    "T023": {
+      "status": "DONE",
+      "did": "Wrap each request in withRequestScope",
+      "files": [
+        "src/server/http.ts"
+      ]
+    },
+    "T056": {
+      "status": "DONE",
+      "did": "Allowlist: own-approval string and markdown-preview exemption (FR-023/024)",
+      "files": [
+        "test/unit/ui-safety.test.ts"
+      ]
+    },
+    "T057": {
+      "status": "DONE",
+      "did": "Dashboard view-state allowlist gains collapsedLanes",
+      "files": [
+        "test/unit/ui-view-state.test.ts"
+      ]
+    },
+    "T058": {
+      "status": "DONE",
+      "did": "Existing preview test already proves script, onerror and javascript: stripped; no change needed",
+      "files": [
+        "test/ui/markdown-preview.ui.ts"
+      ]
+    },
+    "T059": {
+      "status": "DONE",
+      "did": "Scan kept; fails only on src/ui/labels.ts:106 (not owned, reported)",
+      "files": [
+        "test/unit/platform-names.test.ts"
+      ]
+    },
+    "T060": {
+      "status": "DONE",
+      "did": "Added abbreviated-head-is-not-new-commits test (passes; sameCommit already prefix-based)",
+      "files": [
+        "test/unit/review-queue.test.ts"
+      ]
+    },
+    "T054": {
+      "status": "DONE",
+      "did": "Env credential tests and leak test",
+      "files": [
+        "test/unit/env-credentials.test.ts",
+        "test/unit/credentials.test.ts"
+      ]
+    },
+    "T061": {
+      "status": "DONE",
+      "did": "Deleted orphaned panel-host and evidence-panel",
+      "files": [
+        "src/ui/components/panel-host.tsx",
+        "src/ui/components/evidence-panel.tsx"
+      ]
+    },
+    "T055": {
+      "status": "DONE",
+      "did": "GitHub and GitLab bearer tokens from env",
+      "files": [
+        "src/adapters/env-credentials.ts"
+      ]
+    },
+    "T062": {
+      "status": "DONE",
+      "did": "Neutral comment; sameCommit already compares by prefix",
+      "files": [
+        "src/ui/state/review-queue.ts"
+      ]
+    },
+    "T063": {
+      "status": "DONE",
+      "did": "Neutral comment",
+      "files": [
+        "src/ui/screens/home.tsx"
+      ]
+    },
+    "T042": {
+      "status": "DONE",
+      "did": "Wrote failing unit tests for branch-term building and matching",
+      "files": [
+        "test/unit/spec-match.test.ts"
+      ]
+    },
+    "T043": {
+      "status": "DONE",
+      "did": "Updated listRemoteHeads args assertion to the symref form (failing)",
+      "files": [
+        "test/unit/git-commands.test.ts"
+      ]
+    },
+    "T044": {
+      "status": "DONE",
+      "did": "Wrote failing defaultBranch symref test and updated heads shape",
+      "files": [
+        "test/integration/spec-lookup-git.test.ts"
+      ]
+    },
+    "T045": {
+      "status": "DONE",
+      "did": "Wrote failing safety test for symref ls-remote on a dirty clone",
+      "files": [
+        "test/integration/repo-safety.test.ts"
+      ]
+    },
+    "T046": {
+      "status": "DONE",
+      "did": "Wrote failing same-repository search tests (default, develop, matching branches)",
+      "files": [
+        "test/integration/spec-context-service.test.ts"
+      ]
+    },
+    "T047": {
+      "status": "DONE",
+      "did": "Wrote failing end-to-end same-repository and enclosing cases",
+      "files": [
+        "test/end-to-end/spec-context.test.ts"
+      ]
+    },
+    "T048": {
+      "status": "DONE",
+      "did": "Replaced no-enclosing-repository assertion with no-gap checks (failing)",
+      "files": [
+        "test/end-to-end/spec-gaps.test.ts"
+      ]
+    },
+    "T028": {
+      "status": "DONE",
+      "did": "Authored GitHub review-action fixtures: pull-1 and comment-read bases, variants (moved-head, abbreviated-head, no-decision, withdrawn-once, whole-pr-comment), read-contract scenarios, bob-contrib author",
+      "files": [
+        "test/fixtures/github/"
+      ]
+    },
+    "T029": {
+      "status": "DONE",
+      "did": "GitHub approvedByMe unit tests cover the approvedAcross helper (partial failure, all-fail unavailable)",
+      "files": [
+        "test/unit/github-approvals.test.ts"
+      ]
+    },
+    "T032": {
+      "status": "DONE",
+      "did": "GitLab review-action variants: moved-head, abbreviated-head, message-fails, no-decision, withdrawn-once, whole-pr-comment",
+      "files": [
+        "test/fixtures/gitlab/review-actions/variants/"
+      ]
+    },
+    "T033": {
+      "status": "DONE",
+      "did": "GitLab reads: authorHandle and author.handle from username, startsThread, sshHost clone locations, approvedByMe via approvedAcross",
+      "files": [
+        "src/adapters/gitlab/source-control.ts"
+      ]
+    },
+    "T034": {
+      "status": "DONE",
+      "did": "GitLab writer: versions[0] via read layer, decision then message with outcome.message, withdraw refuses conflict when nothing approved",
+      "files": [
+        "src/adapters/gitlab/source-control-writer.ts"
+      ]
+    },
+    "T049": {
+      "status": "DONE",
+      "did": "listRemoteHeads now ls-remote --symref url HEAD refs/heads/*",
+      "files": [
+        "src/repo/git.ts"
+      ]
+    },
+    "T050": {
+      "status": "DONE",
+      "did": "Added SpecTerm, buildTerms, termMatchesName; matchingFolders and chooseCopy take term/matcher",
+      "files": [
+        "src/core/spec-match.ts"
+      ]
+    },
+    "T051": {
+      "status": "DONE",
+      "did": "Rule text from SPEC_RULE_LABELS, alsoHasCopy from others[].branch, dropped not-in-project gap",
+      "files": [
+        "src/ui/components/spec-context.tsx"
+      ]
+    },
+    "T052": {
+      "status": "DONE",
+      "did": "listRemoteBranches returns heads plus defaultBranch from HEAD symref",
+      "files": [
+        "src/repo/manager.ts"
+      ]
+    },
+    "T053": {
+      "status": "DONE",
+      "did": "Branch-name terms, default branch plus develop plus matching heads, no enclosing gap",
+      "files": [
+        "src/core/spec-context.ts"
+      ]
+    },
+    "T024": {
+      "status": "DONE",
+      "did": "Re-authored Bitbucket review-action fixtures (non-author signed-in user, three-deep thread, deleted root and middle, whole-PR comment, moved head) plus scenario variants and top-level thread/orphan/approval fixtures",
+      "files": [
+        "test/fixtures/bitbucket/"
+      ]
+    },
+    "T025": {
+      "status": "DONE",
+      "did": "Added all-fail unavailable, partial-failure logging and one-read-per-PR request-scope tests for Bitbucket approvedByMe",
+      "files": [
+        "test/unit/bitbucket-approvals.test.ts"
+      ]
+    },
+    "T026": {
+      "status": "DONE",
+      "did": "Bitbucket reads: authorHandle and author.handle from account_id, parent-walk threadIds over deleted comments, startsThread, approvedByMe via approvedAcross, no misplaced this",
+      "files": [
+        "src/adapters/bitbucket/source-control.ts"
+      ]
+    },
+    "T035": {
+      "status": "DONE",
+      "did": "threadsOf unit test written (6 cases)",
+      "files": [
+        "test/unit/ui-review-comments.test.ts"
+      ]
+    },
+    "T036": {
+      "status": "DONE",
+      "did": "orphaned-thread placeholder and reply UI tests written",
+      "files": [
+        "test/ui/comment-manage.ui.ts"
+      ]
+    },
+    "T037": {
+      "status": "DONE",
+      "did": "message-not-posted warning UI tests written",
+      "files": [
+        "test/ui/overview-decision.ui.ts"
+      ]
+    },
+    "T038": {
+      "status": "DONE",
+      "did": "threadsOf returns CommentThreadView with deleted start, canReply",
+      "files": [
+        "src/ui/state/use-review-comments.ts"
+      ]
+    },
+    "T039": {
+      "status": "DONE",
+      "did": "hook exposes warning and report(); panel keeps message text on warning",
+      "files": [
+        "src/ui/state/use-review-decision.ts"
+      ]
+    },
+    "T040": {
+      "status": "DONE",
+      "did": "CommentThread takes a thread and renders comment-deleted-placeholder first",
+      "files": [
+        "src/ui/components/comment-thread.tsx"
+      ]
+    },
+    "T041": {
+      "status": "DONE",
+      "did": "decision-message-not-posted ActionNotice with messageNotPosted label",
+      "files": [
+        "src/ui/components/decision-panel.tsx"
+      ]
+    },
+    "T027": {
+      "status": "DONE",
+      "did": "Bitbucket writer: head check, decision then message, withdraw guard",
+      "files": [
+        "src/adapters/bitbucket/source-control-writer.ts"
+      ]
+    },
+    "T030": {
+      "status": "DONE",
+      "did": "GitHub reads: handles, startsThread, ssh clone host, approvedAcross",
+      "files": [
+        "src/adapters/github/source-control.ts"
+      ]
+    },
+    "T031": {
+      "status": "DONE",
+      "did": "GitHub writer: head check, quoting reply, withdraw conflict",
+      "files": [
+        "src/adapters/github/source-control-writer.ts"
+      ]
+    },
+    "T069": {
+      "status": "DONE",
+      "did": "Confirmed acts-on-platforms boundary wording in CONTEXT.md",
+      "files": [
+        "docs/domain_knowledge/CONTEXT.md"
+      ]
+    },
+    "T070": {
+      "status": "DONE",
+      "did": "Confirmed Bitbucket range wording; ADR 0003 decision unchanged",
+      "files": [
+        "docs/domain_knowledge/adr/0003-reviewer-actions-and-workbench-scope.md"
+      ]
+    },
+    "T071": {
+      "status": "DONE",
+      "did": "Grep clean: no platform names outside adapters, no leftover gap kind/label/author=="
+    },
+    "T064": {
+      "status": "DONE",
+      "did": "Live GitLab writer contract: comment, line and range comment, reply, edit, delete, approve, withdraw (and second-withdraw conflict), request-changes refusal, new-commits refusal as a non-author reviewer; 36/36 pass in npm run test:gitlab contract file, writes only to the run-owned project",
+      "files": [
+        "test/gitlab/contract.test.ts"
+      ]
+    },
+    "T065": {
+      "status": "DONE",
+      "did": "recordingFetch gains aliases (real to placeholder) on URLs, headers and bodies; ALIAS_PLACEHOLDERS exported; checked with a scratch aliases run and tsc",
+      "files": [
+        "test/helpers/recorded-fetch.ts"
+      ]
+    },
+    "T066": {
+      "status": "DONE",
+      "did": "Seeder adds a run-owned author account with api token, Developer role for reviewer and author, reviewer api token, and opens the MR as the author (asAuthor)",
+      "files": [
+        "test/seeder/gitlab-seeder.ts"
+      ]
+    },
+    "T067": {
+      "status": "DONE",
+      "did": "capture.ts preload refuses without PRWB_RECORD_FIXTURES and alias vars, swaps global fetch for recordingFetch; README has the one-action-per-click script; tsc clean, refusal and start checked once",
+      "files": [
+        "test/record/capture.ts",
+        "test/record/README.md"
+      ]
+    },
+    "T072": {
+      "status": "DONE",
+      "did": "Validated: typecheck 0 errors, npm test 950/952, live GitLab 52/52, UI 118/121 (pre-existing failures noted)"
+    }
+  },
+  "verified": [
+    {
+      "what": "typecheck",
+      "command": "npm run typecheck",
+      "source": "derived",
+      "exitCode": 0,
+      "durationSeconds": 4.9,
+      "result": "> pr-review-workbench@0.1.0 typecheck · > tsc --noEmit"
+    },
+    {
+      "what": "contract suites, all platforms (all but a pre-existing Bitbucket case)",
+      "command": "node --test --test-name-pattern='feature 007|VO-0' test/contract/*.contract.test.ts",
+      "source": "derived",
+      "exitCode": 0,
+      "durationSeconds": 0.3,
+      "result": "ℹ skipped 0 · ℹ todo 0 · ℹ duration_ms 311.987765"
+    },
+    {
+      "what": "live GitLab suite (reads and writes)",
+      "command": "npm run test:gitlab",
+      "source": "derived",
+      "exitCode": 0,
+      "durationSeconds": 303.5,
+      "result": "ℹ skipped 0 · ℹ todo 0 · ℹ duration_ms 303336.414354"
+    },
+    {
+      "what": "full npm test, last run",
+      "command": "npm test",
+      "result": "950 pass, 1 fail, 1 skipped; the one failure is feature 005 bitbucket-cloud postLineComment (unchanged payload, same at HEAD)"
+    },
+    {
+      "what": "UI suite, last run",
+      "command": "npm run test:ui",
+      "result": "118 of 121 pass; keyboard reply and sign-in tests fail identically at HEAD; one diff.ui case flaked and passed alone"
+    }
+  ]
+}

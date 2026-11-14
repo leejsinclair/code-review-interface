@@ -41,4 +41,4 @@
 | GitLab | `api` (`read_api` cannot write notes or approve) |
 | Bitbucket Cloud | `write:pullrequest:bitbucket` with `read:pullrequest:bitbucket`, or an app password with Pull requests: Write |
 
-Known platform gaps, shown as a disabled action with its reason and never as a platform branch in core: GitLab has no request-changes through its REST API in this build; Bitbucket inline comments carry one line, not a range.
+Known platform gaps, shown as a disabled action with its reason and never as a platform branch in core: GitLab has no request-changes through its REST API in this build. (Corrected 2026-11-14: Bitbucket inline comments do carry a line range, so that gap no longer exists.)
