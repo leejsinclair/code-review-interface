@@ -27,9 +27,9 @@
       "installed_at": "2026-11-07T01:35:37.366518+00:00"
     },
     "companion": {
-      "version": "0.25.0",
+      "version": "0.28.0",
       "source": "local",
-      "manifest_hash": "sha256:6c71d56fbf5912e3d0c056b56e0d30ff571fc9b370add089147f3e65ee622b09",
+      "manifest_hash": "sha256:fd7829e5f90bfdfd9a8f8a918d44356b45a24db03ac75cfea0fbad7565dc7beb",
       "enabled": true,
       "priority": 10,
       "registered_commands": {
@@ -51,17 +51,12 @@
           "speckit.companion.mark-complete",
           "speckit.companion.auto",
           "speckit.companion.doctor",
-          "speckit.companion.living-adopt",
-          "speckit.companion.living-move",
-          "speckit.companion.living-drift",
-          "speckit.companion.living-show",
-          "speckit.companion.living-validate",
-          "speckit.companion.living-coverage",
-          "speckit.companion.living-sync"
+          "speckit.companion.on-prompt",
+          "speckit.companion.on-stop"
         ]
       },
       "registered_skills": [],
-      "installed_at": "2026-11-07T01:38:44.325134+00:00"
+      "installed_at": "2026-11-21T05:56:11.379830+00:00"
     }
   }
 }

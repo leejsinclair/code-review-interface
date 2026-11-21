@@ -32,13 +32,8 @@
     ],
     "specify": [
       {
-        "artifact": "<short-name>.spec.md",
+        "artifact": "spec.md",
         "node": "draft-spec",
-        "conditional": false
-      },
-      {
-        "artifact": "checklists/requirements.md",
-        "node": "quality-checklist",
         "conditional": false
       }
     ],
@@ -50,5 +45,5 @@
       }
     ]
   },
-  "artifactCount": 8
+  "artifactCount": 7
 }
