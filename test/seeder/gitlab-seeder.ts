@@ -34,7 +34,7 @@ const PARENT_GROUP = 'prwb-it';
 type Json = Record<string, any>; // eslint-disable-line @typescript-eslint/no-explicit-any
 
 /** Polls `probe` every 250 ms until it returns a value, failing after ~30 s with `what` (FR-026). */
-async function until<T>(probe: () => Promise<T | undefined | null | false>, what: string, timeoutMs = WAIT_MS): Promise<T> {
+export async function until<T>(probe: () => Promise<T | undefined | null | false>, what: string, timeoutMs = WAIT_MS): Promise<T> {
   const deadline = Date.now() + timeoutMs;
   for (;;) {
     const value = await probe();
@@ -122,6 +122,58 @@ export class GitlabAdmin {
     // GitLab blocks the user at once (its tokens stop working) but removes it in a background job
     // that took about two minutes on 19.5.
     await until(async () => (await this.call('GET', `/users/${id}`)) === null, `user ${id} to be removed`, REMOVAL_MS);
+  }
+
+  /** Finds an item by its fixed key, or creates it when missing; a found item is never changed (008 R3). */
+  async ensure(find: () => Promise<Json | null | undefined>, create: () => Promise<Json>): Promise<{ status: 'created' | 'exists'; item: Json }> {
+    const found = await find();
+    return found ? { status: 'exists', item: found } : { status: 'created', item: await create() };
+  }
+
+  findGroup(fullPath: string): Promise<Json | null> {
+    return this.call('GET', `/groups/${encodeURIComponent(fullPath)}`);
+  }
+
+  findProject(fullPath: string): Promise<Json | null> {
+    return this.call('GET', `/projects/${encodeURIComponent(fullPath)}`);
+  }
+
+  async findUser(username: string): Promise<Json | undefined> {
+    return (await this.list(`/users?username=${encodeURIComponent(username)}`))[0];
+  }
+
+  async findIssue(projectId: number, title: string): Promise<Json | undefined> {
+    return (await this.list(`/projects/${projectId}/issues?in=title&search=${encodeURIComponent(title)}`)).find((i) => i.title === title);
+  }
+
+  async findMergeRequest(projectId: number, sourceBranch: string): Promise<Json | undefined> {
+    return (await this.list(`/projects/${projectId}/merge_requests?state=all&source_branch=${encodeURIComponent(sourceBranch)}`))[0];
+  }
+
+  /** The discussion holding a note with exactly `body`, with that note. */
+  async findNote(projectId: number, iid: number, body: string): Promise<{ discussionId: string; note: Json } | undefined> {
+    for (const d of await this.list(`/projects/${projectId}/merge_requests/${iid}/discussions`)) {
+      const note = (d.notes as Json[]).find((n) => n.body === body);
+      if (note !== undefined) return { discussionId: d.id, note };
+    }
+    return undefined;
+  }
+
+  async approvedBy(projectId: number, iid: number, username: string): Promise<boolean> {
+    const state = await this.call('GET', `/projects/${projectId}/merge_requests/${iid}/approvals`);
+    return ((state?.approved_by ?? []) as Json[]).some((a) => a.user?.username === username);
+  }
+
+  /** Opens a discussion on new-side `line` of `path`, positioned with the merge request's `diff_refs`. */
+  async openDiffDiscussion(projectId: number, iid: number, input: { path: string; line: number; body: string }): Promise<Json> {
+    const refs = await until(async () => {
+      const mr = await this.call('GET', `/projects/${projectId}/merge_requests/${iid}`);
+      return mr?.diff_refs?.head_sha ? (mr.diff_refs as Json) : null;
+    }, `diff refs of !${iid}`);
+    return this.call('POST', `/projects/${projectId}/merge_requests/${iid}/discussions`, {
+      body: input.body,
+      position: { position_type: 'text', base_sha: refs.base_sha, start_sha: refs.start_sha, head_sha: refs.head_sha, new_path: input.path, old_path: input.path, new_line: input.line },
+    });
   }
 
   /** Every `it-*` project, group and user on the instance. */

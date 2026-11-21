@@ -18,7 +18,7 @@ export const GITLAB_TOKEN: string = process.env.GITLAB_TOKEN ?? 'glpat-prwb-loca
 
 export const PROBE_TIMEOUT_MS = 5_000;
 
-const START_HINT = 'start it with `npm run gitlab:up` and then `npm run gitlab:bootstrap`';
+export const START_HINT = 'start it with `npm run gitlab:up` and then `npm run gitlab:bootstrap`';
 
 export type Readiness = { ready: true; version: string } | { ready: false; cause: string };
 
