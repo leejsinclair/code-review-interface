@@ -27,14 +27,40 @@ export function keyMatchesName(key: string, name: string): boolean {
   return false;
 }
 
-/** Distinct `specs/<name>` folders holding a file whose name matches the key, in first-seen order. */
-export function matchingFolders(key: string, treePaths: readonly string[]): string[] {
+/** A search term: a tracker key, or (with no key on the pull request) the branch name or its last segment. */
+export type SpecTerm = { kind: 'key' | 'branch'; value: string };
+
+/**
+ * The terms to search with (feature 007, R12): each tracker key as written; with none, the branch name and its last
+ * segment after `/`, de-duplicated ignoring case, empty values dropped.
+ */
+export function buildTerms(keys: readonly string[], branchName: string): SpecTerm[] {
+  if (keys.length > 0) return keys.map((value) => ({ kind: 'key', value }));
+  const terms: SpecTerm[] = [];
+  const seen = new Set<string>();
+  for (const value of [branchName, branchName.slice(branchName.lastIndexOf('/') + 1)]) {
+    if (value === '' || seen.has(value.toLowerCase())) continue;
+    seen.add(value.toLowerCase());
+    terms.push({ kind: 'branch', value });
+  }
+  return terms;
+}
+
+/** A key matches as in feature 006; a branch term matches only a name that equals it, ignoring case. */
+export function termMatchesName(term: SpecTerm, name: string): boolean {
+  if (term.kind === 'key') return keyMatchesName(term.value, name);
+  return term.value !== '' && term.value.toLowerCase() === name.toLowerCase();
+}
+
+/** Distinct `specs/<name>` folders holding a file whose name matches the term (a key, or a term), in first-seen order. */
+export function matchingFolders(term: string | SpecTerm, treePaths: readonly string[]): string[] {
+  const t: SpecTerm = typeof term === 'string' ? { kind: 'key', value: term } : term;
   const folders: string[] = [];
   for (const path of treePaths) {
     const parts = path.split('/');
     if (parts.length < 3 || parts[0] !== 'specs') continue;
     const folder = `specs/${parts[1]}`;
-    if (!folders.includes(folder) && keyMatchesName(key, parts[1] as string)) folders.push(folder);
+    if (!folders.includes(folder) && termMatchesName(t, parts[1] as string)) folders.push(folder);
   }
   return folders;
 }
@@ -66,10 +92,11 @@ export function chooseDocumentFiles(folderPaths: readonly string[]): {
 const baseName = (p: string): string => p.slice(p.lastIndexOf('/') + 1);
 
 /** Rank by repository, then a matching branch over others, then the most recent commit. */
-export function chooseCopy(key: string, candidates: readonly SpecCandidate[]): SpecChoice | null {
+export function chooseCopy(matcher: string | ((branch: string) => boolean), candidates: readonly SpecCandidate[]): SpecChoice | null {
+  const matches = typeof matcher === 'string' ? (branch: string): boolean => keyMatchesName(matcher, branch) : matcher;
   if (candidates.length === 0) return null;
   const roleRank = (c: SpecCandidate): number => (c.role === 'own' ? 0 : 1);
-  const branchRank = (c: SpecCandidate): number => (keyMatchesName(key, c.branch) ? 0 : 1);
+  const branchRank = (c: SpecCandidate): number => (matches(c.branch) ? 0 : 1);
   const ranked = [...candidates].sort(
     (a, b) =>
       roleRank(a) - roleRank(b) ||

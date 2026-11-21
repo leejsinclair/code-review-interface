@@ -5,6 +5,7 @@
 // `/app.css` from `dist/ui/`), then the route modules. Each request writes one
 // log line naming the route pattern and the status, never the URL or headers.
 
+import { withRequestScope } from '../adapters/request-memo.ts';
 import { randomUUID } from 'node:crypto';
 import { readFile } from 'node:fs/promises';
 import { createServer, type IncomingMessage, type ServerResponse } from 'node:http';
@@ -140,7 +141,7 @@ export async function startServer(options: ServerOptions): Promise<RunningServer
     const requestId = randomUUID();
     // Log once both the response has closed and the handler has named its op.
     const closed = new Promise<void>((resolve) => res.once('close', () => resolve()));
-    const op = handle(req, res).catch(() => {
+    const op = withRequestScope(() => handle(req, res)).catch(() => {
       sendInternalError(res);
       return `${req.method ?? ''} (failed)`;
     });

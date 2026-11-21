@@ -79,8 +79,11 @@ export const GIT_COMMANDS = Object.freeze({
   resolveRevision: { args: ['rev-parse', '--verify', '--quiet', '--end-of-options', '{rev}'] },
   /** Prints the clone's top-level directory, to confirm a path is a work tree. */
   showTopLevel: { args: ['rev-parse', '--show-toplevel'] },
-  /** Lists a remote's branch heads: `<commit>\trefs/heads/<name>`. Network read; writes nothing. */
-  listRemoteHeads: { args: ['ls-remote', '--heads', '{url}'] },
+  /**
+   * Lists a remote's branch heads (`<commit>\trefs/heads/<name>`) and, from `--symref`, the default branch
+   * (`ref: refs/heads/<name>\tHEAD`). Network read; writes nothing.
+   */
+  listRemoteHeads: { args: ['ls-remote', '--symref', '{url}', 'HEAD', 'refs/heads/*'] },
   /** Lists every file path in a commit's `specs/` tree. */
   listTreePaths: { args: ['ls-tree', '-r', '--name-only', '{commit}', '--', 'specs/'] },
   /** Prints the last commit that touched a path. */

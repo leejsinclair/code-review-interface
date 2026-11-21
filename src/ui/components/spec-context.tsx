@@ -7,7 +7,7 @@ import type { JSX } from 'preact';
 import { useEffect, useRef, useState } from 'preact/hooks';
 import type { AlignmentRow, SpecAlignment, SpecCitation, SpecContextReport, SpecDocument, SpecKeyResult, SpecStatement } from '../../contracts/http.ts';
 import { getSpecDocument } from '../api.ts';
-import { SPEC_LABELS } from '../labels.ts';
+import { alsoHasCopy, SPEC_LABELS, SPEC_RULE_LABELS } from '../labels.ts';
 import type { SpecContextState, SpecDocumentView } from '../state/use-spec-context.ts';
 import { AsyncRegion } from './async-region.tsx';
 import { MarkdownRendered } from './markdown-preview.tsx';
@@ -76,7 +76,7 @@ function Loaded(props: { sessionId: string; snapshotId: string; report: SpecCont
 function Notices({ report, spec }: { report: SpecContextReport; spec: SpecContextState }): JSX.Element | null {
   const alignment = report.alignment;
   const gapText = (kind: string, message: string): string =>
-    kind === 'no-key' ? SPEC_LABELS.gapNoKey : kind === 'no-enclosing-repository' ? SPEC_LABELS.gapNotInProject : `${SPEC_LABELS.gapSourceUnreadable}: ${message}`;
+    kind === 'no-key' ? SPEC_LABELS.gapNoKey : `${SPEC_LABELS.gapSourceUnreadable}: ${message}`;
   const failed = alignment !== undefined && (alignment.state === 'failed' || alignment.state === 'cancelled');
   const running = alignment !== undefined && (alignment.state === 'pending' || alignment.state === 'running');
   const noSpec = report.status === 'none' && report.gaps.every((g) => g.kind !== 'no-key') && report.keys.length > 0;
@@ -146,11 +146,11 @@ function Sources({ result }: { result: SpecKeyResult; spec: SpecContextState }):
               {doc.fileName !== undefined && <span>· {doc.fileName}</span>}
               {doc.status === 'stale' && <span data-testid="spec-stale">{SPEC_LABELS.stale}</span>}
             </p>
-            <p data-testid="spec-rule">Chosen by: {doc.source.rule.replace(/-/g, ' ')}.</p>
+            <p data-testid="spec-rule">Chosen by: {SPEC_RULE_LABELS[doc.source.rule]}.</p>
             {doc.otherSpecFiles.length > 0 && <p class="muted">Other specification files in the folder: {doc.otherSpecFiles.join(', ')}.</p>}
             {copies.map((c, i) => (
               <p key={`${c.repository}-${c.branch}-${i}`} data-testid="spec-other-copy">
-                {c.branch === 'develop' ? 'develop also has a copy' : 'Another copy'}: {c.repository} · {c.branch} · {c.commit.slice(0, 8)} · {c.folder}
+                {alsoHasCopy(c.branch)}: {c.repository} · {c.branch} · {c.commit.slice(0, 8)} · {c.folder}
               </p>
             ))}
           </div>

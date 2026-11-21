@@ -18,9 +18,19 @@ export type ObservedRequest = { method: string; host: string; headers: Record<st
  * The situation the adapter is built for:
  * - `default`: the target's ordinary data;
  * - `deleted-pr`: `expected.deletedPr` names a pull request that no longer exists;
- * - `unauthorized`: the credential is refused for `expected.unauthorizedRepo`.
+ * - `unauthorized`: the credential is refused for `expected.unauthorizedRepo`;
+ * - `comment-threads`, `orphaned-threads`: pull requests whose comments are the data in `expected.threads`
+ *   and `expected.orphans`;
+ * - `approvals-partial`, `approvals-all-fail`: the approval checks named in `expected.approvals` fail.
  */
-export type SourceControlScenario = 'default' | 'deleted-pr' | 'unauthorized';
+export type SourceControlScenario =
+  | 'default'
+  | 'deleted-pr'
+  | 'unauthorized'
+  | 'comment-threads'
+  | 'orphaned-threads'
+  | 'approvals-partial'
+  | 'approvals-all-fail';
 
 export type SourceControlHarness = {
   sc: SourceControlProvider;
@@ -68,6 +78,27 @@ export type SourceControlExpectations = {
   unauthorizedRepo: RepoRef;
   /** Pull requests in their final states, when the target has them. */
   finishedPulls?: { merged: number; closed: number };
+  /**
+   * Feature 007 data (FR-028: the suite reads it, never branches on platform). Optional in the type so a
+   * target that has not recorded it yet still compiles; a fixture target supplies all of it.
+   */
+  /** `pull`'s author handle (the form of `CurrentUser.handle`) and the pull request whose author is not the signed-in user (FR-001, FR-029). */
+  authors?: { pullAuthorHandle: string; otherAuthorPull: { number: number; authorHandle: string } };
+  /** A conversation three replies deep (FR-005, SC-003): every comment of the pull request, with the author handle each carries. */
+  threads?: { number: number; comments: { id: string; authorHandle: string; threadId: string; startsThread: boolean }[] };
+  /**
+   * Threads whose first (and middle) comments were deleted (FR-006, EC-03). `orphanPlaceholder` is false on a
+   * platform that promotes the next comment to start the thread; the remaining comments then say so in `startsThread`.
+   */
+  orphans?: {
+    number: number;
+    orphanPlaceholder: boolean;
+    comments: { id: string; threadId: string; startsThread: boolean }[];
+  };
+  /** One check fails and the others are still reported; every check fails and the call is `unavailable` (FR-013, FR-014). */
+  approvals?: { partial: { numbers: number[]; approved: number[] }; allFail: { numbers: number[] } };
+  /** `cloneLocations` for `cloneLocation.input` (FR-021), remotes that are recognised, and remotes that are not. */
+  clones?: { locations: string[]; recognised: { remote: string; id: string }[]; unrecognised: string[] };
 };
 
 export type SourceControlTarget = {
@@ -178,7 +209,8 @@ export function runSourceControlContract(target: SourceControlTarget): void {
 
   test(`VO-022 ${id}: cloneLocations gives the normalised host and path of the repository`, async () => {
     const { sc } = await target.create();
-    assert.deepEqual(sc.cloneLocations(expected.cloneLocation.input), [expected.cloneLocation.location]);
+    const locations = expected.clones?.locations ?? [expected.cloneLocation.location];
+    assert.deepEqual([...sc.cloneLocations(expected.cloneLocation.input)].sort(), [...locations].sort());
   });
 
   // Contracts 6.1 (XI.2): `repositoryForRemote` is the inverse of `cloneLocations`, pure, and matches
@@ -267,6 +299,100 @@ export function runSourceControlContract(target: SourceControlTarget): void {
     });
     for (const request of harness.requests) assert.equal(request.method, 'GET', 'the transport saw only reads');
   });
+
+  const authors = expected.authors;
+  if (authors !== undefined) {
+    // VO-001 (FR-001): author handles are in the form of the signed-in user's handle, never a name or number.
+    test(`VO-001 ${id}: the pull request author carries a handle in the form of CurrentUser.handle`, async () => {
+      const harness = await target.create();
+      const pr = await harness.sc.getPullRequest(repo, expected.pull.number);
+      assert.equal(pr.authorHandle, authors.pullAuthorHandle);
+      for (const row of await harness.sc.listOpenPullRequests(repo)) assert.equal(typeof row.authorHandle, 'string', `#${row.number} has an authorHandle`);
+      onlyAuthorisedGets(target, harness);
+    });
+
+    // VO-011 (FR-029): the review-action data has a signed-in user who is not the author.
+    test(`VO-011 ${id}: the signed-in handle differs from the author handle of the other pull request`, async () => {
+      const harness = await target.create();
+      const user = await harness.sc.currentUser();
+      const pr = await harness.sc.getPullRequest(repo, authors.otherAuthorPull.number);
+      assert.equal(pr.authorHandle, authors.otherAuthorPull.authorHandle);
+      assert.notEqual(pr.authorHandle.toLowerCase(), user.handle.toLowerCase());
+      onlyAuthorisedGets(target, harness);
+    });
+  }
+
+  const threads = expected.threads;
+  if (threads !== undefined) {
+    test(`VO-001 VO-012 ${id}: every comment carries an author handle and the thread of the first comment`, async () => {
+      const harness = await target.create('comment-threads');
+      const comments = await harness.sc.listComments(repo, threads.number);
+      assert.deepEqual(
+        comments.map((c) => ({ id: c.id, authorHandle: c.author.handle, threadId: c.threadId, startsThread: c.startsThread })).sort((a, b) => a.id.localeCompare(b.id)),
+        [...threads.comments].sort((a, b) => a.id.localeCompare(b.id)),
+      );
+      const starters = new Map<string, number>();
+      for (const c of comments) if (c.startsThread) starters.set(c.threadId, (starters.get(c.threadId) ?? 0) + 1);
+      for (const [thread, count] of starters) assert.equal(count, 1, `thread ${thread} has one starting comment`);
+      onlyAuthorisedGets(target, harness);
+    });
+  }
+
+  const orphans = expected.orphans;
+  if (orphans !== undefined) {
+    test(`VO-013 ${id}: replies of a deleted first comment keep one thread (orphanPlaceholder ${orphans.orphanPlaceholder})`, async () => {
+      const harness = await target.create('orphaned-threads');
+      const comments = await harness.sc.listComments(repo, orphans.number);
+      assert.deepEqual(
+        comments.map((c) => ({ id: c.id, threadId: c.threadId, startsThread: c.startsThread })).sort((a, b) => a.id.localeCompare(b.id)),
+        [...orphans.comments].sort((a, b) => a.id.localeCompare(b.id)),
+      );
+      const byThread = new Map<string, boolean[]>();
+      for (const c of comments) byThread.set(c.threadId, [...(byThread.get(c.threadId) ?? []), c.startsThread]);
+      for (const [thread, starts] of byThread) {
+        const startCount = starts.filter(Boolean).length;
+        assert.equal(startCount, orphans.orphanPlaceholder ? 0 : 1, `thread ${thread} starting comments`);
+      }
+      onlyAuthorisedGets(target, harness);
+    });
+  }
+
+  const approvals = expected.approvals;
+  if (approvals !== undefined) {
+    test(`VO-014 ${id}: approvedByMe reports the checks that succeeded when one check fails`, async () => {
+      const harness = await target.create('approvals-partial');
+      const approved = await harness.sc.approvedByMe(repo, approvals.partial.numbers);
+      assert.deepEqual([...approved].sort((a, b) => a - b), approvals.partial.approved);
+      onlyAuthorisedGets(target, harness);
+    });
+
+    test(`VO-014 ${id}: approvedByMe rejects with unavailable when every check fails`, async () => {
+      const { AdapterError } = await import('../../src/contracts/shared.ts');
+      const harness = await target.create('approvals-all-fail');
+      await assert.rejects(harness.sc.approvedByMe(repo, approvals.allFail.numbers), (error: unknown) => {
+        assert.ok(error instanceof AdapterError);
+        assert.equal(error.code, 'unavailable');
+        assert.equal(error.platform, id);
+        return true;
+      });
+    });
+  }
+
+  const clones = expected.clones;
+  if (clones !== undefined) {
+    // VO-015 (FR-021): every form a clone can take is recognised as its repository; no other host is claimed.
+    test(`VO-015 ${id}: cloneLocations lists every host form of the repository`, async () => {
+      const { sc } = await target.create();
+      assert.deepEqual([...sc.cloneLocations(expected.cloneLocation.input)].sort(), [...clones.locations].sort());
+    });
+
+    test(`VO-015 ${id}: remotes on this platform's hosts are recognised and an unrelated host with the same path is not`, async () => {
+      const harness = await target.create();
+      for (const { remote, id: repoId } of clones.recognised) assert.equal(harness.sc.repositoryForRemote(remote), repoId, `${remote} is recognised`);
+      for (const remote of clones.unrecognised) assert.equal(harness.sc.repositoryForRemote(remote), null, `${remote} is not claimed`);
+      assert.equal(harness.requests.length, 0, 'no network call');
+    });
+  }
 
   const finished = expected.finishedPulls;
   if (finished !== undefined) {

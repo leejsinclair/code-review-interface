@@ -18,8 +18,15 @@ const basic = (env: Env, accounts: readonly string[], secrets: readonly string[]
   return account !== undefined && secret !== undefined ? JSON.stringify({ account, secret, scheme: 'basic', scope: 'write' }) : null;
 };
 
+const bearer = (env: Env, names: readonly string[]): string | null => {
+  const secret = first(env, names);
+  return secret !== undefined ? JSON.stringify({ secret, scheme: 'bearer', scope: 'write' }) : null;
+};
+
 export function envCredential(platform: string, env: Env): string | null {
   if (platform === 'bitbucket-cloud') return basic(env, ['BITBUCKET_USERNAME', 'BITBUCKET_EMAIL'], ['BITBUCKET_API_TOKEN', 'BB_TOKEN_PR']);
   if (platform === 'jira-cloud') return basic(env, ['JIRA_EMAIL'], ['JIRA_API_TOKEN']);
+  if (platform === 'github') return bearer(env, ['GITHUB_TOKEN', 'GH_TOKEN']);
+  if (platform === 'gitlab') return bearer(env, ['GITLAB_TOKEN']);
   return null;
 }

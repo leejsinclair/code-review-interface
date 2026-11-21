@@ -1,0 +1,40 @@
+{
+  "request": {
+    "method": "GET",
+    "url": "https://api.bitbucket.org/2.0/repositories/acme/widgets/pullrequests/1"
+  },
+  "response": {
+    "status": 200,
+    "headers": {
+      "content-type": "application/json; charset=utf-8"
+    },
+    "body": {
+      "type": "pullrequest",
+      "id": 1,
+      "state": "OPEN",
+      "author": {
+        "type": "user",
+        "display_name": "Bob Reviewer",
+        "nickname": "bob-reviewer",
+        "uuid": "{1c2d3e4f-0000-4000-8000-00000000b0b2}",
+        "account_id": "712020:bb22c000-0000-4000-8000-000000000002"
+      },
+      "source": {
+        "commit": {
+          "type": "commit",
+          "hash": "a3f9c2e17b4d"
+        },
+        "repository": {
+          "type": "repository",
+          "full_name": "acme/widgets"
+        }
+      },
+      "participants": [],
+      "links": {
+        "self": {
+          "href": "https://api.bitbucket.org/2.0/repositories/acme/widgets/pullrequests/1"
+        }
+      }
+    }
+  }
+}

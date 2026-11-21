@@ -19,14 +19,18 @@ const stripComments = (text: string): string => text.replace(/\/\*[\s\S]*?\*\//g
 const files = sources(UI).map((s) => ({ ...s, code: stripComments(s.text) }));
 
 test('no HTML injection (SC-008)', () => {
-  for (const f of files) assert.doesNotMatch(f.code, /dangerouslySetInnerHTML|innerHTML|insertAdjacentHTML|outerHTML/, f.file);
+  for (const f of files) {
+    // FR-024: the Markdown preview is the one place that renders HTML, and only after sanitising (proved in test/ui/markdown-preview.ui.ts).
+    if (f.file === 'components/markdown-preview.tsx') continue;
+    assert.doesNotMatch(f.code, /dangerouslySetInnerHTML|innerHTML|insertAdjacentHTML|outerHTML/, f.file);
+  }
 });
 
 // The only strings allowed to say "approved": they report the signed-in reviewer's OWN recorded approval on
 // the platform (dashboard "Approved by you"), never a verdict from this tool about the PR (FR-016).
 // Feature 005 adds the reviewer's own decision text ("You approved on <commit>"), also labelled as theirs.
 // The dashboard filter "Hide pull requests I approved" is the same kind: it is about the reviewer's own approvals.
-const OWN_APPROVAL_STRINGS = new Set(["'Approved by you'", "'Approved'", "'You approved'", "'Hide pull requests I approved'"]);
+const OWN_APPROVAL_STRINGS = new Set(["'Approved by you'", "'Approved'", "'You approved'", "'Hide pull requests I approved'", "'Approved by you, waiting to merge'"]);
 
 test('no interface string says ready, safe or approved (SC-007)', () => {
   const word = /\b(ready|safe|approved)\b/i;

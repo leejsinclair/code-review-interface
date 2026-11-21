@@ -4,7 +4,7 @@
 // Code is rendered as text.
 
 import { useContext, useEffect, useMemo, useRef, useState } from 'preact/hooks';
-import type { ChangedFile, DiffLine, FileDiff, ReviewCommentItem, Scope, Side, SnapshotDetail } from '../../contracts/http.ts';
+import type { ChangedFile, DiffLine, FileDiff, Scope, Side, SnapshotDetail } from '../../contracts/http.ts';
 import { getFileDiff, getSession, getSnapshot } from '../api.ts';
 import { AsyncRegion } from '../components/async-region.tsx';
 import { Badge } from '../components/badge.tsx';
@@ -21,7 +21,7 @@ import { arrangeFiles, neighbours } from '../state/file-order.ts';
 import { fileScope } from '../state/review-scope.ts';
 import { useBand } from '../state/layout.ts';
 import { useFileView } from '../state/use-file-view.ts';
-import { useReviewComments, threadsOf } from '../state/use-review-comments.ts';
+import { useReviewComments, threadsOf, commentsOf, type CommentThreadView } from '../state/use-review-comments.ts';
 import { useReviewDecision } from '../state/use-review-decision.ts';
 import { buildRoute, codeHref, type DiffFocus } from '../state/routes.ts';
 import { ReviewContext } from '../state/review-context.ts';
@@ -206,9 +206,9 @@ export function DiffScreen(props: { sessionId: string; path: string; focus?: Dif
     : { prev: undefined, next: undefined };
   const { prev, next } = around;
   const skippedEntry = loaded?.files.find((f) => f.path === path && f.skipped !== undefined);
-  const threadsAt = new Map<string, ReviewCommentItem[][]>();
-  for (const thread of threadsOf(reviewComments.comments)) {
-    const a = thread[0]?.anchor;
+  const threadsAt = new Map<string, CommentThreadView[]>();
+  for (const thread of threadsOf(reviewComments.comments, decision.state?.capability ?? null)) {
+    const a = commentsOf(thread)[0]?.anchor;
     if (a === null || a === undefined || a.path !== path) continue;
     const key = `${a.side}:${a.endLine}`;
     threadsAt.set(key, [...(threadsAt.get(key) ?? []), thread]);
@@ -428,7 +428,7 @@ export function DiffScreen(props: { sessionId: string; path: string; focus?: Dif
                               <CommentThread
                                 sessionId={sessionId}
                                 expectedHead={head}
-                                comments={thread}
+                                thread={thread}
                                 {...(decision.state?.capability.reply.allowed === false ? { disabledReason: decision.state.capability.reply.reason ?? REVIEW_LABELS.outOfDate } : {})}
                                 onChanged={() => void reviewComments.reload()}
                               />
@@ -494,7 +494,7 @@ function DiffRow(props: { line: DiffLine; marks: ReadonlyMap<string, RiskMark>; 
 }
 
 /** A diff row followed by the comment threads that end on it (one row per thread, spanning the table). */
-function DiffRowWithThreads(props: Parameters<typeof DiffRow>[0] & { threads: ReadonlyMap<string, ReviewCommentItem[][]>; render: (thread: ReviewCommentItem[]) => preact.ComponentChild }) {
+function DiffRowWithThreads(props: Parameters<typeof DiffRow>[0] & { threads: ReadonlyMap<string, CommentThreadView[]>; render: (thread: CommentThreadView) => preact.ComponentChild }) {
   const { threads, render, ...row } = props;
   const keys = [row.line.newLine === undefined ? null : `head:${row.line.newLine}`, row.line.type === 'remove' && row.line.oldLine !== undefined ? `base:${row.line.oldLine}` : null];
   const here = keys.flatMap((k) => (k === null ? [] : (threads.get(k) ?? [])));
@@ -502,7 +502,7 @@ function DiffRowWithThreads(props: Parameters<typeof DiffRow>[0] & { threads: Re
     <>
       <DiffRow {...row} />
       {here.map((thread) => (
-        <tr class="comment-row" key={thread[0]?.id}>
+        <tr class="comment-row" key={thread.threadId}>
           <td colSpan={5}>{render(thread)}</td>
         </tr>
       ))}

@@ -1,0 +1,27 @@
+{
+  "request": {
+    "method": "POST",
+    "url": "https://api.bitbucket.org/2.0/repositories/acme/widgets/pullrequests/1/comments",
+    "bodyIncludes": "Looks good to me."
+  },
+  "response": {
+    "status": 403,
+    "headers": {
+      "content-type": "application/json; charset=utf-8"
+    },
+    "body": {
+      "type": "error",
+      "error": {
+        "message": "Your credentials lack one or more required privilege scopes.",
+        "detail": {
+          "required": [
+            "pullrequest:write"
+          ],
+          "granted": [
+            "pullrequest"
+          ]
+        }
+      }
+    }
+  }
+}

@@ -176,7 +176,7 @@ export function HomeScreen() {
       (config) => setProjectKeys(config?.issueTracker.projectKeys ?? []),
       () => undefined,
     );
-    // Display names ("Bitbucket") for the external links; without them the platform id is shown.
+    // Display names (e.g. "Acme Git") for the external links; without them the platform id is shown.
     getPlatforms().then(
       (p) => setPlatformNames(Object.fromEntries(p.descriptors.map((d) => [d.id, d.displayName]))),
       () => undefined,

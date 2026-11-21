@@ -27,13 +27,14 @@ const WAIT_MS = 30_000;
 const POLL_MS = 250;
 /** Cleanup waits: under parallel runs GitLab's background removal can take minutes. */
 const REMOVAL_MS = 180_000;
-const REPORTER = 20;
+/** The reviewer is a Developer (T066): enough to comment, approve and withdraw, never to merge or administer. */
+const DEVELOPER = 30;
 const PARENT_GROUP = 'prwb-it';
 
 type Json = Record<string, any>; // eslint-disable-line @typescript-eslint/no-explicit-any
 
 /** Polls `probe` every 250 ms until it returns a value, failing after ~30 s with `what` (FR-026). */
-async function until<T>(probe: () => Promise<T | undefined | null | false>, what: string, timeoutMs = WAIT_MS): Promise<T> {
+export async function until<T>(probe: () => Promise<T | undefined | null | false>, what: string, timeoutMs = WAIT_MS): Promise<T> {
   const deadline = Date.now() + timeoutMs;
   for (;;) {
     const value = await probe();
@@ -123,6 +124,58 @@ export class GitlabAdmin {
     await until(async () => (await this.call('GET', `/users/${id}`)) === null, `user ${id} to be removed`, REMOVAL_MS);
   }
 
+  /** Finds an item by its fixed key, or creates it when missing; a found item is never changed (008 R3). */
+  async ensure(find: () => Promise<Json | null | undefined>, create: () => Promise<Json>): Promise<{ status: 'created' | 'exists'; item: Json }> {
+    const found = await find();
+    return found ? { status: 'exists', item: found } : { status: 'created', item: await create() };
+  }
+
+  findGroup(fullPath: string): Promise<Json | null> {
+    return this.call('GET', `/groups/${encodeURIComponent(fullPath)}`);
+  }
+
+  findProject(fullPath: string): Promise<Json | null> {
+    return this.call('GET', `/projects/${encodeURIComponent(fullPath)}`);
+  }
+
+  async findUser(username: string): Promise<Json | undefined> {
+    return (await this.list(`/users?username=${encodeURIComponent(username)}`))[0];
+  }
+
+  async findIssue(projectId: number, title: string): Promise<Json | undefined> {
+    return (await this.list(`/projects/${projectId}/issues?in=title&search=${encodeURIComponent(title)}`)).find((i) => i.title === title);
+  }
+
+  async findMergeRequest(projectId: number, sourceBranch: string): Promise<Json | undefined> {
+    return (await this.list(`/projects/${projectId}/merge_requests?state=all&source_branch=${encodeURIComponent(sourceBranch)}`))[0];
+  }
+
+  /** The discussion holding a note with exactly `body`, with that note. */
+  async findNote(projectId: number, iid: number, body: string): Promise<{ discussionId: string; note: Json } | undefined> {
+    for (const d of await this.list(`/projects/${projectId}/merge_requests/${iid}/discussions`)) {
+      const note = (d.notes as Json[]).find((n) => n.body === body);
+      if (note !== undefined) return { discussionId: d.id, note };
+    }
+    return undefined;
+  }
+
+  async approvedBy(projectId: number, iid: number, username: string): Promise<boolean> {
+    const state = await this.call('GET', `/projects/${projectId}/merge_requests/${iid}/approvals`);
+    return ((state?.approved_by ?? []) as Json[]).some((a) => a.user?.username === username);
+  }
+
+  /** Opens a discussion on new-side `line` of `path`, positioned with the merge request's `diff_refs`. */
+  async openDiffDiscussion(projectId: number, iid: number, input: { path: string; line: number; body: string }): Promise<Json> {
+    const refs = await until(async () => {
+      const mr = await this.call('GET', `/projects/${projectId}/merge_requests/${iid}`);
+      return mr?.diff_refs?.head_sha ? (mr.diff_refs as Json) : null;
+    }, `diff refs of !${iid}`);
+    return this.call('POST', `/projects/${projectId}/merge_requests/${iid}/discussions`, {
+      body: input.body,
+      position: { position_type: 'text', base_sha: refs.base_sha, start_sha: refs.start_sha, head_sha: refs.head_sha, new_path: input.path, old_path: input.path, new_line: input.line },
+    });
+  }
+
   /** Every `it-*` project, group and user on the instance. */
   async listRunItems(): Promise<{ projects: Json[]; groups: Json[]; users: Json[] }> {
     const isRun = (name: string): boolean => name.startsWith('it-');
@@ -133,7 +186,7 @@ export class GitlabAdmin {
   }
 }
 
-type RunState = SeededRun & { userId: number; groupId: number };
+type RunState = SeededRun & { userId: number; groupId: number; authorId: number; author: { username: string; token: string } };
 
 export class GitlabSeeder implements PlatformSeeder {
   readonly #api: GitlabAdmin;
@@ -168,6 +221,16 @@ export class GitlabSeeder implements PlatformSeeder {
       skip_confirmation: true,
       admin: false,
     });
+    // The second account that authors the merge request under review (T066); owned by the run like the reviewer.
+    const authorName = `${name}-author`;
+    const author = await this.#api.call('POST', '/users', {
+      username: authorName,
+      name: authorName,
+      email: `${authorName}@prwb.invalid`,
+      password: `${randomBytes(18).toString('base64url')}Aa1!`,
+      skip_confirmation: true,
+      admin: false,
+    });
     const parent =
       (await this.#api.call('GET', `/groups/${PARENT_GROUP}`)) ??
       (await this.#api.call('POST', '/groups', { name: PARENT_GROUP, path: PARENT_GROUP, visibility: 'private' }));
@@ -180,8 +243,11 @@ export class GitlabSeeder implements PlatformSeeder {
       startedAt: new Date().toISOString(),
       userId: user.id,
       groupId: group.id,
+      authorId: author.id,
+      author: { username: authorName, token: '' },
     };
     this.#run.reviewer.token = await this.createReviewerToken();
+    this.#run.author.token = await this.#createToken(author.id, ['api']);
     return this.#run;
   }
 
@@ -203,6 +269,7 @@ export class GitlabSeeder implements PlatformSeeder {
       });
     }
     await attempt(`group ${PARENT_GROUP}/${state.name}`, () => this.#api.deleteGroup(state.groupId));
+    await attempt(`user ${state.author.username}`, () => this.#api.deleteUser(state.authorId));
     await attempt(`user ${state.name}`, () => this.#api.deleteUser(state.userId));
     if (this.#workDir !== null) await rm(this.#workDir, { recursive: true, force: true });
     const left = await this.#api.listRunItems().catch(() => null);
@@ -229,7 +296,7 @@ export class GitlabSeeder implements PlatformSeeder {
       visibility: 'private',
       default_branch: 'main',
     });
-    if (kind !== 'hidden') await this.#api.call('POST', `/projects/${p.id}/members`, { user_id: state.userId, access_level: REPORTER });
+    if (kind !== 'hidden') await this.#addMembers(p.id);
     const repo = toRepo(p, kind);
     state.repositories.push(repo);
     // The first commit is pushed, not `initialize_with_readme`: with several projects created at once,
@@ -242,6 +309,19 @@ export class GitlabSeeder implements PlatformSeeder {
     this.#owned(repo.id.split('/').pop() ?? '');
     await this.#api.deleteProject(repo.platformId);
     this.#active.repositories = this.#active.repositories.filter((r) => r.platformId !== repo.platformId);
+  }
+
+  /** The reviewer and the author both work in a visible project as Developers. */
+  async #addMembers(projectId: number): Promise<void> {
+    const state = this.#active;
+    for (const user_id of [state.userId, state.authorId]) {
+      await this.#api.call('POST', `/projects/${projectId}/members`, { user_id, access_level: DEVELOPER });
+    }
+  }
+
+  /** The run's second account, which authors the merge request under review. */
+  get author(): { username: string; token: string } {
+    return this.#active.author;
   }
 
   async renameRepository(repo: SeededRepo, newName: string): Promise<SeededRepo> {
@@ -260,7 +340,7 @@ export class GitlabSeeder implements PlatformSeeder {
     this.#owned(path);
     const p = await this.#api.call('POST', `/projects/${repo.platformId}/fork`, { namespace_id: state.groupId, name: path, path });
     await until(async () => (await this.#api.call('GET', `/projects/${p.id}`))?.import_status === 'finished' || false, `fork ${path} to finish`);
-    await this.#api.call('POST', `/projects/${p.id}/members`, { user_id: state.userId, access_level: REPORTER });
+    await this.#addMembers(p.id);
     const fork = toRepo(await this.#api.call('GET', `/projects/${p.id}`), 'fork');
     state.repositories.push(fork);
     return fork;
@@ -303,7 +383,7 @@ export class GitlabSeeder implements PlatformSeeder {
 
   async openPullRequest(
     repo: SeededRepo,
-    input: { source: string; target: string; title: string; description?: string; sourceRepo?: SeededRepo },
+    input: { source: string; target: string; title: string; description?: string; sourceRepo?: SeededRepo; asAuthor?: boolean },
   ): Promise<SeededPull> {
     const from = input.sourceRepo ?? repo;
     const body = {
@@ -317,7 +397,7 @@ export class GitlabSeeder implements PlatformSeeder {
     // "source_branch does not exist" for a moment; retry that refusal only, within the bound.
     const mr = await until(
       () =>
-        this.#api.call('POST', `/projects/${from.platformId}/merge_requests`, body).catch((error: Error) => {
+        (input.asAuthor === true ? this.#asAuthor('POST', `/projects/${from.platformId}/merge_requests`, body) : this.#api.call('POST', `/projects/${from.platformId}/merge_requests`, body)).catch((error: Error) => {
           if (/ failed: 400 .*does not exist/.test(error.message)) return null;
           throw error;
         }),
@@ -368,15 +448,36 @@ export class GitlabSeeder implements PlatformSeeder {
   }
 
   async createReviewerToken(): Promise<string> {
+    return this.#createToken(this.#active.userId, ['read_api', 'read_repository']);
+  }
+
+  /** The reviewer's `api` token (T066), for the writer suites; the read-only token stays for the read suites. */
+  async createReviewerWriteToken(): Promise<string> {
+    return this.#createToken(this.#active.userId, ['api']);
+  }
+
+  async #createToken(userId: number, scopes: string[]): Promise<string> {
     const state = this.#active;
     const tomorrow = new Date(Date.now() + 2 * 86_400_000).toISOString().slice(0, 10);
-    const pat = await this.#api.call('POST', `/users/${state.userId}/personal_access_tokens`, {
+    const pat = await this.#api.call('POST', `/users/${userId}/personal_access_tokens`, {
       name: `${state.name}-${this.#tokenIds.size + 1}`,
-      scopes: ['read_api', 'read_repository'],
+      scopes,
       expires_at: tomorrow,
     });
     this.#tokenIds.set(pat.token, pat.id);
     return pat.token as string;
+  }
+
+  /** One call as the run's author account (its own `api` token, never the root token). */
+  async #asAuthor(method: string, path: string, body: Json): Promise<any> { // eslint-disable-line @typescript-eslint/no-explicit-any
+    const res = await fetch(`${this.#api.baseUrl}/api/v4${path}`, {
+      method,
+      headers: { 'private-token': this.#active.author.token, 'content-type': 'application/json' },
+      body: JSON.stringify(body),
+    });
+    const text = await res.text();
+    if (!res.ok) throw new Error(`GitLab ${method} ${path.split('?')[0]} failed: ${res.status} ${text.slice(0, 300)}`);
+    return JSON.parse(text);
   }
 
   async revokeReviewerToken(token: string): Promise<void> {

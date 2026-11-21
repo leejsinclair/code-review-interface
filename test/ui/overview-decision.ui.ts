@@ -124,3 +124,36 @@ test('a merged pull request disables every action with a reason', async (t) => {
   assert.equal(await page.getByTestId('decision-approve').isDisabled(), true);
   assert.deepEqual(platform.writes, []);
 });
+
+// Feature 007, US5 (FR-010). The platform made the decision but not the message: say so, keep the text.
+async function withWarning(page: import('playwright').Page): Promise<void> {
+  await page.route('**/review-actions', async (route) => {
+    if (route.request().method() !== 'POST') return route.fallback();
+    const response = await route.fetch();
+    const json = (await response.json()) as Record<string, unknown>;
+    json['warning'] = { code: 'message_not_posted', message: 'The platform refused the message.' };
+    return route.fulfill({ response, json });
+  });
+}
+
+test('a decision whose message was not posted shows a warning, updates the state and keeps the message text', async (t) => {
+  const { b, url } = await setup(t);
+  const page = await b.openPage(url);
+  await page.getByTestId('decision-panel').waitFor();
+  await withWarning(page);
+  await page.getByTestId('decision-message').fill('Looks fine.');
+  await page.getByTestId('decision-approve').click();
+  await page.getByTestId('decision-message-not-posted').waitFor();
+  assert.match((await page.getByTestId('decision-message-not-posted').textContent()) ?? '', /your message was not posted/i);
+  assert.match((await page.getByTestId('decision-state').textContent()) ?? '', /You approved/);
+  assert.equal(await page.getByTestId('decision-message').inputValue(), 'Looks fine.');
+});
+
+test('a decision with no message shows no warning', async (t) => {
+  const { b, url } = await setup(t);
+  const page = await b.openPage(url);
+  await page.getByTestId('decision-panel').waitFor();
+  await page.getByTestId('decision-approve').click();
+  await page.waitForFunction(() => /You approved/.test(document.querySelector('[data-testid="decision-state"]')?.textContent ?? ''));
+  assert.equal(await page.getByTestId('decision-message-not-posted').count(), 0);
+});

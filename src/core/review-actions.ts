@@ -107,8 +107,14 @@ function commentableLines(diff: string, path: string, side: Anchor['side']): Set
   return lines;
 }
 
-/** The platform may identify an author by a numeric id or a login; the signed-in handle is the login. */
-const isAuthor = (c: Comment, handle: string): boolean => c.author.id === handle || c.author.name === handle;
+/** True only when both handles are non-empty and equal ignoring case; an empty handle matches no one. */
+export function sameHandle(a: string | null | undefined, b: string | null | undefined): boolean {
+  if (a === null || a === undefined || b === null || b === undefined || a === '' || b === '') return false;
+  return a.toLowerCase() === b.toLowerCase();
+}
+
+/** Ownership is decided on the handle (login), never on a platform id or display name. */
+const isAuthor = (c: Comment, handle: string): boolean => sameHandle(c.author.handle, handle);
 
 export function createReviewActions(deps: ReviewActionsDeps): ReviewActions {
   const { sc, writer, store, repo, pr, sessionId } = deps;
@@ -228,7 +234,8 @@ export function createReviewActions(deps: ReviewActionsDeps): ReviewActions {
     return found === undefined ? null : { kind: 'comment', commentId: found.id, threadId: found.threadId, createdAt: found.createdAt, commit: expectedHead };
   }
 
-  function resultOf(plan: Plan, a: ReviewActionBody['action'], out: WriteOutcome | 'done' | void, me: string, expectedHead: string, requestId: string): ReviewActionResult {
+  function resultOf(plan: Plan, a: ReviewActionBody['action'], out: WriteOutcome | 'done' | void, user: { handle: string; displayName: string }, expectedHead: string, requestId: string): ReviewActionResult {
+    const me = user.handle;
     const record = { id: requestId, postedAt: now().toISOString(), headSha: expectedHead };
     if (out === undefined || out === 'done') return { record };
     if (out.kind === 'decision') {
@@ -248,7 +255,8 @@ export function createReviewActions(deps: ReviewActionsDeps): ReviewActions {
     const comment: Comment = {
       id: out.commentId,
       threadId: out.threadId ?? out.commentId,
-      author: { id: me, name: me },
+      startsThread: out.threadId === undefined || out.threadId === out.commentId,
+      author: { id: me, name: user.displayName, handle: me },
       body: plan.text ?? '',
       createdAt: out.createdAt,
       editedAt: plan.record === 'edit_comment' ? out.createdAt : null,
@@ -274,9 +282,9 @@ export function createReviewActions(deps: ReviewActionsDeps): ReviewActions {
       if (info.headCommit !== expectedHead) {
         throw new ReviewActionError('conflict', 'The pull request has new commits since you opened it. Reload to review the latest head. Nothing was posted.');
       }
-      const me = (await sc.currentUser()).handle;
-      console.error(`[review-action] ${action.kind} pr=${pr} state=${info.state} author=${info.author} me=${me} head=${info.headCommit.slice(0, 12)}`);
-      if (info.author === me) throw new ReviewActionError('forbidden', 'You are the author of this pull request, so you cannot review it.');
+      const user = await sc.currentUser();
+      const me = user.handle;
+      if (sameHandle(info.authorHandle, me)) throw new ReviewActionError('forbidden', 'You are the author of this pull request, so you cannot review it.');
       const capability = await sc.reviewCapability(repo, pr);
       const allowed = capability[plan.cap];
       console.error(`[review-action] capability ${plan.cap}: ${JSON.stringify(allowed)}`);
@@ -310,7 +318,18 @@ export function createReviewActions(deps: ReviewActionsDeps): ReviewActions {
           ? (plan.destination as { comment_id?: string }).comment_id ?? null
           : outcome.kind === 'comment' ? outcome.commentId : (outcome.platformId ?? null);
       insert({ ...base, state: 'posted', platformId });
-      const result = resultOf(plan, action, outcome, me, expectedHead, requestId);
+      let warning: ReviewActionResult['warning'];
+      if (outcome !== undefined && outcome !== 'done' && outcome.kind === 'decision' && outcome.message !== undefined) {
+        if (outcome.message.posted) {
+          const messageBase = { ...base, intentId: `${requestId}:message`, action: 'comment' as const, destination: { scope: 'pr' } };
+          insert({ ...messageBase, state: 'pending', platformId: null });
+          insert({ ...messageBase, state: 'posted', platformId: outcome.message.commentId });
+        } else {
+          warning = { code: 'message_not_posted', message: outcome.message.reason };
+        }
+      }
+      const result = resultOf(plan, action, outcome, user, expectedHead, requestId);
+      if (warning !== undefined) result.warning = warning;
       results.set(requestId, result);
       return result;
     } catch (err) {
@@ -355,7 +374,7 @@ export function createReviewActions(deps: ReviewActionsDeps): ReviewActions {
     ]);
     let reason: string | undefined;
     if (info.state !== 'open') reason = `This pull request is not open (${info.state}).`;
-    else if (info.author === me.handle) reason = 'You are the author of this pull request, so you cannot review it.';
+    else if (sameHandle(info.authorHandle, me.handle)) reason = 'You are the author of this pull request, so you cannot review it.';
     const canReview = reason === undefined ? { allowed: true } : { allowed: false, reason };
     const capability: ReviewCapability =
       reason === undefined

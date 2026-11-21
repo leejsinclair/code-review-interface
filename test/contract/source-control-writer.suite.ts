@@ -12,7 +12,7 @@
 
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
-import type { AdapterErrorCode, PlatformId } from '../../src/contracts/shared.ts';
+import type { AdapterErrorCode, PlatformId, ReadOnlyFetch } from '../../src/contracts/shared.ts';
 import { AdapterError } from '../../src/contracts/shared.ts';
 import type { RepoRef, SourceControlProvider } from '../../src/contracts/source-control.ts';
 import type { Anchor, SourceControlWriter, WriteOutcome } from '../../src/contracts/source-control-writer.ts';
@@ -28,8 +28,35 @@ export type ObservedWrite = { method: string; host: string; path: string; header
  * - `no-request-changes`: the platform version has no request-changes (GitLab, version probe); only
  *   `reviewCapability` and `requestChanges` are exercised under it, and only when
  *   `expected.requestChangesGap` is given.
+ *
+ * Spec 007 scenarios, each backed by a fixture variant folder `<fixtures>/variants/<scenario>/` that is
+ * served before the base fixtures (authored by T028, T032 and the Bitbucket fixture task; until then the
+ * scenario fails with "variant fixtures missing"):
+ * - `moved-head`: the pull request has a newer head than `lineAnchor.commit`; on GitLab an OLDER diff
+ *   version still matches the anchor commit but the newest does not (VO-018);
+ * - `abbreviated-head`: the pull request list row shows an abbreviated head; the pull request read gives
+ *   the full commit id (on Bitbucket, by abbreviated source hash plus a commit lookup) (VO-020);
+ * - `message-fails`: the decision write succeeds and the separate message write answers a platform
+ *   refusal (VO-022); only used where `expected.messageWrite` is given;
+ * - `no-decision`: the signed-in account has no decision to withdraw (VO-024);
+ * - `withdrawn-once`: a decision exists on the first read and none after the first withdraw (VO-024);
+ * - `whole-pr-comment`: `expected.wholePullRequestReply.threadId` names a comment on the whole pull
+ *   request, the kind that platform may not allow replies to (VO-025).
  */
-export type WriterScenario = 'default' | 'forbidden' | 'conflict' | 'rejected' | 'rate_limited' | 'unavailable' | 'no-request-changes';
+export type WriterScenario =
+  | 'default'
+  | 'forbidden'
+  | 'conflict'
+  | 'rejected'
+  | 'rate_limited'
+  | 'unavailable'
+  | 'no-request-changes'
+  | 'moved-head'
+  | 'abbreviated-head'
+  | 'message-fails'
+  | 'no-decision'
+  | 'withdrawn-once'
+  | 'whole-pr-comment';
 
 export type WriterHarness = {
   writer: SourceControlWriter;
@@ -37,6 +64,8 @@ export type WriterHarness = {
   sc: SourceControlProvider;
   /** Every request the adapter made, in order (reads included). */
   readonly requests: readonly ObservedWrite[];
+  /** The read-only layer the read side uses, over the same transport (for the one-read-per-request check). */
+  read: ReadOnlyFetch;
   /** Throws when the transport saw a request it had no recording for. */
   assertComplete?(): void;
 };
@@ -72,6 +101,26 @@ export type WriterExpectations = {
   refusalMessage: string;
   /** Present only for a platform whose request-changes can be missing; `reason` is a substring. */
   requestChangesGap?: { reason: string };
+  /**
+   * Spec 007. Reads the position out of a line-comment request the adapter sent, in the neutral shape,
+   * so single-line and range anchors are checked on exactly the lines and side chosen (FR-008).
+   */
+  anchorOnWire: (write: ObservedWrite) => { path: string; side: 'base' | 'head'; startLine: number; endLine: number };
+  /** True for the write that records a decision (approve or request changes). */
+  decisionWrite: (write: ObservedWrite) => boolean;
+  /**
+   * True for a write that carries a decision's message on its own. Absent where the platform sends the
+   * message inside the decision itself (GitHub): then one write is made and the outcome has no `message`.
+   */
+  messageWrite?: (write: ObservedWrite) => boolean;
+  /** URL path of the pull request list; a writer must never read it (FR-019). */
+  listPath: string;
+  /** URL path the head check reads: the pull request, or on GitLab its diff versions. */
+  headReadPath: string;
+  /** The `Accept` the platform's own reads send, when it is not plain JSON (it is part of the read memo's key). */
+  headReadAccept?: string;
+  /** A reply to a comment on the whole pull request (FR-015). `quoted` is the original text, where the platform has no reply for it. */
+  wholePullRequestReply: { threadId: string; commentId: string; quoted?: string };
   /** Hosts a write may go to. */
   host: string;
   /** When given, the `authorization` header every request must carry. */
@@ -302,4 +351,158 @@ export function runWriterContract(target: WriterTarget): void {
       }
     });
   }
+
+  // ---- Spec 007 (T011) ----
+
+  test(`feature 007 ${id}: edit and delete each reach exactly that comment, and a platform refusal is forbidden`, async () => {
+    const h = await target.create('forbidden');
+    await assert.rejects(h.writer.editComment(repo, pr, e.edit.commentId, e.bodies.edit), (err: unknown) => err instanceof AdapterError && err.code === 'forbidden');
+    await assert.rejects(h.writer.deleteComment(repo, pr, e.deleteCommentId), (err: unknown) => err instanceof AdapterError && err.code === 'forbidden');
+    const writes = writesOf(h);
+    assert.equal(writes.length, 2, 'one write each, nothing retried or widened');
+    assert.ok(writes[0]!.path.includes(e.edit.commentId));
+    assert.ok(writes[1]!.path.includes(e.deleteCommentId));
+  });
+
+  for (const [label, anchor, text] of [
+    ['a single line', e.lineAnchor, e.bodies.line],
+    ['a line range', e.rangeAnchor, e.bodies.range],
+  ] as const) {
+    test(`feature 007 ${id}: ${label} lands on exactly the chosen lines and side`, async () => {
+      const h = await target.create();
+      await h.writer.postLineComment(repo, pr, anchor, text);
+      const [w] = writesOf(h);
+      assert.deepEqual(e.anchorOnWire(w!), { path: anchor.path, side: anchor.side, startLine: anchor.startLine, endLine: anchor.endLine });
+    });
+  }
+
+  test(`feature 007 ${id}: a line comment after the pull request moved to a newer commit is a conflict and posts nothing`, async () => {
+    const h = await target.create('moved-head');
+    for (const anchor of [e.lineAnchor, e.rangeAnchor]) {
+      await assert.rejects(h.writer.postLineComment(repo, pr, anchor, e.bodies.line), (err: unknown) => {
+        assert.ok(err instanceof AdapterError);
+        assert.equal(err.code, 'conflict');
+        assert.equal(err.platform, id);
+        return true;
+      });
+    }
+    assert.deepEqual(writesOf(h), [], 'nothing is posted, including where an older diff version still matches');
+    checkTransport(target, h);
+  });
+
+  test(`feature 007 ${id}: an abbreviated head on the pull request list never causes a refusal`, async () => {
+    const h = await target.create('abbreviated-head');
+    assertComment(await h.writer.postLineComment(repo, pr, e.lineAnchor, e.bodies.line), e.lineComment, e.lineAnchor.commit);
+    assert.equal(writesOf(h).length, 1);
+    assert.ok(!h.requests.some((r) => r.path === e.listPath), 'the head check reads the pull request itself, not the list');
+    checkTransport(target, h);
+  });
+
+  test(`feature 007 ${id}: a decision with a message is written before the message`, async () => {
+    const h = await target.create();
+    const outcome = await h.writer.approve(repo, pr, e.head, e.bodies.approve);
+    assert.equal(outcome.kind, 'decision');
+    const writes = writesOf(h);
+    if (e.messageWrite === undefined) {
+      assert.equal(writes.length, 1, 'the message travels inside the decision');
+      assert.ok(writes[0]!.body.includes(e.bodies.approve));
+      assert.equal(outcome.kind === 'decision' ? outcome.message : undefined, undefined, 'no separate message result');
+    } else {
+      const decisionAt = writes.findIndex(e.decisionWrite);
+      const messageAt = writes.findIndex(e.messageWrite);
+      assert.ok(decisionAt >= 0 && messageAt >= 0, 'both writes are made');
+      assert.ok(decisionAt < messageAt, 'decision first, then message');
+      assert.ok(writes[messageAt]!.body.includes(e.bodies.approve));
+      assert.equal(outcome.kind === 'decision' && outcome.message?.posted, true);
+      assert.ok(outcome.kind === 'decision' && outcome.message?.posted === true && typeof outcome.message.commentId === 'string' && outcome.message.commentId.length > 0, 'the message comment id is reported');
+    }
+    checkTransport(target, h);
+  });
+
+  if (e.messageWrite !== undefined) {
+    const isMessage = e.messageWrite;
+    test(`feature 007 ${id}: a message that fails to post leaves the decision made and is reported, not thrown`, async () => {
+      const h = await target.create('message-fails');
+      const outcome = await h.writer.approve(repo, pr, e.head, e.bodies.approve);
+      assert.equal(outcome.kind, 'decision');
+      if (outcome.kind !== 'decision') return;
+      assert.equal(outcome.decision, 'approved');
+      assert.equal(outcome.message?.posted, false);
+      assert.ok(outcome.message !== undefined && !('commentId' in outcome.message));
+      const reason = (outcome.message as { reason?: unknown } | undefined)?.reason;
+      assert.ok(typeof reason === 'string' && reason.length > 0, 'the unposted message carries its reason');
+      const writes = writesOf(h);
+      assert.ok(writes.findIndex(e.decisionWrite) < writes.findIndex(isMessage), 'the decision was written first');
+    });
+
+    test(`feature 007 ${id}: a decision that fails sends no message`, async () => {
+      const h = await target.create('forbidden');
+      await assert.rejects(h.writer.approve(repo, pr, e.head, e.bodies.approve), (err: unknown) => err instanceof AdapterError && err.code === 'forbidden');
+      assert.equal(writesOf(h).filter(isMessage).length, 0);
+    });
+  } else {
+    test(`feature 007 ${id}: a decision that fails sends one refused write and nothing else`, async () => {
+      const h = await target.create('forbidden');
+      await assert.rejects(h.writer.approve(repo, pr, e.head, e.bodies.approve), (err: unknown) => err instanceof AdapterError && err.code === 'forbidden');
+      assert.equal(writesOf(h).length, 1);
+    });
+  }
+
+  test(`feature 007 ${id}: a decision with an empty message sends no message and reports none`, async () => {
+    const h = await target.create();
+    const outcome = await h.writer.approve(repo, pr, e.head, '');
+    assert.equal(outcome.kind, 'decision');
+    assert.equal(outcome.kind === 'decision' ? outcome.message : 'n/a', undefined, 'no message result');
+    const writes = writesOf(h);
+    if (e.messageWrite !== undefined) assert.equal(writes.filter(e.messageWrite).length, 0, 'no message write');
+    else assert.ok(writes.every((w) => !w.body.includes('"body"')), 'the decision carries no body');
+    checkTransport(target, h);
+  });
+
+  test(`feature 007 ${id}: withdraw with no decision is a conflict and sends no write`, async () => {
+    const h = await target.create('no-decision');
+    await assert.rejects(h.writer.withdrawDecision(repo, pr), (err: unknown) => err instanceof AdapterError && err.code === 'conflict' && err.platform === id);
+    assert.deepEqual(writesOf(h), []);
+    checkTransport(target, h);
+  });
+
+  test(`feature 007 ${id}: withdraw twice in a row, the second is a conflict with no further write`, async () => {
+    const h = await target.create('withdrawn-once');
+    const first = await h.writer.withdrawDecision(repo, pr);
+    assert.equal(first.kind === 'decision' && first.decision, 'withdrawn');
+    const after = writesOf(h).length;
+    assert.ok(after >= 1);
+    await assert.rejects(h.writer.withdrawDecision(repo, pr), (err: unknown) => err instanceof AdapterError && err.code === 'conflict');
+    assert.equal(writesOf(h).length, after, 'the second call writes nothing');
+    checkTransport(target, h);
+  });
+
+  test(`feature 007 ${id}: a reply to a whole-pull-request comment is posted, quoting the original where the platform has no reply`, async () => {
+    const h = await target.create('whole-pr-comment');
+    const w = e.wholePullRequestReply;
+    const outcome = await h.writer.replyToThread(repo, pr, w.threadId, e.bodies.reply);
+    assert.equal(outcome.kind, 'comment');
+    if (outcome.kind === 'comment') assert.equal(outcome.commentId, w.commentId);
+    const posts = writesOf(h).filter((r) => r.method === 'POST');
+    assert.equal(posts.length, 1, 'one comment is posted');
+    assert.ok(posts[0]!.body.includes(e.bodies.reply));
+    if (w.quoted !== undefined) {
+      const quote = w.quoted.split('\n').map((line) => `> ${line}`).join('\n');
+      assert.ok(posts[0]!.body.includes(JSON.stringify(quote).slice(1, -1)), 'the original is quoted with "> " on each line');
+      assert.ok(posts[0]!.body.indexOf(JSON.stringify(quote).slice(1, -1)) < posts[0]!.body.indexOf(e.bodies.reply), 'quote first, then the reply');
+    }
+    checkTransport(target, h);
+  });
+
+  test(`feature 007 ${id}: every read the writer needs goes through the read layer (one network read inside a request scope)`, async () => {
+    const h = await target.create();
+    const reads = (): number => h.requests.filter((r) => r.method === 'GET' && r.path === e.headReadPath).length;
+    // Imported here so the rest of the suite still runs while src/adapters/request-memo.ts (T018) does not exist.
+    const { withRequestScope } = await import('../../src/adapters/request-memo.ts');
+    await withRequestScope(async () => {
+      await h.read(`https://${e.host}${e.headReadPath}`, { headers: { accept: e.headReadAccept ?? 'application/json', ...(e.authorization !== undefined ? { authorization: e.authorization } : {}) } }).catch(() => undefined);
+      await h.writer.postLineComment(repo, pr, e.lineAnchor, e.bodies.line);
+    });
+    assert.equal(reads(), 1, 'the writer\'s head read is served from the same scope as the read side');
+  });
 }

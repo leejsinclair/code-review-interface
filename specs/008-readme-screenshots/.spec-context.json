@@ -1,0 +1,499 @@
+{
+  "workflow": "companion",
+  "specName": "README Screenshots from a Seeded GitLab Demo",
+  "branch": "main",
+  "currentStep": "implement",
+  "status": "implementing",
+  "history": [
+    {
+      "step": "specify",
+      "substep": null,
+      "kind": "start",
+      "by": "extension",
+      "at": "2026-11-14T07:50:38.024Z"
+    },
+    {
+      "step": "specify",
+      "substep": null,
+      "kind": "complete",
+      "by": "extension",
+      "at": "2026-11-14T07:51:31.592Z"
+    },
+    {
+      "step": "plan",
+      "substep": null,
+      "kind": "start",
+      "by": "extension",
+      "at": "2026-11-14T07:56:35.639Z"
+    },
+    {
+      "step": "plan",
+      "substep": "research",
+      "kind": "complete",
+      "by": "ai",
+      "at": "2026-11-14T08:00:04.530Z"
+    },
+    {
+      "step": "plan",
+      "substep": "design",
+      "kind": "complete",
+      "by": "ai",
+      "at": "2026-11-14T08:01:23.262Z"
+    },
+    {
+      "step": "plan",
+      "substep": null,
+      "kind": "complete",
+      "by": "ai",
+      "at": "2026-11-14T08:01:23.521Z"
+    },
+    {
+      "step": "tasks",
+      "substep": null,
+      "kind": "start",
+      "by": "extension",
+      "at": "2026-11-14T08:02:46.075Z"
+    },
+    {
+      "step": "tasks",
+      "substep": "generate",
+      "kind": "complete",
+      "by": "ai",
+      "at": "2026-11-14T08:03:45.572Z"
+    },
+    {
+      "step": "tasks",
+      "substep": null,
+      "kind": "complete",
+      "by": "ai",
+      "at": "2026-11-14T08:03:45.824Z"
+    },
+    {
+      "step": "implement",
+      "substep": null,
+      "kind": "start",
+      "by": "extension",
+      "at": "2026-11-14T08:26:29.168Z"
+    },
+    {
+      "step": "implement",
+      "substep": null,
+      "task": "T001",
+      "kind": "complete",
+      "by": "ai",
+      "at": "2026-11-14T08:27:46.394Z"
+    },
+    {
+      "step": "implement",
+      "substep": null,
+      "task": "T002",
+      "kind": "complete",
+      "by": "ai",
+      "at": "2026-11-14T08:34:27.014Z"
+    },
+    {
+      "step": "implement",
+      "substep": null,
+      "task": "T003",
+      "kind": "complete",
+      "by": "ai",
+      "at": "2026-11-14T08:34:59.509Z"
+    },
+    {
+      "step": "implement",
+      "substep": null,
+      "task": "T004",
+      "kind": "complete",
+      "by": "ai",
+      "at": "2026-11-14T08:34:59.593Z"
+    },
+    {
+      "step": "implement",
+      "substep": null,
+      "task": "T005",
+      "kind": "complete",
+      "by": "ai",
+      "at": "2026-11-14T08:36:23.728Z"
+    },
+    {
+      "step": "implement",
+      "substep": null,
+      "task": "T006",
+      "kind": "complete",
+      "by": "ai",
+      "at": "2026-11-14T08:36:48.337Z"
+    },
+    {
+      "step": "implement",
+      "substep": null,
+      "task": "T007",
+      "kind": "complete",
+      "by": "ai",
+      "at": "2026-11-14T08:37:40.532Z"
+    },
+    {
+      "step": "implement",
+      "substep": null,
+      "task": "T008",
+      "kind": "complete",
+      "by": "ai",
+      "at": "2026-11-14T08:38:35.242Z"
+    },
+    {
+      "step": "implement",
+      "substep": null,
+      "task": "T009",
+      "kind": "complete",
+      "by": "ai",
+      "at": "2026-11-14T08:38:35.335Z"
+    },
+    {
+      "step": "implement",
+      "substep": null,
+      "task": "T010",
+      "kind": "complete",
+      "by": "ai",
+      "at": "2026-11-14T08:45:45.007Z"
+    },
+    {
+      "step": "implement",
+      "substep": null,
+      "task": "T011",
+      "kind": "complete",
+      "by": "ai",
+      "at": "2026-11-14T08:45:45.102Z"
+    },
+    {
+      "step": "implement",
+      "substep": null,
+      "task": "T012",
+      "kind": "complete",
+      "by": "ai",
+      "at": "2026-11-14T08:52:15.123Z"
+    },
+    {
+      "step": "implement",
+      "substep": null,
+      "task": "T013",
+      "kind": "complete",
+      "by": "ai",
+      "at": "2026-11-14T08:52:15.203Z"
+    },
+    {
+      "step": "implement",
+      "substep": null,
+      "task": "T014",
+      "kind": "complete",
+      "by": "ai",
+      "at": "2026-11-14T08:54:10.737Z"
+    },
+    {
+      "step": "implement",
+      "substep": null,
+      "task": "T015",
+      "kind": "complete",
+      "by": "ai",
+      "at": "2026-11-14T08:54:10.814Z"
+    }
+  ],
+  "telemetryInstanceId": "08d1c764-d201-45a4-b5f4-ae1d45534255",
+  "last_action": "living specs evaluated — no capabilities matched",
+  "coverage": {
+    "FR-001": {
+      "title": "README Features section near the top, one entry per headline feature",
+      "tasks": [
+        "T002",
+        "T005",
+        "T006",
+        "T007"
+      ]
+    },
+    "FR-002": {
+      "title": "Screenshots captured from the running product, stored in repo, relative links",
+      "tasks": [
+        "T006",
+        "T007",
+        "T012",
+        "T014",
+        "T015"
+      ]
+    },
+    "FR-003": {
+      "title": "Each screenshot has alt text",
+      "tasks": [
+        "T002",
+        "T006",
+        "T007"
+      ]
+    },
+    "FR-004": {
+      "title": "README corrected in place; section order kept",
+      "tasks": [
+        "T006",
+        "T007",
+        "T016"
+      ]
+    },
+    "FR-005": {
+      "title": "Seed command creates the demo covering every feature",
+      "tasks": [
+        "T002",
+        "T003",
+        "T005",
+        "T008",
+        "T010"
+      ]
+    },
+    "FR-006": {
+      "title": "Seed includes Critical+mechanical, reduced-review, spec-linked, issue-linked, discussion and approved MRs",
+      "tasks": [
+        "T002",
+        "T005",
+        "T010"
+      ]
+    },
+    "FR-007": {
+      "title": "Seed command is idempotent",
+      "tasks": [
+        "T003",
+        "T008",
+        "T010"
+      ]
+    },
+    "FR-008": {
+      "title": "Clean removes only the demo group and users; unsafe targets refused",
+      "tasks": [
+        "T008",
+        "T009",
+        "T010",
+        "T011"
+      ]
+    },
+    "FR-009": {
+      "title": "Screenshot run isolated from user config and keychain",
+      "tasks": [
+        "T004",
+        "T013",
+        "T014"
+      ]
+    },
+    "FR-010": {
+      "title": "Scripted AI provider with fixed text",
+      "tasks": [
+        "T002",
+        "T005",
+        "T014"
+      ]
+    },
+    "FR-011": {
+      "title": "Fixed viewport and light theme",
+      "tasks": [
+        "T002",
+        "T005",
+        "T014"
+      ]
+    },
+    "FR-012": {
+      "title": "Failed view named, previous image kept, exit failure",
+      "tasks": [
+        "T012",
+        "T014"
+      ]
+    },
+    "FR-013": {
+      "title": "Development section explains demo and screenshot commands",
+      "tasks": [
+        "T006",
+        "T007"
+      ]
+    }
+  },
+  "size": "normal",
+  "classification": {
+    "projectedFiles": 14,
+    "projectedTasks": 18,
+    "scopeSignal": "none",
+    "verdict": "normal"
+  },
+  "expectations": [
+    "no public GitLab hosting",
+    "no GIFs or dark-mode screenshots",
+    "no changes to spec/handover docs"
+  ],
+  "context": [
+    "area: README.md",
+    "area: gitlab/ (local GitLab container, bootstrap)",
+    "area: test/gitlab/ (clean, env)",
+    "area: test/helpers/fake-ai-cli.ts, browser.ts (scripted AI, Playwright)",
+    "area: src/adapters/gitlab (source control + issues)",
+    "constraint: never touch user config or keychain"
+  ],
+  "intent": "README Features section with real screenshots generated from a seeded local GitLab demo",
+  "decisions": [
+    {
+      "decision": "All demo code lives in test/demo/ and reuses GitlabAdmin and the test helpers",
+      "why": "XI.4 allows writes to the local instance only from test-only code under test/",
+      "rejected": "gitlab/ shell or Rails runner seed"
+    },
+    {
+      "decision": "Demo is the subgroup prwb-demo/acme under a persistent top-level group, plus users demo-reviewer and demo-author",
+      "why": "GitLab 19 cannot permanently delete top-level groups; no it- prefix keeps it clear of gitlab:clean",
+      "rejected": "top-level demo group, or a subgroup under prwb-it"
+    },
+    {
+      "decision": "Idempotency by find-then-create on fixed keys (path, username, title, source branch, note body)",
+      "why": "FR-007/SC-003 need exact zero-creation on rerun without a state file",
+      "rejected": "local state file of created ids; reusing GitlabSeeder.begin()"
+    },
+    {
+      "decision": "Split the spec-linked MR from the issue-linked MR",
+      "why": "a GitLab issue key (group/project#N) can never match a specs/<folder> name and branch fallback only applies with no key",
+      "rejected": "changing spec matching in core (out of scope)"
+    },
+    {
+      "decision": "Run the node:test helpers from a plain script through an after-hooks collector",
+      "why": "reuses startWorkbench/useBrowser isolation (temp app data, fake keyring, env restore) unchanged",
+      "rejected": "node --test file; refactoring the helpers"
+    },
+    {
+      "decision": "Fake AI configured per view; screenshots minted with a short-lived demo-reviewer token; clock pinned to newest MR + 1h",
+      "why": "distinct text per MR, no Administrator or real name on screen, stable relative ages",
+      "rejected": "one global fake config; root token; default PINNED_NOW which precedes the seed"
+    },
+    {
+      "decision": "Capture writes <file>.tmp and renames only after the ready selector appears",
+      "why": "FR-012 keep the previous image and name the view",
+      "rejected": "overwrite in place"
+    }
+  ],
+  "concerns": [
+    {
+      "note": "FR-006 asks for one MR that both references an issue and has a matching spec; the product cannot show both on GitLab, so the plan splits it across two MRs. Spec wording may need a tweak."
+    },
+    {
+      "note": "plan-blocks.py failed: call-paths.md part is missing; the calls block was written by hand."
+    }
+  ],
+  "step_summaries": {
+    "plan": {
+      "summary": "Plan: test/demo seed, clean and screenshot commands on local GitLab, eight README feature entries, in-place README fixes",
+      "key_finding": "A GitLab issue key blocks spec lookup by branch name, so the spec demo MR must carry no issue reference"
+    },
+    "tasks": {
+      "summary": "17 tasks after analysis: Setup(1), Foundational(4), US1(2), US2(4), US3(4), Polish(2); labelled against VO-001..VO-013, tdd_check plan and tasks pass"
+    }
+  },
+  "approach": "Test-only commands in test/demo/ seed a fixed, idempotent demo under prwb-demo/acme on the local GitLab, then drive the real workbench through the existing test harness (fake claude CLI, temp app data, fake keyring) to capture eight light-theme 1440x900 PNGs into docs/screenshots/. README gains a Features section and in-place corrections; no product code changes.",
+  "currentTask": "T015",
+  "task_summaries": {
+    "T001": {
+      "status": "DONE",
+      "did": "Added gitlab:demo, gitlab:demo:clean and screenshots scripts",
+      "files": [
+        "package.json"
+      ]
+    },
+    "T002": {
+      "status": "DONE",
+      "did": "Failing test for the demo data: eight views, FR-006 scenarios, it- names, citations on changed lines",
+      "files": [
+        "test/unit/demo-scenarios.test.ts"
+      ]
+    },
+    "T003": {
+      "status": "DONE",
+      "did": "Exported until; added ensure(), finders by fixed key, approvedBy and openDiffDiscussion to GitlabAdmin",
+      "files": [
+        "test/seeder/gitlab-seeder.ts"
+      ]
+    },
+    "T004": {
+      "status": "DONE",
+      "did": "createAfterHooks(): reverse-order run that survives a failing callback",
+      "files": [
+        "test/demo/after-hooks.ts"
+      ]
+    },
+    "T005": {
+      "status": "DONE",
+      "did": "Demo as data: users, storefront (issue, !1-!5, notes, approval), billing-api !1, eight views with fixed AI text; T002 green",
+      "files": [
+        "test/demo/scenarios.ts",
+        "test/unit/demo-scenarios.test.ts"
+      ]
+    },
+    "T006": {
+      "status": "DONE",
+      "did": "Failing README test: Features first, one entry per view, images exist, no stale claims, GitLab rows, commands",
+      "files": [
+        "test/unit/readme-features.test.ts"
+      ]
+    },
+    "T007": {
+      "status": "DONE",
+      "did": "README: Features section (8 entries), read-only bullet fixed, GitLab sign-in rows, branch-name fallback, demo commands in Development",
+      "files": [
+        "README.md"
+      ]
+    },
+    "T008": {
+      "status": "DONE",
+      "did": "Failing live test: seed twice in a run-scoped it-demo subgroup, second all exists, clean leaves prwb-it and prwb-demo",
+      "files": [
+        "test/gitlab/demo.test.ts"
+      ]
+    },
+    "T009": {
+      "status": "DONE",
+      "did": "Failing guard test: unreachable, non-loopback and bad group refusals with a stubbed fetch",
+      "files": [
+        "test/unit/demo-guards.test.ts"
+      ]
+    },
+    "T010": {
+      "status": "DONE",
+      "did": "seed(): guarded target, find-or-create group/users/projects/issue/MRs/notes/approval as demo users, temp tokens revoked; live test green",
+      "files": [
+        "test/demo/seed.ts",
+        "test/gitlab/env.ts"
+      ]
+    },
+    "T011": {
+      "status": "DONE",
+      "did": "clean(): removes only the demo subgroup, its projects and the two prefixed users; absent items reported",
+      "files": [
+        "test/demo/clean.ts"
+      ]
+    },
+    "T012": {
+      "status": "DONE",
+      "did": "Failing capture test with a stub page: ready, timeout, partial screenshot",
+      "files": [
+        "test/unit/capture-file.test.ts"
+      ]
+    },
+    "T013": {
+      "status": "DONE",
+      "did": "Failing isolation test: temp app data, fake claude first on PATH, HOME/PATH/XDG restored",
+      "files": [
+        "test/unit/screenshot-isolation.test.ts"
+      ]
+    },
+    "T014": {
+      "status": "DONE",
+      "did": "screenshots.ts: captureTo (tmp+rename, settle, scroll below fold), workbenchOptions (HOME restored), CLI: reviewer token, temp clones, pinned clock, queue captured last",
+      "files": [
+        "test/demo/screenshots.ts",
+        "test/demo/scenarios.ts",
+        "test/unit/capture-file.test.ts"
+      ]
+    },
+    "T015": {
+      "status": "DONE",
+      "did": "Seeded demo twice (second all exists), ran npm run screenshots: eight PNGs written, reviewed, rerun writes the same eight",
+      "files": [
+        "docs/screenshots/*.png"
+      ]
+    }
+  }
+}

@@ -55,6 +55,7 @@ const REPO: RepoRef = { platform: 'github', id: 'acme/widgets' };
 const SESSION = 'session-1';
 const PR = 7;
 const ME = 'alice-dev';
+const CAROL = { id: 'u-2002', name: 'Carol Chen', handle: 'carol-c' };
 
 // One file changed: old lines 1-3 (base), new lines 1-4 (head), one hunk.
 const DIFF = [
@@ -85,15 +86,17 @@ type RowLike = {
 
 function platformComment(id: string, over: Partial<Comment> = {}): Comment {
   return {
-    id, threadId: id, author: { id: ME, name: ME }, body: `body ${id}`, createdAt: '2026-03-02T10:00:00.000Z',
+    id, threadId: id, startsThread: true, author: { id: 'u-1001', name: 'Alice Developer', handle: ME }, body: `body ${id}`, createdAt: '2026-03-02T10:00:00.000Z',
     editedAt: null, anchor: null, outdated: false, postedByTool: false, ...over,
   };
 }
 
 type Fakes = ReturnType<typeof fakes>;
 
-function fakes(opts: { state?: 'open' | 'closed' | 'merged'; author?: string; head?: string } = {}) {
-  const state = { head: opts.head ?? HEAD, state: opts.state ?? 'open', author: opts.author ?? 'bob-dev' };
+// `author` is the pull request author's handle; the display name is distinct and never equals a handle.
+function fakes(opts: { state?: 'open' | 'closed' | 'merged'; author?: string; authorName?: string; head?: string } = {}) {
+  const state = { head: opts.head ?? HEAD, state: opts.state ?? 'open', author: opts.author ?? 'bob-dev', authorName: opts.authorName ?? 'Bob Builder' };
+  let messageResult: { posted: boolean; commentId?: string } | undefined;
   const comments: Comment[] = [];
   let decision: ReviewDecision | null = null;
   let capability: ReviewCapability = ALL_ALLOWED;
@@ -108,7 +111,7 @@ function fakes(opts: { state?: 'open' | 'closed' | 'merged'; author?: string; he
     id: 'github',
     async currentUser() { return { handle: ME, displayName: 'Alice Developer' }; },
     async getPullRequest() {
-      return { number: PR, title: 't', description: '', author: state.author, sourceBranch: 's', targetBranch: 'main', headCommit: state.head, state: state.state, updatedAt: '2026-03-02T09:00:00.000Z' };
+      return { number: PR, title: 't', description: '', author: state.authorName, authorHandle: state.author, sourceBranch: 's', targetBranch: 'main', headCommit: state.head, state: state.state, updatedAt: '2026-03-02T09:00:00.000Z' };
     },
     async listChangedFiles() {
       return [{ path: 'src/a.ts', status: 'modified', linesAdded: 2, linesRemoved: 1, binary: false }];
@@ -161,13 +164,17 @@ function fakes(opts: { state?: 'open' | 'closed' | 'merged'; author?: string; he
     },
     async approve(_r: RepoRef, _p: number, commit: string, body?: string) {
       await enter('approve');
+      const message = body !== undefined && body.trim() !== '' ? messageResult : undefined;
+      if (message?.posted) comments.push(platformComment(message.commentId ?? 'm-1', { body: body ?? '' }));
       decision = { kind: 'approved', message: body ?? null, commit, decidedAt: '2026-03-02T12:00:00.000Z', stale: false, platformId: '7001' };
-      return { kind: 'decision', decision: 'approved', platformId: '7001', createdAt: '2026-03-02T12:00:00.000Z', commit } as WriteOutcome;
+      return { kind: 'decision', decision: 'approved', platformId: '7001', ...(message ? { message } : {}), createdAt: '2026-03-02T12:00:00.000Z', commit } as WriteOutcome;
     },
     async requestChanges(_r: RepoRef, _p: number, commit: string, body: string) {
       await enter('requestChanges');
+      const message = messageResult;
+      if (message?.posted) comments.push(platformComment(message.commentId ?? 'm-1', { body }));
       decision = { kind: 'changes_requested', message: body, commit, decidedAt: '2026-03-02T12:00:00.000Z', stale: false, platformId: '7002' };
-      return { kind: 'decision', decision: 'changes_requested', platformId: '7002', createdAt: '2026-03-02T12:00:00.000Z', commit } as WriteOutcome;
+      return { kind: 'decision', decision: 'changes_requested', platformId: '7002', ...(message ? { message } : {}), createdAt: '2026-03-02T12:00:00.000Z', commit } as WriteOutcome;
     },
     async withdrawDecision() {
       await enter('withdrawDecision');
@@ -187,6 +194,7 @@ function fakes(opts: { state?: 'open' | 'closed' | 'merged'; author?: string; he
     writes: () => calls.filter((c) => !c.startsWith('read:')),
     setDecision(d: ReviewDecision | null) { decision = d; },
     setCapability(c: ReviewCapability) { capability = c; },
+    setMessage(m: { posted: boolean; commentId?: string }) { messageResult = m; },
     hold() { let release = (): void => {}; gate = new Promise<void>((r) => { release = r; }); return () => { gate = null; release(); }; },
     failWith(err: unknown) { failNext = err; },
     failAfterStoring(err: unknown) { failAfterStoring = true; failNext = err; },
@@ -538,7 +546,7 @@ test('feature 005: a comment this tool posted but another account wrote is not e
   const f = fakes();
   const { actions } = await make(f);
   const posted = await actions.perform(body(prComment('mine'), { requestId: 'req-1' }));
-  f.comments.find((c) => c.id === posted.comment!.id)!.author = { id: 'carol', name: 'carol' };
+  f.comments.find((c) => c.id === posted.comment!.id)!.author = { ...CAROL };
   const item = (await actions.comments()).find((c) => c.id === posted.comment!.id);
   assert.equal(item?.postedByTool, false);
   assert.equal(item?.editable, false);
@@ -595,4 +603,133 @@ test('feature 005: a platform refusal keeps its code and message and leaves one 
     assert.equal(rows[1]?.errorCode, code);
     assert.ok(rows[1]?.errorMessage?.includes(`platform says ${code}`));
   }
+});
+
+// ---------------------------------------------------------------- handles, not names or ids (feature 007)
+
+test('feature 007: sameHandle ignores case and an empty handle matches no one', async () => {
+  const { sameHandle } = await import('../../src/core/review-actions.ts');
+  assert.equal(sameHandle('alice-dev', 'alice-dev'), true);
+  assert.equal(sameHandle('Alice-Dev', 'alice-DEV'), true);
+  assert.equal(sameHandle('alice-dev', 'bob-dev'), false);
+  assert.equal(sameHandle('', ''), false);
+  assert.equal(sameHandle('', 'alice-dev'), false);
+  assert.equal(sameHandle('alice-dev', ''), false);
+});
+
+test('feature 007: the author guard disables every capability when the handles match, whatever the case', async () => {
+  const f = fakes({ author: 'ALICE-Dev', authorName: 'Someone Else' });
+  const { actions } = await make(f);
+  const d = await actions.decision();
+  assert.equal(d.canReview.allowed, false);
+  assert.match(d.canReview.reason ?? '', /you are the author/i);
+  for (const a of Object.values(d.capability)) {
+    assert.equal(a.allowed, false);
+    assert.match(a.reason ?? '', /you are the author/i);
+  }
+  await assert.rejects(actions.perform(body({ kind: 'approve' })), refusedWith('forbidden'));
+  assert.deepEqual(f.writes(), []);
+  assert.equal(f.rows.length, 0);
+});
+
+test('feature 007: a pull request whose author display name equals my handle is still reviewable', async () => {
+  const f = fakes({ author: 'bob-dev', authorName: ME });
+  const { actions } = await make(f);
+  assert.deepEqual((await actions.decision()).canReview, { allowed: true });
+  const out = await actions.perform(body(prComment('hello')));
+  assert.ok(out.comment);
+});
+
+test('feature 007: a deleted author account (empty handle) stays reviewable', async () => {
+  const f = fakes({ author: '', authorName: 'Ghost' });
+  const { actions } = await make(f);
+  const d = await actions.decision();
+  assert.deepEqual(d.canReview, { allowed: true });
+  for (const a of Object.values(d.capability)) assert.equal(a.allowed, true);
+  await actions.perform(body({ kind: 'approve' }));
+  assert.equal(f.writes().length, 1);
+});
+
+test('feature 007: edit and delete ownership is the handle plus a write record, not the name or id', async () => {
+  const f = fakes();
+  const { actions } = await make(f);
+  const a = await actions.perform(body(prComment('mine one'), { requestId: 'req-1' }));
+  const b = await actions.perform(body(prComment('mine two'), { requestId: 'req-2' }));
+  const c = await actions.perform(body(prComment('theirs'), { requestId: 'req-3' }));
+  // Handle differs only in case: still mine.
+  f.comments.find((x) => x.id === a.comment!.id)!.author = { id: 'u-1001', name: 'Alice Developer', handle: 'ALICE-DEV' };
+  // Display name and id equal my handle, but the handle is someone else's: not mine.
+  f.comments.find((x) => x.id === b.comment!.id)!.author = { id: ME, name: ME, handle: CAROL.handle };
+  // Handle empty: nobody's.
+  f.comments.find((x) => x.id === c.comment!.id)!.author = { id: ME, name: ME, handle: '' };
+  const list = await actions.comments();
+  assert.equal(list.find((x) => x.id === a.comment!.id)?.editable, true);
+  assert.equal(list.find((x) => x.id === b.comment!.id)?.editable, false);
+  assert.equal(list.find((x) => x.id === c.comment!.id)?.editable, false);
+  await actions.perform(body({ kind: 'comment', destination: 'edit', commentId: a.comment!.id, body: 'edited' }, { requestId: 'req-4' }));
+  for (const id of [b.comment!.id, c.comment!.id]) {
+    await assert.rejects(
+      actions.perform(body({ kind: 'comment', destination: 'delete', commentId: id }, { requestId: `del-${id}` })),
+      refusedWith('forbidden'),
+    );
+  }
+});
+
+test('feature 007: a comment I wrote outside the tool (no write record) is not editable', async () => {
+  const f = fakes();
+  f.seed(platformComment('901'));
+  const { actions } = await make(f);
+  assert.equal((await actions.comments()).find((x) => x.id === '901')?.editable, false);
+});
+
+test('feature 007: a posted result names me by display name and handle', async () => {
+  const f = fakes();
+  const { actions } = await make(f);
+  const out = await actions.perform(body(prComment('hello')));
+  assert.equal(out.comment?.author.name, 'Alice Developer');
+  assert.equal(out.comment?.author.handle, ME);
+});
+
+// ---------------------------------------------------------------- decision message (feature 007, FR-010, FR-011)
+
+test('feature 007: a posted message writes a comment intent after the decision intent is terminal', async () => {
+  for (const action of [{ kind: 'approve' as const, body: 'Looks good' }, { kind: 'request_changes' as const, body: 'Please fix' }]) {
+    const f = fakes();
+    f.setMessage({ posted: true, commentId: 'm-77' });
+    const { actions } = await make(f);
+    const out = await actions.perform(body(action, { requestId: 'req-1' }));
+    assert.equal(out.warning, undefined);
+    assert.deepEqual(f.rows.map((r) => `${r.intentId}:${r.state}`), ['req-1:pending', 'req-1:posted', 'req-1:message:pending', 'req-1:message:posted']);
+    const message = f.rows.find((r) => r.intentId === 'req-1:message' && r.state === 'posted')!;
+    assert.equal(message.action, 'comment');
+    assert.equal(message.body, action.body);
+    assert.equal(message.platformId, 'm-77');
+    assert.equal(message.actor, ME);
+    assert.equal(message.headSha, HEAD);
+    assert.deepEqual(message.destination, { scope: 'pr' });
+    assert.equal((await actions.comments()).find((x) => x.id === 'm-77')?.editable, true, 'the message is later editable');
+  }
+});
+
+test('feature 007: a failed message gives a warning, keeps the decision and writes no comment intent', async () => {
+  const f = fakes();
+  f.setMessage({ posted: false });
+  const { actions } = await make(f);
+  const out = await actions.perform(body({ kind: 'approve', body: 'Looks good' }, { requestId: 'req-1' }));
+  assert.equal(out.decision?.kind, 'approved');
+  assert.ok(out.warning, 'a warning is set');
+  assert.match(JSON.stringify(out.warning), /message_not_posted/);
+  assert.deepEqual(f.rows.map((r) => `${r.intentId}:${r.state}`), ['req-1:pending', 'req-1:posted']);
+  assert.equal(f.rows.some((r) => r.intentId.endsWith(':message')), false);
+});
+
+test('feature 007: an empty message gives neither a warning nor a comment intent', async () => {
+  const f = fakes();
+  f.setMessage({ posted: false });
+  const { actions } = await make(f);
+  for (const [i, b] of [undefined, '', '  \n'].entries()) {
+    const out = await actions.perform(body(b === undefined ? { kind: 'approve' } : { kind: 'approve', body: b }, { requestId: `req-${i}` }));
+    assert.equal(out.warning, undefined);
+  }
+  assert.equal(f.rows.some((r) => r.intentId.endsWith(':message')), false);
 });

@@ -29,6 +29,7 @@ export function createReviewerLookup(deps: ReviewerLookupDeps): (sessionId: stri
     const sourceControl = createSourceControl(platform, adapterDeps(platform, deps.network, deps.credentials.authorize(platform)), {
       repository,
       ...(config?.workspace.baseUrl === undefined ? {} : { baseUrl: config.workspace.baseUrl }),
+      ...(config?.workspace.sshHost === undefined ? {} : { sshHost: config.workspace.sshHost }),
     });
     return sourceControl.currentUser();
   };
@@ -51,7 +52,7 @@ export function createReviewActionsLookup(deps: ReviewActionsLookupDeps): (sessi
     const platform = session.pr.repo.platform;
     const config = await loadConfig(deps.appDataDir, configPlatforms());
     const repo = { platform, id: session.pr.repo.identifier };
-    const settings = { repository: repo, ...(config?.workspace.baseUrl === undefined ? {} : { baseUrl: config.workspace.baseUrl }) };
+    const settings = { repository: repo, ...(config?.workspace.baseUrl === undefined ? {} : { baseUrl: config.workspace.baseUrl }), ...(config?.workspace.sshHost === undefined ? {} : { sshHost: config.workspace.sshHost }) };
     const sc = createSourceControl(platform, adapterDeps(platform, deps.network, deps.credentials.authorize(platform)), settings);
     const writer = createSourceControlWriter(
       platform,

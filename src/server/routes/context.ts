@@ -130,6 +130,7 @@ export function createContextRoutes(deps: ContextRouteDeps): RouteModule<Views> 
   const sourceControlSettings = (c: Config, repo: RepoRef): SourceControlSettings => {
     const settings: SourceControlSettings = { repository: repo };
     if (c.workspace.baseUrl !== undefined) settings.baseUrl = c.workspace.baseUrl;
+    if (c.workspace.sshHost !== undefined) settings.sshHost = c.workspace.sshHost;
     return settings;
   };
   const requireConfig = async (): Promise<Config> => {

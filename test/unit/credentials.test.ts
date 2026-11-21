@@ -292,3 +292,30 @@ test('T041 no token reaches an X.7 location through the write-scope path', async
   assertNoSecret(store, 'the credential store object');
   for (const path of await filesUnder(appData.root)) assertNoSecret(await readFile(path, 'utf8'), path);
 });
+
+// ---- T054 (specs/007-review-actions-parity, X.7, X.8): a token from the environment never leaks ----
+
+test('T054 a GitHub or GitLab token from the environment reaches no X.7 location', async (t) => {
+  const { withEnvFallback } = await import('../../src/credentials-env.ts');
+  const { envCredential } = await import('../../src/adapters/env-credentials.ts');
+  const { createCredentials } = await loadCredentials();
+  const appData = await useTempAppData(t);
+  const GITLAB_TOKEN = 'glpat-TEST0000secretGitlabToken4444';
+  const registered: string[] = [];
+  const keyring = withEnvFallback(null, envCredential, { GITHUB_TOKEN, GITLAB_TOKEN });
+  const store = createCredentials({ keyring, registerSecret: (secret: string) => void registered.push(secret) });
+
+  for (const platform of ['github', 'gitlab'] as const) {
+    assert.equal(await store.has(platform), true, `${platform} signs in from the environment`);
+    store.authorizeForWrite(platform)(new Request('https://api.example.test/x', { method: 'POST' }));
+    for (const secret of [GITHUB_TOKEN, GITLAB_TOKEN]) {
+      assertNoSecret(await store.account(platform), 'account()');
+      assert.ok(!inspect(store, { depth: 10, showHidden: true }).includes(secret), 'the credential store object holds a secret');
+    }
+  }
+  assert.ok(registered.includes(GITHUB_TOKEN) && registered.includes(GITLAB_TOKEN), 'a secret was not registered with the scrubber');
+  for (const path of await filesUnder(appData.root)) {
+    const text = await readFile(path, 'utf8');
+    assert.ok(!text.includes(GITHUB_TOKEN) && !text.includes(GITLAB_TOKEN), `${path} contains a secret`);
+  }
+});

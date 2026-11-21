@@ -57,11 +57,15 @@ test('a specification without evidence: criteria are listed and every test says 
   assert.match(row(list, 'tdd-evidence')['reason'], /no evidence file/);
 });
 
-test('no key and a repository outside any project are their own gaps', async (t) => {
+test('no term at all is a no-key gap; a repository outside any project raises no gap (FR-034, VO-043)', async (t) => {
   const none = await bench(t, { outcome: 'no-key' });
   assert.deepEqual((await none.report())['gaps'].map((g: Json) => g['kind']), ['no-key']);
   const outside = await bench(t, { outcome: 'not-found', enclosingNote: 'not-inside-project' });
-  assert.ok((await outside.report())['gaps'].some((g: Json) => g['kind'] === 'no-enclosing-repository'));
+  const gaps = (await outside.report())['gaps'] as Json[];
+  assert.ok(!gaps.some((g) => g['kind'] === 'no-enclosing-repository'), 'the not-in-project gap is gone');
+  assert.deepEqual(gaps, [], 'the note is stored but raises no gap');
+  const found = await bench(t, { enclosingNote: 'not-inside-project' });
+  assert.deepEqual((await found.report())['gaps'], []);
 });
 
 test('a failed read is a read-failed gap with the first error line, and the session still loads (SC-007, FR-018)', async (t) => {

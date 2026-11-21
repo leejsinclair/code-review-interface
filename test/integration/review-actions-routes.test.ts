@@ -17,6 +17,12 @@ import { randomUUID } from 'node:crypto';
 import { test } from 'node:test';
 import type { FixtureEntry } from '../helpers/recorded-fetch.ts';
 import { startWorkbench } from '../helpers/fake-ai-cli.ts';
+import { loadFixtures, recordedFetch } from '../helpers/recorded-fetch.ts';
+import { startTestServer } from '../helpers/server.ts';
+import { createSourceControl, createSourceControlWriter, adapterDeps, writerDeps } from '../../src/adapters/registry.ts';
+import { createReviewActions } from '../../src/core/review-actions.ts';
+import { createReviewActionsRoutes } from '../../src/server/routes/review-actions.ts';
+import type { PlatformId } from '../../src/contracts/shared.ts';
 
 type Json = Record<string, any>; // eslint-disable-line @typescript-eslint/no-explicit-any
 
@@ -156,3 +162,174 @@ test('the AI provider, risk and claims paths receive no writer (FR-006)', () => 
     assert.equal(WRITER.test(readFileSync(file, 'utf8')), false, `${file.slice(SRC.length)} must not reach the writer`);
   }
 });
+
+// ---------------------------------------------------------------------------------------------
+// T009 (specs/007-review-actions-parity, VO-004, VO-008, VO-009, VO-010): the same four route
+// behaviours on each platform's own identity data. In every set the signed-in user (alice-dev) has an
+// id, a display name and a handle that differ, and the pull request's author carries the same three
+// fields. Real adapters and the real core run over recorded platform data; only the platform's
+// pull request and the writes a scenario changes are inline. Failing first: it fails until the
+// handle comparison and the message-after-decision rules land (Phases 3 to 5).
+
+const HEAD = 'a3f9c2e17b4d58e6f0a1c3b5d7e9f2a4c6b8d0e1';
+const json = { 'content-type': 'application/json' };
+const BOOM = 'The platform could not post the message';
+
+type Author = 'self' | 'other';
+type Platform = {
+  id: PlatformId;
+  fixtures: string;
+  baseUrl?: string;
+  /** The pull request read, authored by the signed-in user (`self`) or by someone else. */
+  pull(author: Author, decided: boolean): FixtureEntry[];
+  /** Replaces the platform's recorded answer to the decision read: this reviewer has no decision. */
+  noDecision: FixtureEntry[];
+  /** The write that carries a decision message, answering with a failure. */
+  failedMessage: FixtureEntry;
+  /** Requests (method + url without query) the scenario overrides, dropped from the recorded folder. */
+  overridden: string[];
+};
+
+const BB = 'https://api.bitbucket.org/2.0/repositories/acme/widgets';
+const GH = 'https://api.github.com/repos/acme/widgets';
+const GL = 'https://gitlab.example.test/api/v4/projects/acme%2Fwidgets/merge_requests/1';
+
+const bitbucketPull = (author: Author, decided: boolean): FixtureEntry[] => [{
+  request: { url: `${BB}/pullrequests/1` },
+  response: {
+    status: 200,
+    headers: json,
+    body: {
+      id: 1, title: 'Allow a second reset', description: '', state: 'OPEN', updated_on: '2026-03-02T10:00:00.000000+00:00',
+      author: author === 'self'
+        ? { display_name: 'Alice Developer', nickname: 'alice-dev', account_id: '712020:aa11c000-0000-4000-8000-000000000001', uuid: '{1c2d3e4f-0000-4000-8000-00000000a11c}' }
+        : { display_name: 'Bob Builder', nickname: 'bob-dev', account_id: '712020:bb22d000-0000-4000-8000-000000000002', uuid: '{2d3e4f5a-0000-4000-8000-00000000b22d}' },
+      source: { branch: { name: 'feature/reset' }, commit: { hash: HEAD }, repository: { full_name: 'acme/widgets' } },
+      destination: { branch: { name: 'main' } },
+      participants: decided ? [{ user: { account_id: '712020:aa11c000-0000-4000-8000-000000000001', uuid: '{1c2d3e4f-0000-4000-8000-00000000a11c}' }, approved: true, state: 'approved', participated_on: '2026-03-02T10:30:00.000000+00:00' }] : [],
+    },
+  },
+}];
+
+const githubPull = (author: Author, decided: boolean): FixtureEntry[] => [
+  {
+    request: { url: `${GH}/pulls/1` },
+    response: {
+      status: 200,
+      headers: json,
+      body: {
+        number: 1, title: 'Allow a second reset', body: null, state: 'open', updated_at: '2026-03-02T10:00:00Z',
+        user: author === 'self' ? { login: 'alice-dev', id: 41001 } : { login: 'bob-dev', id: 41002 },
+        head: { ref: 'feature/reset', sha: HEAD }, base: { ref: 'main' },
+      },
+    },
+  },
+  {
+    request: { url: `${GH}/pulls/1/reviews?per_page=100` },
+    response: { status: 200, headers: json, body: decided ? [{ id: 7001, user: { login: 'alice-dev', id: 41001 }, state: 'APPROVED', body: '', commit_id: HEAD, submitted_at: '2026-03-02T10:30:00Z' }] : [] },
+  },
+];
+
+const gitlabPull = (author: Author, decided: boolean): FixtureEntry[] => [
+  {
+    request: { url: GL },
+    response: {
+      status: 200,
+      headers: json,
+      body: {
+        id: 501, iid: 1, title: 'Allow a second reset', description: '', state: 'opened', sha: HEAD, updated_at: '2026-03-02T10:00:00.000Z',
+        source_branch: 'feature/reset', target_branch: 'main',
+        author: author === 'self' ? { id: 1001, username: 'alice-dev', name: 'Alice Developer' } : { id: 1002, username: 'bob-dev', name: 'Bob Builder' },
+      },
+    },
+  },
+  {
+    request: { url: `${GL}/approvals` },
+    response: { status: 200, headers: json, body: { approved_by: decided ? [{ user: { id: 1001, username: 'alice-dev', name: 'Alice Developer' } }] : [] } },
+  },
+];
+
+const refused = (method: string, url: string): FixtureEntry => ({ request: { method, url }, response: { status: 503, headers: json, body: { message: BOOM } } });
+
+const PLATFORMS: Platform[] = [
+  { id: 'bitbucket-cloud', fixtures: 'bitbucket/review-actions', pull: bitbucketPull, noDecision: [], failedMessage: refused('POST', `${BB}/pullrequests/1/comments`), overridden: ['GET ' + `${BB}/pullrequests/1`, 'POST ' + `${BB}/pullrequests/1/comments`] },
+  { id: 'github', fixtures: 'github/review-actions', pull: githubPull, noDecision: [], failedMessage: refused('POST', `${GH}/issues/1/comments`), overridden: ['GET ' + `${GH}/pulls/1`, 'GET ' + `${GH}/pulls/1/reviews`, 'POST ' + `${GH}/issues/1/comments`] },
+  { id: 'gitlab', fixtures: 'gitlab/review-actions', baseUrl: 'https://gitlab.example.test', pull: gitlabPull, noDecision: [], failedMessage: refused('POST', `${GL}/notes`), overridden: ['GET ' + GL, 'GET ' + GL + '/approvals', 'POST ' + `${GL}/notes`] },
+];
+
+async function platformBench(t: { after(fn: () => unknown): void }, p: Platform, author: Author, options: { decided?: boolean; failMessage?: boolean } = {}) {
+  const dropped = (method: string | undefined, url: string): boolean =>
+    p.overridden.some((o) => `${(method ?? 'GET').toUpperCase()} ${url.split('?')[0]}` === o && (o.startsWith('GET') ? true : options.failMessage === true));
+  const kept = loadFixtures(p.fixtures).filter((e) => !dropped(e.request.method, e.request.url)).map(({ request, response }) => ({ request, response }));
+  const recorded = recordedFetch([], { entries: [...kept, ...p.pull(author, options.decided === true), ...(options.failMessage === true ? [p.failedMessage] : [])] });
+  const authorize = (request: Request): Request => {
+    const headers = new Headers(request.headers);
+    headers.set('authorization', 'Bearer integration-test-token');
+    return new Request(request, { headers });
+  };
+  const settings = { repository: { platform: p.id, id: 'acme/widgets' }, ...(p.baseUrl === undefined ? {} : { baseUrl: p.baseUrl }) };
+  const sc = createSourceControl(p.id, adapterDeps(p.id, recorded.fetch, authorize), settings);
+  const writer = createSourceControlWriter(p.id, writerDeps(recorded.fetch, authorize), settings);
+  const rows: any[] = []; // eslint-disable-line @typescript-eslint/no-explicit-any
+  const store = { insertWriteRecord: (row: unknown) => void rows.push(row), listWriteRecords: () => rows };
+  const actions = createReviewActions({ sc, writer, store, repo: settings.repository, pr: 1, sessionId: 'session-1' });
+  const client = await startTestServer({ routes: [createReviewActionsRoutes({ actionsFor: async () => actions })] });
+  t.after(() => client.close());
+  const url = '/api/sessions/session-1/review-actions';
+  const post = (action: Json) => client.post(url, { action, expectedHead: HEAD, requestId: randomUUID() });
+  const writes = (): string[] => recorded.requests.filter((r) => r.method !== 'GET').map((r) => `${r.method} ${r.url}`);
+  return { client, url, post, writes, recorded };
+}
+
+for (const p of PLATFORMS) {
+  test(`${p.id}: an own pull request is refused as forbidden and nothing is written`, async (t) => {
+    const b = await platformBench(t, p, 'self');
+    for (const action of [{ kind: 'approve' }, { kind: 'request_changes', body: 'Please add a test.' }, prComment()]) {
+      const res = await b.post(action);
+      assert.equal(res.status, 403, `${JSON.stringify(action)}: ${res.text}`);
+      assert.equal((res.json as Json).error.code, 'forbidden');
+    }
+    assert.deepEqual(b.writes(), [], 'no request that changes anything reached the platform');
+  });
+
+  test(`${p.id}: the decision of an own pull request disables every action with the author reason`, async (t) => {
+    const b = await platformBench(t, p, 'self');
+    const res = await b.client.get(`${b.url}/decision`);
+    assert.equal(res.status, 200, res.text);
+    const state = res.json as Json;
+    assert.equal(state.canReview.allowed, false);
+    assert.match(String(state.canReview.reason), /author/i);
+    for (const [name, capability] of Object.entries<Json>(state.capability)) {
+      assert.equal(capability.allowed, false, `${name} is disabled`);
+      assert.match(String(capability.reason), /author/i, `${name} carries the author reason`);
+    }
+  });
+
+  test(`${p.id}: a pull request by someone else is open to review, and reply is offered (FR-015)`, async (t) => {
+    const b = await platformBench(t, p, 'other');
+    const res = await b.client.get(`${b.url}/decision`);
+    assert.equal(res.status, 200, res.text);
+    const state = res.json as Json;
+    assert.equal(state.canReview.allowed, true);
+    assert.equal(state.capability.reply.allowed, true, 'reply is offered, so none is offered that is bound to fail');
+  });
+
+  test(`${p.id}: a decision whose message fails is still made, with a message-not-posted warning`, { skip: p.id === 'github' ? 'GitHub sends the decision and its message in one review, so the message cannot fail on its own' : false }, async (t) => {
+    const b = await platformBench(t, p, 'other', { failMessage: true });
+    const res = await b.post({ kind: 'approve', body: 'Looks good to me.' });
+    assert.equal(res.status, 200, res.text);
+    const body = res.json as Json;
+    assert.equal(body.warning?.code, 'message_not_posted');
+    assert.equal(typeof body.warning?.message, 'string');
+    assert.equal(body.decision?.kind, 'approved', 'the decision reflects the approval that was made');
+    assert.ok(b.writes().some((w) => /approve|reviews/.test(w)), 'the decision was written');
+  });
+
+  test(`${p.id}: withdraw with no decision in place is conflict and nothing is sent`, async (t) => {
+    const b = await platformBench(t, p, 'other', { decided: false });
+    const res = await b.post({ kind: 'withdraw_decision' });
+    assert.equal(res.status, 409, res.text);
+    assert.equal((res.json as Json).error.code, 'conflict');
+    assert.deepEqual(b.writes(), [], 'nothing was sent to the platform');
+  });
+}

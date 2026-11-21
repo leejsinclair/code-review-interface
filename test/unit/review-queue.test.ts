@@ -55,6 +55,12 @@ test('lanes: a moved head is new commits (even when approved), an approval with 
   assert.equal(q.lanes[1]!.rows[0]!.ageDays, undefined);
 });
 
+test('an abbreviated list-row head that prefixes the session head is not new commits (FR-019)', () => {
+  const q = buildQueue([session('ws/a', 1)], [pull('ws/a', 1, '2026-11-12T00:00:00Z', { headCommit: HEAD.slice(0, 7) })], NOW);
+  assert.deepEqual(ids(q, 'in-progress'), ['ws/a-1']);
+  assert.equal(q.lanes.some((l) => l.id === 'new-commits' && l.rows.length > 0), false);
+});
+
 test('order: riskiest first, then the one waiting longest, then repository and number', () => {
   const q = buildQueue(
     [

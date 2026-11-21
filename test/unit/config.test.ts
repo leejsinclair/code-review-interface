@@ -403,3 +403,21 @@ test('FR-016 validateBaseUrl names the field it was given', async () => {
   );
   assert.throws(() => validateBaseUrl('workspace.baseUrl', 'not a url'), refusal('invalid_request', 'workspace.baseUrl'));
 });
+
+// Feature 007 (T016; VO-031, FR-021): `workspace.sshHost` is a bare host name.
+test('VO-031 workspace.sshHost accepts a bare host and rejects a scheme, a path or a port', async (t) => {
+  const appData = await useTempAppData(t);
+  const { validateConfig } = await import('../../src/config.ts');
+  const base = await makeBase(appData.root);
+  const withSsh = (sshHost: unknown) => {
+    const body = completeConfig(base);
+    return { ...body, workspace: { ...body.workspace, sshHost } };
+  };
+  for (const host of ['git.example.com', 'bitbucket.internal', 'localhost', 'git-1.example.com']) {
+    const config = validateConfig(withSsh(host), PLATFORMS, appData.dir);
+    assert.equal(config.workspace.sshHost, host, `${host} accepted and kept`);
+  }
+  for (const host of ['ssh://git.example.com', 'https://git.example.com', 'git.example.com/repo', 'git.example.com:22', 'git@git.example.com', '', 'git example.com']) {
+    assert.throws(() => validateConfig(withSsh(host), PLATFORMS, appData.dir), refusal('invalid_request', 'workspace.sshHost'), `${JSON.stringify(host)} refused`);
+  }
+});

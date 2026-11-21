@@ -28,6 +28,9 @@
     "gitlab:down": "gitlab/gitlab.sh down",
     "gitlab:clean": "node test/gitlab/clean.ts",
     "gitlab:reset": "gitlab/gitlab.sh reset",
+    "gitlab:demo": "node test/demo/seed.ts",
+    "gitlab:demo:clean": "node test/demo/clean.ts",
+    "screenshots": "node test/demo/screenshots.ts",
     "test:ui": "node --test \"test/ui/*.ui.ts\""
   },
   "dependencies": {

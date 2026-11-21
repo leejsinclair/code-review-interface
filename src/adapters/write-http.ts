@@ -3,6 +3,7 @@
 // follows a redirect, and maps failures to neutral AdapterError codes carrying the platform's message.
 
 import { AdapterError, type AdapterErrorCode, type PlatformId } from '../contracts/shared.ts';
+import { clearRequestMemo } from './request-memo.ts';
 
 export type WriteAllow = { method: string; pattern: RegExp };
 
@@ -76,8 +77,11 @@ export function createWriteFetch(options: WriteFetchOptions): WriteFetch {
     try {
       response = await network(url, request);
     } catch (cause) {
+      clearRequestMemo();
       throw new AdapterError('unavailable', platform, `${platform}: network request failed`, { cause });
     }
+    // A write, successful or not, may have changed what a read returns (FR-017).
+    clearRequestMemo();
     console.error(`[write-http] ${platform} ${method} ${pathname} -> ${response.status}`);
     if (response.status >= 200 && response.status < 300) return response;
 

@@ -65,3 +65,28 @@ test('the report holds both summaries as inferences with their source, and no sc
   assert.ok(report['alignment'].summaries.tddEvidence.length > 0);
   assert.doesNotMatch(JSON.stringify(report), /"(score|percent|percentage|coverage)"/i);
 });
+
+// Feature 007 (T047; FR-035, FR-036, VO-041, VO-042): the spec lives in the pull request's own repository, on the
+// default branch `main`, named like the branch, with no tracker key and no enclosing project repository.
+test('a spec in the own repository on main, found by branch name with no enclosing repository, shows its summary and source and no gap (VO-041)', async (t) => {
+  const { b, base, seeded } = await bench(t, { key: '007-review-actions-parity', branch: 'main', enclosingNote: 'not-inside-project' });
+  const report = (await b.client.get(base)).json as Json;
+  assert.equal(report['status'], 'ready');
+  assert.deepEqual(report['gaps'], [], 'no gap');
+  assert.equal(report['keys'][0].key, '007-review-actions-parity', 'the branch term is shown where a key was');
+  const spec = report['keys'][0].documents[0] as Json;
+  assert.equal(spec['status'], 'found');
+  assert.equal(spec['source'].used.branch, 'main');
+  assert.equal(spec['documentId'], seeded.specDocumentId);
+  assert.equal(report['alignment'].state, 'completed');
+  assert.ok(report['alignment'].summaries.specification.length > 0, 'the summary is shown');
+});
+
+test('inside an enclosing project repository with a tracker key the report is as before (VO-042)', async (t) => {
+  const { b, base } = await bench(t, { enclosingNote: 'found' });
+  const report = (await b.client.get(base)).json as Json;
+  assert.equal(report['status'], 'ready');
+  assert.deepEqual(report['gaps'], []);
+  assert.equal(report['keys'][0].key, 'ABC-12');
+  assert.equal(report['keys'][0].documents[0].source.used.repository, 'project-hd-v3');
+});

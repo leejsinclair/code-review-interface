@@ -57,12 +57,15 @@ export function OverviewScreen(props: { sessionId: string }) {
             <section class="panel" aria-labelledby="pr-comments-heading">
               <h2 id="pr-comments-heading">Pull request comments</h2>
               {reviewComments.error !== null && <p class="muted">{reviewComments.error}</p>}
-              {threadsOf(reviewComments.comments.filter((c) => c.anchor === null)).map((thread) => (
+              {threadsOf(
+                reviewComments.comments.filter((c) => c.anchor === null),
+                decision.state?.capability ?? null,
+              ).map((thread) => (
                 <CommentThread
-                  key={thread[0]?.id}
+                  key={thread.threadId}
                   sessionId={sessionId}
                   expectedHead={detail.snapshots.at(-1)?.headCommit ?? ''}
-                  comments={thread}
+                  thread={thread}
                   {...(decision.state?.capability.reply.allowed === false ? { disabledReason: decision.state.capability.reply.reason ?? '' } : {})}
                   onChanged={() => void reviewComments.reload()}
                 />

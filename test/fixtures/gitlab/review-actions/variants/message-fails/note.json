@@ -1,0 +1,15 @@
+{
+  "request": {
+    "method": "POST",
+    "url": "https://gitlab.example.test/api/v4/projects/acme%2Fwidgets/merge_requests/1/notes"
+  },
+  "response": {
+    "status": 403,
+    "headers": {
+      "content-type": "application/json"
+    },
+    "body": {
+      "message": "403 Forbidden"
+    }
+  }
+}

@@ -55,7 +55,7 @@ test('stored JSON holds only allowlisted keys', () => {
   assert.equal(raw.v, 1);
   writeDashboard({ text: 'q', token: 'z' } as any);
   const d = JSON.parse(store.data.get('prwb:view:dashboard')!);
-  for (const k of Object.keys(d)) assert.ok(['v', 'text', 'repository', 'scroll', 'collapsedGroups', 'hideApproved'].includes(k), k);
+  for (const k of Object.keys(d)) assert.ok(['v', 'text', 'repository', 'scroll', 'collapsedGroups', 'hideApproved', 'collapsedLanes'].includes(k), k);
 });
 
 test('unknown stored keys are dropped on read', () => {

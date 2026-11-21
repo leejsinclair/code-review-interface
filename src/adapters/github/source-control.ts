@@ -3,7 +3,7 @@
 // through `authorize` (R6). A PR head, including a fork's, is fetched from the base repository's
 // `refs/pull/<n>/head` (R10).
 
-import { mapLimited } from '../concurrent.ts';
+import { approvedAcross } from '../approved-by-me.ts';
 import { AdapterError, type AdapterDeps, type AdapterDescriptor, type SignInCheck } from '../../contracts/shared.ts';
 import type {
   ChangedFileInfo,
@@ -73,6 +73,7 @@ function toPullRequest(raw: Json): PullRequestInfo {
     title: str(raw.title),
     description: str(raw.body),
     author: str(obj(raw.user).login),
+    authorHandle: str(obj(raw.user).login),
     sourceBranch: str(obj(raw.head).ref),
     targetBranch: str(obj(raw.base).ref),
     headCommit: str(obj(raw.head).sha).toLowerCase(),
@@ -117,6 +118,7 @@ function toComment(raw: Json): Comment {
   const created = iso(raw.created_at);
   const updated = iso(raw.updated_at);
   const id = String(raw.id);
+  const startsThread = raw.in_reply_to_id === undefined || raw.in_reply_to_id === null;
   const line = raw.line ?? raw.original_line;
   let anchor: Anchor | null = null;
   if (typeof raw.path === 'string' && typeof line === 'number') {
@@ -131,8 +133,9 @@ function toComment(raw: Json): Comment {
   }
   return {
     id,
-    threadId: raw.in_reply_to_id === undefined || raw.in_reply_to_id === null ? id : String(raw.in_reply_to_id),
-    author: { id: String(user.id ?? str(user.login)), name: str(user.login) },
+    threadId: startsThread ? id : String(raw.in_reply_to_id),
+    startsThread,
+    author: { id: String(user.id ?? str(user.login)), name: str(user.login), handle: str(user.login) },
     body: str(raw.body),
     createdAt: created,
     editedAt: updated !== created && updated !== '' ? updated : null,
@@ -188,10 +191,11 @@ export function createGithubSourceControl(deps: AdapterDeps): SourceControlProvi
 
     currentUser: readUser,
 
-    cloneLocations: (repo) => [`github.com/${repo.id.toLowerCase()}`],
+    // `ssh.github.com` is GitHub's SSH-over-443 host (the port is dropped before this is asked).
+    cloneLocations: (repo) => [`github.com/${repo.id.toLowerCase()}`, `ssh.github.com/${repo.id.toLowerCase()}`],
 
     repositoryForRemote(remote) {
-      const match = /^github\.com\/([^/]+\/[^/]+)$/.exec(remote);
+      const match = /^(?:ssh\.)?github\.com\/([^/]+\/[^/]+)$/.exec(remote);
       return match === null ? null : (match[1] ?? null);
     },
 
@@ -204,20 +208,12 @@ export function createGithubSourceControl(deps: AdapterDeps): SourceControlProvi
 
     async approvedByMe(repo, numbers) {
       const login = await myLogin();
-      const approvedOne = async (number: number): Promise<boolean> => {
+      return approvedAcross(GITHUB_ID, numbers, async (number) => {
         const reviews = await getPages(`${API}/repos/${repoPath(repo)}/pulls/${number}/reviews?per_page=100`);
         // Reviews arrive oldest first; comments do not change the verdict, so only my last real one counts.
         const mine = reviews.filter((r) => str(obj(r.user).login).toLowerCase() === login && str(r.state) !== 'COMMENTED' && str(r.state) !== 'PENDING');
-        return mine.at(-1) !== undefined && str(mine.at(-1)?.state) === 'APPROVED';
-      };
-      const flags = await mapLimited(numbers, 4, async (number) => {
-        try {
-          return await approvedOne(number);
-        } catch {
-          return false; // one PR failing must not hide the others' approvals
-        }
+        return str(mine.at(-1)?.state) === 'APPROVED';
       });
-      return new Set(numbers.filter((_, i) => flags[i]));
     },
 
     async listComments(repo, number) {

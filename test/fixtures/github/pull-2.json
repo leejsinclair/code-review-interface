@@ -22,12 +22,12 @@
       "locked": false,
       "title": "Fix typo in README",
       "user": {
-        "login": "bob-dev",
+        "login": "bob-contrib",
         "id": 41002,
         "node_id": "MDQ6VXNlcj41002",
         "avatar_url": "https://avatars.githubusercontent.com/u/41002?v=4",
-        "url": "https://api.github.com/users/bob-dev",
-        "html_url": "https://github.com/bob-dev",
+        "url": "https://api.github.com/users/bob-contrib",
+        "html_url": "https://github.com/bob-contrib",
         "type": "User",
         "site_admin": false
       },

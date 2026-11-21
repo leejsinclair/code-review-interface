@@ -4,6 +4,7 @@
 //
 // Each target builds its adapter by calling the adapter's own factory over the read-only fetch.
 
+import { readFileSync } from 'node:fs';
 import type { AdapterDeps, Authorize, PlatformId } from '../../src/contracts/shared.ts';
 import type { SourceControlProvider } from '../../src/contracts/source-control.ts';
 import { createBitbucketCloudSourceControl } from '../../src/adapters/bitbucket/source-control.ts';
@@ -87,6 +88,9 @@ function fixtureTarget(input: FixtureTargetInput): SourceControlTarget {
   };
 }
 
+const githubScenario = (name: string): FixtureEntry[] =>
+  JSON.parse(readFileSync(new URL(`../fixtures/github/scenarios/${name}.json`, import.meta.url), 'utf8')) as FixtureEntry[];
+
 runSourceControlContract(
   fixtureTarget({
     id: 'github',
@@ -94,6 +98,11 @@ runSourceControlContract(
     host: 'api.github.com',
     factory: createGithubSourceControl,
     entries: {
+      // Scenario data lives in test/fixtures/github/scenarios/ (served ahead of the plain fixtures).
+      'comment-threads': githubScenario('comment-threads'),
+      'orphaned-threads': githubScenario('orphaned-threads'),
+      'approvals-partial': githubScenario('approvals-partial'),
+      'approvals-all-fail': githubScenario('approvals-all-fail'),
       unauthorized: [
         {
           request: { url: 'https://api.github.com/repos/acme/private-widgets/pulls?state=open&per_page=100' },
@@ -120,6 +129,34 @@ runSourceControlContract(
       deletedPr: 404,
       unauthorizedRepo: { platform: 'github', id: 'acme/private-widgets' },
       finishedPulls: { merged: 4, closed: 5 },
+      authors: { pullAuthorHandle: 'alice-dev', otherAuthorPull: { number: 2, authorHandle: 'bob-contrib' } },
+      threads: {
+        number: 1,
+        comments: [
+          { id: '5001', authorHandle: 'bob-reviewer', threadId: '5001', startsThread: true },
+          { id: '5002', authorHandle: 'alice-dev', threadId: '5001', startsThread: false },
+          { id: '5003', authorHandle: 'bob-reviewer', threadId: '5001', startsThread: false },
+          { id: '5004', authorHandle: 'alice-dev', threadId: '5001', startsThread: false },
+        ],
+      },
+      // GitHub keeps replies to a deleted comment under the original thread root.
+      orphans: {
+        number: 1,
+        orphanPlaceholder: true,
+        comments: [
+          { id: '5012', threadId: '5011', startsThread: false },
+          { id: '5014', threadId: '5011', startsThread: false },
+        ],
+      },
+      approvals: { partial: { numbers: [1, 2, 3], approved: [1] }, allFail: { numbers: [1, 2, 3] } },
+      clones: {
+        locations: ['github.com/acme/widgets', 'ssh.github.com/acme/widgets'],
+        recognised: [
+          { remote: 'github.com/acme/widgets', id: 'acme/widgets' },
+          { remote: 'ssh.github.com/acme/widgets', id: 'acme/widgets' },
+        ],
+        unrecognised: ['git.example.invalid/acme/widgets'],
+      },
     },
   }),
 );
@@ -156,6 +193,38 @@ runSourceControlContract(
       webPage: { number: 7, url: 'https://bitbucket.org/acme/widgets/pull-requests/7' },
       deletedPr: 404,
       unauthorizedRepo: { platform: 'bitbucket-cloud', id: 'acme/private-widgets' },
+      authors: {
+        pullAuthorHandle: '712020:aa11c000-0000-4000-8000-000000000001',
+        otherAuthorPull: { number: 3, authorHandle: '712020:bb22c000-0000-4000-8000-000000000002' },
+      },
+      threads: {
+        number: 1,
+        comments: [
+          { id: '6001', authorHandle: '712020:bb22c000-0000-4000-8000-000000000002', threadId: '6001', startsThread: true },
+          { id: '6002', authorHandle: '712020:aa11c000-0000-4000-8000-000000000001', threadId: '6001', startsThread: false },
+          { id: '6003', authorHandle: '712020:bb22c000-0000-4000-8000-000000000002', threadId: '6001', startsThread: false },
+          { id: '6004', authorHandle: '712020:aa11c000-0000-4000-8000-000000000001', threadId: '6001', startsThread: false },
+        ],
+      },
+      // Bitbucket keeps a deleted comment's replies under it; the thread has no starting comment.
+      orphans: {
+        number: 2,
+        orphanPlaceholder: true,
+        comments: [
+          { id: '6012', threadId: '6011', startsThread: false },
+          { id: '6014', threadId: '6011', startsThread: false },
+        ],
+      },
+      // Pull request 9 answers 500 (pullrequest-9-error.json): reading its participants fails.
+      approvals: { partial: { numbers: [1, 9], approved: [1] }, allFail: { numbers: [9] } },
+      clones: {
+        locations: ['bitbucket.org/acme/widgets', 'ssh.bitbucket.org/acme/widgets'],
+        recognised: [
+          { remote: 'bitbucket.org/acme/widgets', id: 'acme/widgets' },
+          { remote: 'ssh.bitbucket.org/acme/widgets', id: 'acme/widgets' },
+        ],
+        unrecognised: ['git.example.invalid/acme/widgets'],
+      },
     },
   }),
 );

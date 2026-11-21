@@ -158,3 +158,88 @@ test('X.11 the read layer does not export a write path and the write layer does 
   const writeMod = (await import('../../src/adapters/write-http.ts')) as Record<string, unknown>;
   assert.equal(writeMod['createReadOnlyFetch'], undefined);
 });
+
+// VO-029 (FR-017, VIII.3): a write clears the request memo, successful or not, and the write layer never reads it.
+// API required from src/adapters/request-memo.ts (T017): export function withRequestScope<T>(fn: () => Promise<T>): Promise<T>;
+// createReadOnlyFetch memoises GETs inside a scope; createWriteFetch clears the scope's memo after every write.
+async function memoSetup(writeStatus: number) {
+  const { withRequestScope } = await import('../../src/adapters/request-memo.ts');
+  const { createReadOnlyFetch } = await import('../../src/adapters/read-only-http.ts');
+  const mod = (await import('../../src/adapters/write-http.ts')) as WriteHttp;
+  let gets = 0;
+  const net = network((_url, init) => {
+    if ((init?.method ?? 'GET') === 'GET') {
+      gets += 1;
+      return new Response(JSON.stringify({ read: gets }), { status: 200, headers: { 'content-type': 'application/json' } });
+    }
+    return new Response('{}', { status: writeStatus });
+  });
+  const read = createReadOnlyFetch({ platform: PLATFORM, fetch: net.logged.fetch });
+  const write = mod.createWriteFetch({ platform: PLATFORM, fetch: net.logged.fetch, allowlist: ALLOW });
+  return { withRequestScope, read, write, gets: () => gets, net };
+}
+
+const READ_URL = `${BASE}/repos/o/r/pulls/1`;
+
+test('VO-029 inside a scope a repeated GET is served from one read', async () => {
+  const { withRequestScope, read, gets } = await memoSetup(201);
+  await withRequestScope(async () => {
+    await read(READ_URL);
+    await read(READ_URL);
+  });
+  assert.equal(gets(), 1);
+});
+
+test('VO-029 a successful write clears the memo, so the next read goes to the network', async () => {
+  const { withRequestScope, read, write, gets } = await memoSetup(201);
+  await withRequestScope(async () => {
+    await read(READ_URL);
+    await write(OK_URL, { method: 'POST', body: '{}' });
+    const after = (await read(READ_URL).then((r) => r.json())) as { read: number };
+    assert.equal(after.read, 2);
+  });
+  assert.equal(gets(), 2);
+});
+
+test('VO-029 a failing write clears the memo too', async () => {
+  const { withRequestScope, read, write, gets } = await memoSetup(500);
+  await withRequestScope(async () => {
+    await read(READ_URL);
+    await rejection(write(OK_URL, { method: 'POST', body: '{}' }));
+    await read(READ_URL);
+  });
+  assert.equal(gets(), 2);
+});
+
+test('VO-029 a write the platform rejects with 422 still clears the memo', async () => {
+  const { withRequestScope, read, write, gets } = await memoSetup(422);
+  await withRequestScope(async () => {
+    await read(READ_URL);
+    await rejection(write(OK_URL, { method: 'POST', body: '{}' }));
+    await read(READ_URL);
+  });
+  assert.equal(gets(), 2);
+});
+
+test('VO-029 the write layer has no path that reads the memo: a write is always sent, and it imports no reader', async () => {
+  const { withRequestScope, read, write, net } = await memoSetup(201);
+  await withRequestScope(async () => {
+    await read(READ_URL);
+    await write(OK_URL, { method: 'POST', body: '{}' });
+    await write(OK_URL, { method: 'POST', body: '{}' });
+  });
+  assert.equal(net.logged.writes.length, 2, 'both writes reached the network');
+  const { readFileSync } = await import('node:fs');
+  const source = readFileSync(new URL('../../src/adapters/write-http.ts', import.meta.url), 'utf8');
+  const imports = [...source.matchAll(/import\s*\{([^}]*)\}\s*from\s*'[^']*request-memo[^']*'/g)].map((m) => m[1] ?? '');
+  for (const names of imports) assert.doesNotMatch(names, /read|get|lookup|memoi[sz]e|cached/i, 'only a clearing function is imported');
+  const memoMod = (await import('../../src/adapters/request-memo.ts')) as Record<string, unknown>;
+  assert.equal(typeof memoMod['withRequestScope'], 'function');
+});
+
+test('VO-029 outside a scope nothing is kept', async () => {
+  const { read, gets } = await memoSetup(201);
+  await read(READ_URL);
+  await read(READ_URL);
+  assert.equal(gets(), 2);
+});

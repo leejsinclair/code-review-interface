@@ -37,7 +37,7 @@ import type { Lanes } from './lanes.ts';
 import type { Limits } from './limits.ts';
 import { buildPrompt, type PromptDocument } from './prompt.ts';
 import { finaliseAlignment, type FinalCitation, type FinalStatement } from './spec-alignment.ts';
-import { chooseCopy, chooseDocumentFiles, keyMatchesName, matchingFolders, type SpecCandidate } from './spec-match.ts';
+import { buildTerms, chooseCopy, chooseDocumentFiles, matchingFolders, termMatchesName, type SpecCandidate, type SpecTerm } from './spec-match.ts';
 
 export type SpecContextEnvironment = { repositoryId: string; clonePath: string | null; tracker: IssueTracker; limits: Limits };
 
@@ -181,11 +181,13 @@ export function createSpecContextService(deps: SpecContextDeps): SpecContextServ
     const lookupId = newId();
     const text = [snapshot.sourceBranch.name, snapshot.title, snapshot.description].join('\n');
     const keys = [...new Set(env.tracker.extractReferences(text).map((r) => String(r.key)))];
-    const base = { id: lookupId, snapshotId, lookedAt: now(), trigger, keys, searched: [] as LookupParts['lookup']['searched'] };
+    // With no tracker key the terms are the branch name and its last segment (feature 007, R12).
+    const allTerms = buildTerms(keys, snapshot.sourceBranch.name);
+    const base = { id: lookupId, snapshotId, lookedAt: now(), trigger, keys: allTerms.map((term) => term.value), searched: [] as LookupParts['lookup']['searched'] };
 
-    if (keys.length === 0) {
+    if (allTerms.length === 0) {
       return {
-        lookup: { ...base, enclosingNote: null, outcome: 'no-key', reason: 'No key was found to search with in the branch name, title or description.' },
+        lookup: { ...base, enclosingNote: null, outcome: 'no-key', reason: 'No key or branch name was found to search with in the branch name, title or description.' },
         sources: [],
         documents: [],
       };
@@ -206,15 +208,17 @@ export function createSpecContextService(deps: SpecContextDeps): SpecContextServ
       try {
         const url = (await manager.readRemotes(repo.clone))[0];
         if (url === undefined) throw new Error('the clone has no remote');
-        const heads = await manager.listRemoteBranches(repo.clone, url);
-        const considered = heads.filter((h) => h.branch === 'develop' || keys.some((k) => keyMatchesName(k, h.branch)));
+        const { heads, defaultBranch } = await manager.listRemoteBranches(repo.clone, url);
+        // The default branch, `develop` when it exists, and the matching branches; each head once.
+        const considered = heads.filter((h) => h.branch === defaultBranch || h.branch === 'develop' || allTerms.some((term) => termMatchesName(term, h.branch)));
         base.searched.push({ repository: repo.id, role: repo.role, heads: considered.map((h) => h.branch) });
         searchedAny = true;
         for (const head of considered) {
           const fetched = await manager.fetchSpecRef({ clonePath: repo.clone, remoteUrl: url, branch: head.branch, sessionId, snapshotId, n: (refN += 1) });
           const paths = await manager.listSpecFiles(repo.clone, fetched.commit);
-          for (const key of keys) {
-            for (const folder of matchingFolders(key, paths)) {
+          for (const term of allTerms) {
+            const key = term.value;
+            for (const folder of matchingFolders(term, paths)) {
               const chosen = chooseDocumentFiles(paths.filter((p) => p.startsWith(`${folder}/`)));
               for (const [kind, file] of [['specification', chosen.specFile], ['tdd-evidence', chosen.evidenceFile]] as const) {
                 if (file === null) continue;
@@ -235,10 +239,21 @@ export function createSpecContextService(deps: SpecContextDeps): SpecContextServ
     const sources: SpecSourceRecord[] = [];
     const documents: SpecDocumentRecord[] = [];
     const noneSearched = !searchedAny;
-    for (const key of keys) {
+    // Tracker keys each get a result. Branch terms name one spec between them: the first that found a folder, else
+    // the last (the segment a folder can match), so the same folder is never reported twice or as missing.
+    const hasFolder = (term: SpecTerm): boolean => [...candidates.keys()].some((k) => k.startsWith(`${term.value}\n`));
+    const resultTerms: SpecTerm[] =
+      allTerms[0]?.kind === 'key' ? allTerms : [allTerms.find(hasFolder) ?? (allTerms.at(-1) as SpecTerm)];
+    const resultKeys = resultTerms.map((term) => term.value);
+    base.keys = resultKeys;
+    // A key matches branches named after it; for branch terms the matching branch is the source branch itself.
+    const matcherFor = (term: SpecTerm) => (branch: string): boolean =>
+      term.kind === 'key' ? termMatchesName(term, branch) : allTerms.some((t) => termMatchesName(t, branch));
+    for (const term of resultTerms) {
+      const key = term.value;
       for (const kind of ['specification', 'tdd-evidence'] as const) {
         const bucket = candidates.get(`${key}\n${kind}`);
-        const choice = bucket === undefined ? null : chooseCopy(key, [...bucket.keys()]);
+        const choice = bucket === undefined ? null : chooseCopy(matcherFor(term), [...bucket.keys()]);
         if (choice === null || bucket === undefined) {
           const sawFolder = [...candidates.keys()].some((k) => k.startsWith(`${key}\n`));
           const reason = failures.length > 0 && !sawFolder ? `read failed: ${failures[0]}` : noneSearched ? 'no clone' : sawFolder ? (kind === 'specification' ? 'no specification file' : 'no evidence file') : 'no folder';
@@ -674,7 +689,6 @@ export function createSpecContextService(deps: SpecContextDeps): SpecContextServ
       const { lookup: l } = lookup;
       const gaps: SpecLookupGap[] = [];
       if (l.outcome === 'no-key') gaps.push({ kind: 'no-key', message: l.reason ?? 'No key was found to search with.' });
-      if (l.enclosingNote === 'not-inside-project') gaps.push({ kind: 'no-enclosing-repository', message: 'The repository is not inside a project repository known to the workspace, so only its own repository was searched.' });
       if (l.outcome === 'failed') gaps.push({ kind: 'read-failed', message: firstLine(l.reason ?? 'read failed') });
       const status: SpecContextReport['status'] = (inflightLookup.get(snapshotId) ?? 0) > 0 ? 'searching' : l.outcome === 'failed' ? 'failed' : l.outcome === 'found' || l.outcome === 'partial' ? 'ready' : 'none';
       const alignment = alignmentOf(sessionId, snapshotId, snapshot.headCommit, lookup, stale);

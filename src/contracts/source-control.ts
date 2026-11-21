@@ -15,8 +15,14 @@ export type PullRequestInfo = {
   title: string;
   description: string;
   author: string;
+  /** The author's account handle on the platform; `''` when the platform reports none. */
+  authorHandle: string;
   sourceBranch: string;
   targetBranch: string;
+  /**
+   * The head commit id. On a list row it may be abbreviated, so two commit ids are compared by prefix,
+   * never by strict equality (FR-019).
+   */
   headCommit: string;
   state: PrState;
   /** ISO 8601. */
@@ -71,6 +77,9 @@ export interface SourceControlProvider {
   /**
    * Which of these open PRs the signed-in reviewer has already approved (an approval later withdrawn,
    * dismissed or overridden by a change request does not count). Read-only.
+   * A check that fails for some pull requests is logged, and the pull requests whose check succeeded are
+   * still reported (partial result). When the check fails for every pull request it rejects with an
+   * AdapterError of code `unavailable`, so the caller can report the check as unavailable (FR-013).
    */
   approvedByMe(repo: RepoRef, numbers: readonly number[]): Promise<Set<number>>;
   /** FR-002, FR-052. A deleted PR rejects with AdapterError code `not_found`. */

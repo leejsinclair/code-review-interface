@@ -36,7 +36,7 @@ const UNCLASSIFIED = 4;
 
 const key = (repository: string, number: number): string => `${repository.toLowerCase()}#${number}`;
 
-/** Bitbucket list rows carry an abbreviated head, so one commit id may be a prefix of the other. */
+/** Some platforms' list rows carry an abbreviated head, so one commit id may be a prefix of the other. */
 export function sameCommit(a: string, b: string): boolean {
   const x = a.toLowerCase();
   const y = b.toLowerCase();
