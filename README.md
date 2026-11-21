@@ -4,6 +4,58 @@ A local workbench for understanding a pull request before you review it. It gath
 
 It runs on your machine: a Node server bound to `127.0.0.1` and a browser UI. Nothing leaves the machine except calls to your configured platforms and the AI provider you have installed. Calls to the platforms are read-only, with one exception: the reviewer actions you start yourself (comment, reply, edit or delete your own comment, approve, request changes, withdraw). Each is one click that posts at once, is refused if the pull request has new commits, and is recorded locally. The product never merges, declines or closes a pull request.
 
+## Features
+
+The screenshots come from a seeded demo on a local GitLab, with scripted AI text (see [Development](#development)).
+
+### Review queue
+
+Home lists the open pull requests in every clone under your base folder. The ones you have opened form a review queue: those with new commits first, then the ones in progress, then the ones you approved, riskiest first within each.
+
+![Home screen listing open merge requests from two demo repositories, grouped for review](docs/screenshots/review-queue.png)
+
+### Overview summary
+
+Opening a pull request starts a review session. The Overview leads with an AI summary of the change and its functional and technical impact. Every claim is labelled Evidence or Inference, and every Evidence reference opens the lines it cites.
+
+![Overview of a merge request with its AI summary, each claim labelled Evidence or Inference](docs/screenshots/overview-summary.png)
+
+### Review focus
+
+Every changed file gets a risk class from built-in rules, with the reasons and rule IDs. Critical and Elevated files come first, then the files that are only a candidate for reduced review, such as lockfiles and generated files.
+
+![Review focus listing an authentication file and a migration as Critical, with a generated file as a reduced-review candidate](docs/screenshots/review-focus.png)
+
+### Diff with risk
+
+The Diff screen shows each file's change beside its risk class and the rule that set it.
+
+![Diff of the session token file with its Critical risk class and the rule that set it](docs/screenshots/diff-risk.png)
+
+### Ask a question
+
+Ask about the change in your own words. The answer streams in as claims, each labelled Evidence or Inference, and a citation the workbench cannot find in the code is marked rather than shown as fact.
+
+![A question about the session token answered with Evidence claims that cite the changed lines](docs/screenshots/ask-question.png)
+
+### Specification alignment
+
+When the pull request comes with a feature spec, the Overview shows one row per acceptance criterion, what the code and the TDD evidence show for it, and whether testing looks sufficient.
+
+![Specification panel with one row per acceptance criterion and a verdict that testing looks incomplete](docs/screenshots/spec-alignment.png)
+
+### Comments and replies
+
+Comment threads from the platform show on the lines they belong to. You can comment on a line, reply, and edit or delete your own comments.
+
+![A line comment on the cart rounding change with a reply, shown in the diff](docs/screenshots/comments.png)
+
+### Review decision
+
+Approve, request changes or withdraw your decision from the Overview. On GitLab you can approve and withdraw; Request changes shows as unavailable there, with the reason.
+
+![Review decision panel showing the approval, with Request changes unavailable on GitLab](docs/screenshots/review-decision.png)
+
 ## Requirements
 
 - Node.js 24 or later
@@ -44,6 +96,8 @@ Each platform has its own sign-in form. Credentials go to the operating system's
 | GitHub (repository and issues) | A personal access token with read access to the repository |
 | Bitbucket Cloud | Your Atlassian account email and an API token with read access to repositories and pull requests |
 | Jira Cloud | Your Atlassian account email and an API token |
+| GitLab (repository) | A personal access token with the `read_api` scope, or `api` to comment and approve |
+| GitLab Issues | A personal access token with the `read_api` scope |
 
 If a token expires or is revoked, the next call that needs it sends you back to the sign-in screen.
 
@@ -58,13 +112,13 @@ Every changed file gets one of four risk classes: **Low**, **Normal**, **Elevate
 
 ## Specification
 
-The Overview shows the specification the pull request was built from, in place of a changed-files list (the Diff screen keeps the file list). For each Jira key on the pull request (branch name, title, description) the workbench looks for a `specs/<folder>` whose name contains the whole key, first in the pull request's own repository, then in the project repository whose clone encloses it on your disk (for example `apps/hd-job` inside `project-hd-v3`). It considers `develop` and every remote branch whose name contains the key, and reads the file ending in `spec.md` and `tdd-evidence.md` (in the folder or its `tests/` subfolder), each from the best place it exists: the pull request's own repository first, a matching branch over `develop`, then the most recent commit. The panel says which copy it used and by which rule.
+The Overview shows the specification the pull request was built from, in place of a changed-files list (the Diff screen keeps the file list). For each issue key on the pull request (branch name, title, description) the workbench looks for a `specs/<folder>` whose name contains the whole key. When the pull request names no issue key, it looks for a folder named after the branch (branch `014-discount-codes` finds `specs/014-discount-codes`). It looks first in the pull request's own repository, then in the project repository whose clone encloses it on your disk (for example `apps/hd-job` inside `project-hd-v3`). It considers `develop` and every remote branch whose name contains the key, and reads the file ending in `spec.md` and `tdd-evidence.md` (in the folder or its `tests/` subfolder), each from the best place it exists: the pull request's own repository first, a matching branch over `develop`, then the most recent commit. The panel says which copy it used and by which rule.
 
 The panel then shows a summary of each document, one row per acceptance criterion (what the code and the TDD evidence show for it), a verdict on whether testing looks sufficient, and scope deviations in both directions. Everything the AI says is labelled **Inferred** and cites the passage or changed lines it comes from; a citation the workbench cannot find in the stored text is marked and kept, never shown as fact. A missing, stale or unreadable document is a visible gap with its reason, never a pass. Reading uses read-only git into refs the workbench owns (`refs/prwb/...`); your branch, index, stash and working files are never touched, and the documents go only to your configured AI provider.
 
 ## What the workbench never does
 
-- It never approves, merges, comments on or changes anything on any platform. Every platform call is a read.
+- It never changes anything on a platform except through the reviewer actions you start yourself (comment, reply, edit or delete your own comment, approve, request changes, withdraw). Every other platform call is a read. It never merges, declines or closes a pull request.
 - It never touches your working copy. It fetches PR heads into `refs/prwb/*` and checks them out in its own worktrees under its data directory. It never checks out, stashes or resets in your clone, never runs your git hooks, and never runs `git worktree prune`. It removes only its own worktrees, by their paths.
 - It never runs the AI provider with write, shell or network tools. Claude Code runs with `--restricted`, the read and search tools only, no MCP servers and no project settings, hooks or instructions. Its working directory is an empty folder, and the PR's worktree is the only directory it may read. If a restriction cannot be enforced, the workbench either refuses to run the provider or names the missing restriction on every answer.
 - It never scores, ranks or times a person.
@@ -91,6 +145,18 @@ npm run dev         # rebuild the UI on change and run from source
 ```
 
 `npm run test:live` runs `test/live/` against the installed Claude Code CLI. It checks that a hostile PR cannot run hooks or plant instructions, that a business question gets a business answer, and that the provider cannot read outside its workspace or reach the network. It needs the CLI installed and signed in. Without that it fails rather than skipping.
+
+### Demo and screenshots
+
+The README screenshots are captures of the real workbench against a demo on the local GitLab test instance (start it as described in [`gitlab/README.md`](gitlab/README.md)):
+
+```sh
+npm run gitlab:demo         # seed the demo group prwb-demo/acme; a second run creates nothing
+npm run screenshots         # capture every Features view into docs/screenshots/
+npm run gitlab:demo:clean   # remove the demo subgroup and the demo users, nothing else
+```
+
+`npm run screenshots` runs the workbench with its own temporary data folder, a stand-in keychain and a scripted AI provider, so your config is untouched and a rerun gives the same pictures. A view that does not reach its expected state is named, keeps its previous image, and fails the command.
 
 ### UI dependencies for the Markdown preview
 
